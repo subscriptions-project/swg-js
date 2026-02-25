@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { ActivityIframeView } from '../../ui/activity-iframe-view';
-import { Doc } from '../../model/doc';
+import {ActivityIframeView} from '../../ui/activity-iframe-view';
+import {Doc} from '../../model/doc';
 import {
   ElementCoordinates,
   LoginButtonCoordinates,
 } from '../../proto/api_messages';
-import { createElement } from '../../utils/dom';
-import { setImportantStyles } from '../../utils/style';
+import {createElement} from '../../utils/dom';
+import {setImportantStyles} from '../../utils/style';
 
 /**Position of the overlay inside the iframe.*/
 interface ValidatedCoordinates {
@@ -39,6 +39,7 @@ export class GisLoginFlow {
   private readonly overlays = new Map<string, HTMLElement>();
   private readonly positions = new Map<string, ValidatedCoordinates>();
   private rafId: number | null = null;
+  private readonly resizeHandler = this.scheduleUpdate.bind(this);
 
   constructor(
     private readonly doc: Doc,
@@ -50,7 +51,7 @@ export class GisLoginFlow {
       LoginButtonCoordinates,
       this.handleLoginButtonCoordinates.bind(this)
     );
-    this.doc.getWin().addEventListener('resize', this.scheduleUpdate.bind(this));
+    this.doc.getWin().addEventListener('resize', this.resizeHandler);
   }
 
   /**
@@ -64,6 +65,7 @@ export class GisLoginFlow {
     if (this.rafId) {
       cancelAnimationFrame(this.rafId);
     }
+    this.doc.getWin().removeEventListener('resize', this.resizeHandler);
   }
 
   private updateOverlays() {
@@ -77,8 +79,8 @@ export class GisLoginFlow {
       const iframeBoundingBox = iframe.getBoundingClientRect();
       const iframeHeight = iframeBoundingBox.height;
       const iframeWidth = iframeBoundingBox.width;
-      const windowWidth = this.doc.getWin().innerWidth;
-      const windowHeight = this.doc.getWin().innerHeight;
+      const windowWidth = this.doc.getWin()./*OK*/ innerWidth;
+      const windowHeight = this.doc.getWin()./*OK*/ innerHeight;
 
       const offsetLeft = (windowWidth - iframeWidth) / 2 + p.left;
       const offsetTop = windowHeight - (iframeHeight - p.top);
@@ -135,7 +137,7 @@ export class GisLoginFlow {
     ) {
       return null;
     }
-    return { id, left, top, width, height };
+    return {id, left, top, width, height};
   }
 
   private createOverlay(key: string) {
@@ -154,7 +156,7 @@ export class GisLoginFlow {
 
   private async login() {
     const idToken = await this.getIdToken();
-    // Sync token, update entitlements, issue update to iframe.
+    // TODO: Sync token, update entitlements, issue update to iframe.
     this.onGisIdToken(idToken);
   }
 
@@ -165,8 +167,7 @@ export class GisLoginFlow {
       const tc = google.accounts.oauth2.initTokenClient({
         'client_id': this.clientId,
         'scope': 'openid email profile',
-        'callback': (response: any) => {
-          console.log(response);
+        'callback': (_unusedResponse: unknown) => {
           resolve('fakeIdToken');
         },
       });

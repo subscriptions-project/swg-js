@@ -14,120 +14,151 @@
  * limitations under the License.
  */
 
+import {
+  ElementCoordinates,
+  LoginButtonCoordinates,
+} from '../../proto/api_messages';
 import {GisLoginFlow} from './gis-login-flow';
-import {GlobalDoc} from '../../model/doc';
+import {getStyle} from '../../utils/style';
 
 describes.realWin('GisLoginFlow', (env) => {
-  let win;
   let doc;
-  let flow;
-  let clientOptionsMock;
-  let iframe;
+  let win;
+  let onGisIdToken;
+  let activityIframeView;
+  let gisLoginFlow;
+  let messageMap;
 
   beforeEach(() => {
+    messageMap = {};
+
     win = env.win;
-    doc = new GlobalDoc(win);
-    clientOptionsMock = {
-      gisClientId: 'test-client-id',
-      onGisIdToken: sandbox.spy(),
-    };
-    flow = new GisLoginFlow(doc, clientOptionsMock);
-
-    iframe = doc.createElement('iframe');
-    doc.getBody().appendChild(iframe);
-
-    // Mock iframe position/dimensions
-    Object.defineProperties(iframe, {
-      offsetLeft: {value: 100},
-      offsetTop: {value: 100},
-      offsetWidth: {value: 300},
-      offsetHeight: {value: 300},
+    sandbox.stub(win, 'addEventListener').callThrough();
+    sandbox.stub(self, 'requestAnimationFrame').callsFake((cb) => {
+      cb();
+      return 1;
     });
+    sandbox.stub(self, 'cancelAnimationFrame');
+
+    doc = {
+      getWin: () => win,
+      getRootNode: () => win.document,
+      getBody: () => win.document.body,
+    };
+
+    onGisIdToken = sandbox.spy();
+
+    const el = win.document.createElement('iframe');
+    sandbox.stub(el, 'getBoundingClientRect').returns({
+      width: 500,
+      height: 500,
+      left: 0,
+      top: 0,
+      right: 500,
+      bottom: 500,
+    });
+
+    activityIframeView = {
+      on: (ctor, cb) => {
+        const messageType = new ctor();
+        const messageLabel = messageType.label();
+        messageMap[messageLabel] = cb;
+      },
+      getElement: () => el,
+    };
+
+    gisLoginFlow = new GisLoginFlow(
+      doc,
+      'client-id',
+      onGisIdToken,
+      activityIframeView
+    );
   });
 
   afterEach(() => {
-    flow.dispose();
+    gisLoginFlow.dispose();
+    delete self.google; // Clean up the fake google object
   });
 
-  it('should create overlay with correct style', () => {
-    const position = {left: 10, top: 10, width: 50, height: 50};
-    flow.updateOverlays(iframe, {key1: position});
-
-    const overlay = doc
-      .getBody()
-      .querySelector('div[style*="z-index: 2147483647"]');
-    expect(overlay).to.exist;
-    expect(overlay.style.left).to.equal('110px'); // 100 + 10
-    expect(overlay.style.top).to.equal('110px'); // 100 + 10
-    expect(overlay.style.width).to.equal('50px');
-    expect(overlay.style.height).to.equal('50px');
-    expect(overlay.style.visibility).to.equal('visible');
+  it('listens for resize events on the window', () => {
+    expect(win.addEventListener).to.have.been.calledWith('resize');
   });
 
-  it('should create multiple overlays', () => {
-    const pos1 = {left: 10, top: 10, width: 50, height: 50};
-    const pos2 = {left: 60, top: 60, width: 20, height: 20};
-    flow.updateOverlays(iframe, {key1: pos1, key2: pos2});
+  it('creates an overlay bounds on message and styles it appropriately', () => {
+    const coordinates = new ElementCoordinates();
+    coordinates.setId('1');
+    coordinates.setLeft(10);
+    coordinates.setTop(10);
+    coordinates.setWidth(100);
+    coordinates.setHeight(30);
 
-    const overlays = doc
-      .getBody()
-      .querySelectorAll('div[style*="z-index: 2147483647"]');
-    expect(overlays.length).to.equal(2);
+    const message = new LoginButtonCoordinates();
+    message.setLoginButtonCoordinatesList([coordinates]);
+
+    win.innerWidth = 1000;
+    win.innerHeight = 1000;
+
+    messageMap[message.label()](message);
+
+    const overlays = win.document.body.querySelectorAll('div');
+    expect(overlays.length).to.equal(1);
+
+    // iframe is 500x500. Inner window is 1000x1000.
+    // offsetLeft = (1000 - 500) / 2 + 10 = 250 + 10 = 260
+    // offsetTop = 1000 - (500 - 10) = 1000 - 490 = 510
+    expect(getStyle(overlays[0], 'left')).to.equal('260px');
+    expect(getStyle(overlays[0], 'top')).to.equal('510px');
+    expect(getStyle(overlays[0], 'width')).to.equal('100px');
+    expect(getStyle(overlays[0], 'height')).to.equal('30px');
   });
 
-  it('should remove overlays not in the list', () => {
-    const pos1 = {left: 10, top: 10, width: 50, height: 50};
-    flow.updateOverlays(iframe, {key1: pos1});
-    expect(
-      doc.getBody().querySelectorAll('div[style*="z-index: 2147483647"]').length
-    ).to.equal(1);
+  it('ignores invalid coordinate payload', () => {
+    const coordinates = new ElementCoordinates();
+    coordinates.setId('1');
 
-    flow.updateOverlays(iframe, {});
-    expect(
-      doc.getBody().querySelectorAll('div[style*="z-index: 2147483647"]').length
-    ).to.equal(0);
+    const message = new LoginButtonCoordinates();
+    message.setLoginButtonCoordinatesList([coordinates]);
+
+    messageMap[message.label()](message);
+
+    const overlays = win.document.body.querySelectorAll('div');
+    expect(overlays.length).to.equal(0);
   });
 
-  it('should hide overlay if clipped out', () => {
-    // Position outside iframe bounds
-    const position = {left: -200, top: 0, width: 50, height: 50};
-    flow.updateOverlays(iframe, {key1: position});
+  it('calls login when overlay is clicked and invokes the callback', async () => {
+    const coordinates = new ElementCoordinates();
+    coordinates.setId('1');
+    coordinates.setLeft(10);
+    coordinates.setTop(10);
+    coordinates.setWidth(100);
+    coordinates.setHeight(30);
 
-    const overlay = doc
-      .getBody()
-      .querySelector('div[style*="z-index: 2147483647"]');
-    expect(overlay).to.exist;
-    expect(overlay.style.visibility).to.equal('hidden');
-  });
+    const message = new LoginButtonCoordinates();
+    message.setLoginButtonCoordinatesList([coordinates]);
 
-  it('should handle click event', async () => {
-    const position = {left: 10, top: 10, width: 50, height: 50};
-    flow.updateOverlays(iframe, {key1: position});
+    messageMap[message.label()](message);
 
-    const overlay = doc
-      .getBody()
-      .querySelector('div[style*="z-index: 2147483647"]');
-    await overlay.click();
+    const overlay = win.document.body.querySelector('div');
 
-    expect(clientOptionsMock.onGisIdToken).to.have.been.calledWith(
-      'test-client-id'
-    );
-  });
+    const requestAccessTokenSpy = sandbox.spy();
+    self.google = {
+      accounts: {
+        oauth2: {
+          initTokenClient: (config) => {
+            return {
+              requestAccessToken: () => {
+                requestAccessTokenSpy();
+                config.callback({credential: 'fakeToken'});
+              },
+            };
+          },
+        },
+      },
+    };
 
-  it('should use dummy token if gisClientId is missing', async () => {
-    clientOptionsMock.gisClientId = undefined;
-    flow = new GisLoginFlow(doc, clientOptionsMock);
+    await overlay.onclick();
 
-    const position = {left: 10, top: 10, width: 50, height: 50};
-    flow.updateOverlays(iframe, {key1: position});
-
-    const overlay = doc
-      .getBody()
-      .querySelector('div[style*="z-index: 2147483647"]');
-    await overlay.click();
-
-    expect(clientOptionsMock.onGisIdToken).to.have.been.calledWith(
-      'dummy_token'
-    );
+    expect(requestAccessTokenSpy).to.have.been.called;
+    expect(onGisIdToken).to.have.been.calledWith('fakeIdToken');
   });
 });
