@@ -28,8 +28,20 @@ describes.realWin('GisLoginFlow', (env) => {
   let activityIframeView;
   let gisLoginFlow;
   let messageMap;
+  let message;
 
   beforeEach(() => {
+    const coordinates = new ElementCoordinates();
+
+    coordinates.setId('1');
+    coordinates.setLeft(10);
+    coordinates.setTop(10);
+    coordinates.setWidth(100);
+    coordinates.setHeight(30);
+
+    message = new LoginButtonCoordinates();
+    message.setLoginButtonCoordinatesList([coordinates]);
+
     messageMap = {};
 
     win = env.win;
@@ -77,7 +89,7 @@ describes.realWin('GisLoginFlow', (env) => {
 
   afterEach(() => {
     gisLoginFlow.dispose();
-    delete self.google; // Clean up the fake google object
+    delete self.google;
   });
 
   it('listens for resize events on the window', () => {
@@ -85,16 +97,6 @@ describes.realWin('GisLoginFlow', (env) => {
   });
 
   it('creates an overlay bounds on message and styles it appropriately', () => {
-    const coordinates = new ElementCoordinates();
-    coordinates.setId('1');
-    coordinates.setLeft(10);
-    coordinates.setTop(10);
-    coordinates.setWidth(100);
-    coordinates.setHeight(30);
-
-    const message = new LoginButtonCoordinates();
-    message.setLoginButtonCoordinatesList([coordinates]);
-
     win.innerWidth = 1000;
     win.innerHeight = 1000;
 
@@ -113,11 +115,8 @@ describes.realWin('GisLoginFlow', (env) => {
   });
 
   it('ignores invalid coordinate payload', () => {
-    const coordinates = new ElementCoordinates();
-    coordinates.setId('1');
-
     const message = new LoginButtonCoordinates();
-    message.setLoginButtonCoordinatesList([coordinates]);
+    message.setLoginButtonCoordinatesList([new ElementCoordinates()]);
 
     messageMap[message.label()](message);
 
@@ -126,15 +125,6 @@ describes.realWin('GisLoginFlow', (env) => {
   });
 
   it('calls login when overlay is clicked and invokes the callback', async () => {
-    const coordinates = new ElementCoordinates();
-    coordinates.setId('1');
-    coordinates.setLeft(10);
-    coordinates.setTop(10);
-    coordinates.setWidth(100);
-    coordinates.setHeight(30);
-    const message = new LoginButtonCoordinates();
-    message.setLoginButtonCoordinatesList([coordinates]);
-
     messageMap[message.label()](message);
 
     const overlay = win.document.body.querySelector('div');
@@ -163,58 +153,21 @@ describes.realWin('GisLoginFlow', (env) => {
 
     await overlay.onclick();
 
-    await new Promise((resolve) => {
-      setTimeout(resolve, 10);
-    });
+    await 1;
+
     expect(requestAccessTokenSpy).to.have.been.called;
     expect(onGisIdToken).to.have.been.calledWith('fakeIdToken');
   });
 
-  it('handles missing overlay during update', () => {
-    const coordinates = new ElementCoordinates();
-    coordinates.setId('1');
-    coordinates.setLeft(10);
-    coordinates.setTop(10);
-    coordinates.setWidth(100);
-    coordinates.setHeight(30);
-
-    const message = new LoginButtonCoordinates();
-    message.setLoginButtonCoordinatesList([coordinates]);
-
-    messageMap[message.label()](message);
-
-    // Remove the overlay manually immediately after it is created
-    const overlay = win.document.body.querySelector('div');
-    overlay.remove();
-
-    // Call updateOverlays, which should now handle the missing element gracefully
-    messageMap[message.label()](message);
-
-    const overlays = win.document.body.querySelectorAll('div');
-    expect(overlays.length).to.equal(0); // The second message handles the missing element correctly
-  });
-
   it('cancels existing requestAnimationFrame on scheduleUpdate', () => {
-    const coordinates = new ElementCoordinates();
-    coordinates.setId('1');
-    coordinates.setLeft(10);
-    coordinates.setTop(10);
-    coordinates.setWidth(100);
-    coordinates.setHeight(30);
-
-    const message = new LoginButtonCoordinates();
-    message.setLoginButtonCoordinatesList([coordinates]);
-
     sandbox.restore();
     sandbox.stub(self, 'requestAnimationFrame').returns(123);
     const cancelAnimationFrameSpy = sandbox.spy(self, 'cancelAnimationFrame');
 
-    // Call it twice to trigger the cancelAnimationFrame branch
     messageMap[message.label()](message);
 
     expect(cancelAnimationFrameSpy).to.have.not.been.called;
 
-    // Fake the rafId existing by overriding the gis login flow's state
     messageMap[message.label()](message);
 
     expect(cancelAnimationFrameSpy).to.have.been.called;

@@ -70,11 +70,6 @@ export class GisLoginFlow {
 
   private updateOverlays() {
     this.positions.forEach((p, id) => {
-      const overlay = this.overlays.get(id);
-      if (!overlay) {
-        return;
-      }
-
       const iframe = this.activityIframeView_.getElement();
       const iframeBoundingBox = iframe.getBoundingClientRect();
       const iframeHeight = iframeBoundingBox.height;
@@ -85,6 +80,7 @@ export class GisLoginFlow {
       const offsetLeft = (windowWidth - iframeWidth) / 2 + p.left;
       const offsetTop = windowHeight - (iframeHeight - p.top);
 
+      const overlay = this.overlays.get(id)!;
       setImportantStyles(overlay, {
         'left': `${offsetLeft}px`,
         'top': `${offsetTop}px`,
