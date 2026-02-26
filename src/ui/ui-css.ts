@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {ASSETS} from '../constants';
+import { ASSETS } from '../constants';
 
 /**
  * Template literal helper to enable syntax highlighting for our CSS below.
@@ -148,8 +148,12 @@ export const DIALOG_CSS = css`
   */
   @media (min-width: 871px) and (min-height: 641px) {
     .swg-dialog.swg-wide-dialog {
-      width: 870px !important;
       left: -435px !important;
+    }
+
+    .swg-dialog.swg-wide-dialog,
+    .swg-toast {
+      width: 870px !important;
     }
   }
 
@@ -188,6 +192,7 @@ export const DIALOG_CSS = css`
     }
 
     .swg-toast {
+      width: 630px !important;
       border-radius: 4px !important;
       bottom: 8px !important;
       box-shadow:
