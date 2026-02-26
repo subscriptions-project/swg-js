@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { ASSETS } from '../constants';
+import {ASSETS} from '../constants';
 
 /**
  * Template literal helper to enable syntax highlighting for our CSS below.
