@@ -179,8 +179,12 @@ export const DIALOG_CSS = css`
 
   /** Desktop/Large screen support, when width AND height are >= 641px. */
   @media (min-width: 641px) and (min-height: 641px) {
-    .swg-dialog {
+    .swg-dialog,
+    .swg-toast {
       width: 630px !important;
+    }
+
+    .swg-dialog {
       left: -315px !important;
       margin-inline-start: calc(100vw - 100vw / 2) !important;
       background-color: transparent !important;
@@ -192,7 +196,6 @@ export const DIALOG_CSS = css`
     }
 
     .swg-toast {
-      width: 630px !important;
       border-radius: 4px !important;
       bottom: 8px !important;
       box-shadow:
