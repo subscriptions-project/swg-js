@@ -120,6 +120,19 @@ const RUNTIME_LEGACY_PROP = 'SUBSCRIPTIONS'; // MIGRATE
 let runtimeInstance: Runtime;
 
 /**
+/**
+ * Reference to the public runtime, for idempotency.
+ */
+let publicRuntimeInstance: SubscriptionsInterface;
+
+/**
+ * Resets the runtime instance for testing.
+ */
+export function resetRuntimeForTesting(): void {
+  runtimeInstance = (undefined as unknown) as Runtime;
+  publicRuntimeInstance = (undefined as unknown) as SubscriptionsInterface;
+}
+/**
  * Returns runtime for testing if available. Throws if the runtime is not
  * initialized yet.
  *
@@ -133,10 +146,13 @@ export function getRuntime(): Runtime {
 /**
  * Installs SwG runtime.
  */
-export function installRuntime(win: Window): void {
+export function installRuntime(
+  win: Window,
+  options?: {autoStart?: boolean}
+): SubscriptionsInterface {
   // Only install the SwG runtime once.
-  if (win[RUNTIME_PROP] && !Array.isArray(win[RUNTIME_PROP])) {
-    return;
+  if (publicRuntimeInstance) {
+    return publicRuntimeInstance;
   }
 
   // Create a SwG runtime.
@@ -168,20 +184,29 @@ export function installRuntime(win: Window): void {
     win[RUNTIME_LEGACY_PROP]
   );
   for (const waitingCallback of waitingCallbacks) {
+    if (typeof waitingCallback !== "function") {
+      continue;
+    }
     callWhenRuntimeIsReady(waitingCallback);
   }
 
-  // If any more callbacks are `push`ed to the global SwG variables,
-  // they'll be queued up to receive the SwG runtime when it's ready.
-  (win[RUNTIME_PROP] as {}) = (win[RUNTIME_LEGACY_PROP] as {}) = {
+  const proxy = {
     push: callWhenRuntimeIsReady,
+    ready: () => Promise.resolve(publicRuntime),
   };
-
-  // Set variable for testing.
+  win[RUNTIME_PROP] = Object.assign(win[RUNTIME_PROP] || [], proxy);
+  win[RUNTIME_LEGACY_PROP] = Object.assign(win[RUNTIME_LEGACY_PROP] || [], proxy);
   runtimeInstance = runtime;
 
+  // Set public instance.
+  publicRuntimeInstance = publicRuntime;
+
   // Kick off subscriptions flow.
-  runtime.startSubscriptionsFlowIfNeeded();
+  if (options?.autoStart !== false) {
+    runtime.startSubscriptionsFlowIfNeeded();
+  }
+
+  return publicRuntime;
 }
 
 export class Runtime implements SubscriptionsInterface {
@@ -194,9 +219,9 @@ export class Runtime implements SubscriptionsInterface {
 
   private readonly creationTimestamp_: number;
   private readonly doc_: DocInterface;
-  private readonly config_: Config = {};
   private readonly configuredRuntimePromise_: Promise<ConfiguredRuntime>;
   private readonly buttonApi_: ButtonApi;
+  private readonly config_: Config = defaultConfig();
 
   constructor(private readonly win_: Window) {
     this.creationTimestamp_ = Date.now();
@@ -297,6 +322,10 @@ export class Runtime implements SubscriptionsInterface {
       return null;
     }
     return this.start();
+  }
+
+  async ready(): Promise<void> {
+    await 0;
   }
 
   init(productOrPublicationId: string): void {
@@ -654,7 +683,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
           enableGoogleAnalytics?: boolean;
           enableDefaultMeteringHandler?: boolean;
         }
-      | undefined,
+      | undefined = {},
     config?: Config,
     clientOptions?: {
       lang?: string;
@@ -663,7 +692,6 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     },
     private readonly creationTimestamp_ = 0
   ) {
-    integr = integr || {};
     integr.configPromise ||= Promise.resolve();
 
     this.eventManager_ = new ClientEventManager(integr.configPromise);
@@ -812,6 +840,10 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
 
   analytics(): AnalyticsService {
     return this.analyticsService_;
+  }
+
+  async ready(): Promise<void> {
+    await 0;
   }
 
   init(): void {
@@ -1292,6 +1324,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
 
 function createPublicRuntime(runtime: Runtime): SubscriptionsInterface {
   return {
+    ready: runtime.ready.bind(runtime),
     init: runtime.init.bind(runtime),
     configure: runtime.configure.bind(runtime),
     start: runtime.start.bind(runtime),
@@ -1341,5 +1374,5 @@ function createPublicRuntime(runtime: Runtime): SubscriptionsInterface {
     linkSubscriptions: runtime.linkSubscriptions.bind(runtime),
     getAvailableInterventions: runtime.getAvailableInterventions.bind(runtime),
     getFreeAccess: runtime.getFreeAccess.bind(runtime),
-  };
+}
 }

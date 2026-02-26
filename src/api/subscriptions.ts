@@ -29,6 +29,11 @@ import {SubscribeResponse} from './subscribe-response';
 
 export interface Subscriptions {
   /**
+   * Returns a promise that resolves when the subscriptions runtime is ready.
+   */
+  ready(): Promise<void>;
+
+  /**
    * Optionally initializes the subscriptions runtime with publication or
    * product ID. If not called, the runtime will look for the initialization
    * parameters in the page's markup.

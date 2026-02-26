@@ -45,6 +45,9 @@ const plugins = [
     name: 'add-outer-iife',
     apply: 'build',
     generateBundle(options, bundle) {
+      if (options.format !== 'iife') {
+        return;
+      }
       const chunks = Object.values(bundle).filter(
         (entry) => entry.type === 'chunk' && entry.code
       );
@@ -109,9 +112,15 @@ const builds = {
 };
 
 const {input, output} = builds[args.target || 'classic'];
+const outputFormat = args.esm ? 'es' : 'iife';
+const outputFilename = args.esm ? output.replace(/\.js$/, '.mjs') : output;
 
 export default defineConfig({
   plugins,
+
+  define: {
+    'IS_ESM_BUILD': !!args.esm,
+  },
 
   build: {
     emptyOutDir: false,
@@ -119,6 +128,13 @@ export default defineConfig({
     sourcemap: true,
 
     minify: 'terser',
+    lib: {
+      entry: input,
+      name: 'subscriptions',
+      formats: [outputFormat === 'es' ? 'es' : 'iife'],
+      fileName: () => outputFilename,
+    },
+
     terserOptions: {
       // eslint-disable-next-line google-camelcase/google-camelcase
       mangle: {properties: {keep_quoted: true, regex: '_$'}},
@@ -139,8 +155,8 @@ export default defineConfig({
       input,
       output: [
         {
-          format: 'iife',
-          entryFileNames: output,
+          format: outputFormat,
+          entryFileNames: outputFilename,
         },
       ],
     },
