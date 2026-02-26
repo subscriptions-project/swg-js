@@ -37,7 +37,7 @@ import {Doc, resolveDoc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {Fetcher, XhrFetcher} from './fetcher';
-import {GisInteropManager} from './gis-interop-manager';
+import {GisInteropManager} from './gis/gis-interop-manager';
 import {I18N_STRINGS} from '../i18n/strings';
 import {InlineCtaApi} from './inline-cta-api';
 import {JsError} from './jserror';

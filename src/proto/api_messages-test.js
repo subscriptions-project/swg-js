@@ -19,7 +19,7 @@
  * Auto generated, do not edit
  */
 
-import {AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CloseWindowRequest, CompleteAudienceActionResponse, CtaMode, Duration, EmailValidationStatus, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, OpenDialogRequest, OptInType, ReaderSurfaceType, RewardedAdAlternateActionRequest, RewardedAdLoadAdRequest, RewardedAdLoadAdResponse, RewardedAdViewAdRequest, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, SubscriptionLinkingCompleteResponse, SubscriptionLinkingLinkResult, SubscriptionLinkingResponse, SurveyAnswer, SurveyDataTransferRequest, SurveyDataTransferResponse, SurveyQuestion, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
+import { AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CloseWindowRequest, CompleteAudienceActionResponse, CtaMode, Duration, ElementCoordinates, EmailValidationStatus, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, LinkSaveTokenRequest, LinkingInfoResponse, LoginButtonCoordinates, OpenDialogRequest, OptInType, ReaderSurfaceType, RewardedAdAlternateActionRequest, RewardedAdLoadAdRequest, RewardedAdLoadAdResponse, RewardedAdViewAdRequest, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, SubscriptionLinkingCompleteResponse, SubscriptionLinkingLinkResult, SubscriptionLinkingResponse, SurveyAnswer, SurveyDataTransferRequest, SurveyDataTransferResponse, SurveyQuestion, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel } from './api_messages';
 
 describe('deserialize', () => {
   it('throws if deserialization fails', () => {
@@ -735,6 +735,75 @@ describe('Duration', () => {
   });
 });
 
+describe('ElementCoordinates', () => {
+    it('should deserialize correctly', () => {
+        const /** !ElementCoordinates  */ elementcoordinates1 = new ElementCoordinates();
+        elementcoordinates1.setId('');
+        elementcoordinates1.setLeft(0);
+        elementcoordinates1.setTop(0);
+        elementcoordinates1.setWidth(0);
+        elementcoordinates1.setHeight(0);
+
+        let elementcoordinatesDeserialized;
+
+        // Verify includeLabel undefined
+        // Verify serialized arrays.
+        elementcoordinatesDeserialized = deserialize(
+            elementcoordinates1.toArray(undefined));
+        expect(elementcoordinatesDeserialized.toArray(undefined)).to.deep.equal(
+            elementcoordinates1.toArray(undefined));
+
+        // Verify fields.
+        expect(elementcoordinatesDeserialized.getId()).to.deep.equal(
+            elementcoordinates1.getId());
+        expect(elementcoordinatesDeserialized.getLeft()).to.deep.equal(
+            elementcoordinates1.getLeft());
+        expect(elementcoordinatesDeserialized.getTop()).to.deep.equal(
+            elementcoordinates1.getTop());
+        expect(elementcoordinatesDeserialized.getWidth()).to.deep.equal(
+            elementcoordinates1.getWidth());
+        expect(elementcoordinatesDeserialized.getHeight()).to.deep.equal(
+            elementcoordinates1.getHeight());
+
+        // Verify includeLabel true
+        // Verify serialized arrays.
+        elementcoordinatesDeserialized = deserialize(
+            elementcoordinates1.toArray(true));
+        expect(elementcoordinatesDeserialized.toArray(true)).to.deep.equal(
+            elementcoordinates1.toArray(true));
+
+        // Verify fields.
+        expect(elementcoordinatesDeserialized.getId()).to.deep.equal(
+            elementcoordinates1.getId());
+        expect(elementcoordinatesDeserialized.getLeft()).to.deep.equal(
+            elementcoordinates1.getLeft());
+        expect(elementcoordinatesDeserialized.getTop()).to.deep.equal(
+            elementcoordinates1.getTop());
+        expect(elementcoordinatesDeserialized.getWidth()).to.deep.equal(
+            elementcoordinates1.getWidth());
+        expect(elementcoordinatesDeserialized.getHeight()).to.deep.equal(
+            elementcoordinates1.getHeight());
+
+        // Verify includeLabel false
+        // Verify serialized arrays.
+        elementcoordinatesDeserialized = new ElementCoordinates(elementcoordinates1.toArray(false), false);
+        expect(elementcoordinatesDeserialized.toArray(false)).to.deep.equal(
+            elementcoordinates1.toArray(false));
+
+        // Verify fields.
+        expect(elementcoordinatesDeserialized.getId()).to.deep.equal(
+            elementcoordinates1.getId());
+        expect(elementcoordinatesDeserialized.getLeft()).to.deep.equal(
+            elementcoordinates1.getLeft());
+        expect(elementcoordinatesDeserialized.getTop()).to.deep.equal(
+            elementcoordinates1.getTop());
+        expect(elementcoordinatesDeserialized.getWidth()).to.deep.equal(
+            elementcoordinates1.getWidth());
+        expect(elementcoordinatesDeserialized.getHeight()).to.deep.equal(
+            elementcoordinates1.getHeight());
+    });
+});
+
 describe('EntitlementJwt', () => {
   it('should deserialize correctly', () => {
     const /** !EntitlementJwt  */ entitlementjwt1 = new EntitlementJwt();
@@ -1186,6 +1255,47 @@ describe('LinkingInfoResponse', () => {
     expect(linkinginforesponseDeserialized.getRequested()).to.deep.equal(
         linkinginforesponse1.getRequested());
   });
+});
+
+describe('LoginButtonCoordinates', () => {
+    it('should deserialize correctly', () => {
+        const /** !LoginButtonCoordinates  */ loginbuttoncoordinates1 = new LoginButtonCoordinates();
+        loginbuttoncoordinates1.setLoginButtonCoordinatesList([]);
+
+        let loginbuttoncoordinatesDeserialized;
+
+        // Verify includeLabel undefined
+        // Verify serialized arrays.
+        loginbuttoncoordinatesDeserialized = deserialize(
+            loginbuttoncoordinates1.toArray(undefined));
+        expect(loginbuttoncoordinatesDeserialized.toArray(undefined)).to.deep.equal(
+            loginbuttoncoordinates1.toArray(undefined));
+
+        // Verify fields.
+        expect(loginbuttoncoordinatesDeserialized.getLoginButtonCoordinatesList()).to.deep.equal(
+            loginbuttoncoordinates1.getLoginButtonCoordinatesList());
+
+        // Verify includeLabel true
+        // Verify serialized arrays.
+        loginbuttoncoordinatesDeserialized = deserialize(
+            loginbuttoncoordinates1.toArray(true));
+        expect(loginbuttoncoordinatesDeserialized.toArray(true)).to.deep.equal(
+            loginbuttoncoordinates1.toArray(true));
+
+        // Verify fields.
+        expect(loginbuttoncoordinatesDeserialized.getLoginButtonCoordinatesList()).to.deep.equal(
+            loginbuttoncoordinates1.getLoginButtonCoordinatesList());
+
+        // Verify includeLabel false
+        // Verify serialized arrays.
+        loginbuttoncoordinatesDeserialized = new LoginButtonCoordinates(loginbuttoncoordinates1.toArray(false), false);
+        expect(loginbuttoncoordinatesDeserialized.toArray(false)).to.deep.equal(
+            loginbuttoncoordinates1.toArray(false));
+
+        // Verify fields.
+        expect(loginbuttoncoordinatesDeserialized.getLoginButtonCoordinatesList()).to.deep.equal(
+            loginbuttoncoordinates1.getLoginButtonCoordinatesList());
+    });
 });
 
 describe('OpenDialogRequest', () => {
