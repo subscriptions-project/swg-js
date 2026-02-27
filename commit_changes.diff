@@ -1,0 +1,72 @@
+diff --git a/src/runtime/pay-flow-test.js b/src/runtime/pay-flow-test.js
+index d8968324..7fca0a55 100644
+--- a/src/runtime/pay-flow-test.js
++++ b/src/runtime/pay-flow-test.js
+@@ -275,6 +275,7 @@ describes.realWin('PayStartFlow', (env) => {
+     const subscriptionRequest = {
+       skuId: 'sku1',
+       publicationId: 'pub1',
++      oneTime: true,
+     };
+     const tbpFlow = new PayStartFlow(
+       runtime,
+@@ -294,7 +295,11 @@ describes.realWin('PayStartFlow', (env) => {
+           'allowedPaymentMethods': ['CARD'],
+           'environment': 'TEST',
+           'playEnvironment': 'STAGING',
+-          'swg': subscriptionRequest,
++          'swg': {
++            skuId: 'sku1',
++            publicationId: 'pub1',
++            paymentRecurrence: RecurrenceMapping['ONE_TIME'],
++          },
+           'i': {
+             'startTimeMs': sandbox.match.any,
+             'productType': sandbox.match(productTypeRegex),
+diff --git a/src/runtime/runtime.ts b/src/runtime/runtime.ts
+index bd7a9805..0965b7f2 100644
+--- a/src/runtime/runtime.ts
++++ b/src/runtime/runtime.ts
+@@ -1098,7 +1098,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
+     await this.documentParsed_;
+     return new PayStartFlow(
+       this,
+-      {'skuId': sku},
++      { 'skuId': sku, 'oneTime': true },
+       ProductType.TIME_BOUND_PASS
+     ).start();
+   }
+diff --git a/src/utils/cta-utils.ts b/src/utils/cta-utils.ts
+index 524a09c2..54ce8531 100644
+--- a/src/utils/cta-utils.ts
++++ b/src/utils/cta-utils.ts
+@@ -167,10 +167,14 @@ export function startSubscriptionPayFlow(
+   configId: string = ''
+ ): void {
+   const sku = response.getSku();
++  const isOneTime = response.getOneTime();
+   if (sku) {
+     const subscriptionRequest: SubscriptionRequest = {
+       'skuId': sku,
+     };
++    if (isOneTime) {
++      subscriptionRequest['oneTime'] = isOneTime;
++    }
+     const oldSku = response.getOldSku();
+     if (oldSku) {
+       subscriptionRequest['oldSku'] = oldSku;
+@@ -190,10 +194,13 @@ export function startSubscriptionPayFlow(
+         true,
+         getEventParams(sku, isInlineCta)
+       );
++    const productType = isOneTime
++      ? ProductType.TIME_BOUND_PASS
++      : ProductType.SUBSCRIPTION;
+     new PayStartFlow(
+       deps,
+       subscriptionRequest,
+-      ProductType.SUBSCRIPTION,
++      productType,
+       isInlineCta,
+       configId
+     ).start();
