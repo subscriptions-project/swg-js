@@ -368,7 +368,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     expect(toast).not.to.be.null;
     expect(toast.src_).to.contain('flavor=custom');
     expect(decodeURIComponent(toast.src_)).to.contain(
-      'Signed up with xxx@gmail.com for the newsletter'
+      'Signed up with xxx@gmail.com'
     );
   });
 
