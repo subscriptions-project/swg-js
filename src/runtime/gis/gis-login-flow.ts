@@ -18,6 +18,7 @@ import {ActivityIframeView} from '../../ui/activity-iframe-view';
 import {Doc} from '../../model/doc';
 import {
   ElementCoordinates,
+  GisSignIn,
   LoginButtonCoordinates,
 } from '../../proto/api_messages';
 import {createElement} from '../../utils/dom';
@@ -44,7 +45,6 @@ export class GisLoginFlow {
   constructor(
     private readonly doc: Doc,
     private readonly clientId: string,
-    private readonly onGisIdToken: (idToken: string) => void,
     private readonly activityIframeView_: ActivityIframeView
   ) {
     this.activityIframeView_.on(
@@ -152,22 +152,25 @@ export class GisLoginFlow {
 
   private async login() {
     const idToken = await this.getIdToken();
-    // TODO: Sync token, update entitlements, issue update to iframe.
-    this.onGisIdToken(idToken);
+    const gisSignIn = new GisSignIn();
+    gisSignIn.setIdToken(idToken);
+    gisSignIn.setGisClientId(this.clientId);
+    this.activityIframeView_.execute(gisSignIn);
   }
 
   private async getIdToken(): Promise<string> {
-    // TODO: replace with id token call.
+    // TODO: replace with GIS api call for id toke.
     return new Promise<string>((resolve) => {
       // @ts-ignore
-      const tc = google.accounts.oauth2.initTokenClient({
-        'client_id': this.clientId,
-        'scope': 'openid email profile',
-        'callback': (_unusedResponse: unknown) => {
-          resolve('fakeIdToken');
+      google.accounts.id.initialize({
+        /* eslint-disable-next-line google-camelcase/google-camelcase */
+        client_id: this.clientId,
+        callback: (idToken: {credential: string}) => {
+          resolve(idToken.credential);
         },
       });
-      tc.requestAccessToken();
+      // @ts-ignore
+      google.accounts.id.prompt();
     });
   }
 }
