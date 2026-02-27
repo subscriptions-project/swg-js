@@ -52,7 +52,7 @@
     "cookie-parser": "1.4.7",
     "cssnano": "7.1.2",
     "del": "8.0.1",
-    "eslint": "8.57.1",
+    "eslint": "10.0.2",
     "eslint-plugin-google-camelcase": "0.0.2",
     "eslint-plugin-prettier": "5.5.5",
     "eslint-plugin-sort-imports-es6-autofix": "0.6.0",
