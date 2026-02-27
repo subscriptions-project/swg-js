@@ -183,10 +183,12 @@ export class PayStartFlow {
     }
 
     // Start/cancel events.
-    const flow =
-      this.productType_ == ProductType.UI_CONTRIBUTION
-        ? SubscriptionFlows.CONTRIBUTE
-        : SubscriptionFlows.SUBSCRIBE;
+    let flow = SubscriptionFlows.SUBSCRIBE;
+    if (this.productType_ == ProductType.UI_CONTRIBUTION) {
+      flow = SubscriptionFlows.CONTRIBUTE;
+    } else if (this.productType_ == ProductType.TIME_BOUND_PASS) {
+      flow = SubscriptionFlows.TIME_BOUND_PASS;
+    }
 
     this.deps_.callbacks().triggerFlowStarted(flow, this.subscriptionRequest_);
 
@@ -259,7 +261,9 @@ export class PayCompleteFlow {
             PayCompleteFlow.isInlineCta,
             response.productType == ProductType.UI_CONTRIBUTION
               ? SubscriptionFlows.CONTRIBUTE
-              : SubscriptionFlows.SUBSCRIBE
+              : response.productType == ProductType.TIME_BOUND_PASS
+                ? SubscriptionFlows.TIME_BOUND_PASS
+                : SubscriptionFlows.SUBSCRIBE
           )
         );
 
@@ -291,16 +295,28 @@ export class PayCompleteFlow {
               SubscriptionFlows.SUBSCRIBE
             )
           );
+        } else if (response.productType == ProductType.TIME_BOUND_PASS) {
+          eventManager.logSwgEvent(
+            AnalyticsEvent.EVENT_TIME_BOUND_PASS_PAYMENT_COMPLETE,
+            true,
+            getEventParams(
+              sku || '',
+              PayCompleteFlow.isInlineCta,
+              SubscriptionFlows.TIME_BOUND_PASS
+            )
+          );
         }
         flow.start(response);
       } catch (err) {
         const reason = err as PaymentCancelledError;
         if (isCancelError(reason as Error)) {
           const productType = reason['productType'];
-          const flow =
-            productType == ProductType.UI_CONTRIBUTION
-              ? SubscriptionFlows.CONTRIBUTE
-              : SubscriptionFlows.SUBSCRIBE;
+          let flow = SubscriptionFlows.SUBSCRIBE;
+          if (productType == ProductType.UI_CONTRIBUTION) {
+            flow = SubscriptionFlows.CONTRIBUTE;
+          } else if (productType == ProductType.TIME_BOUND_PASS) {
+            flow = SubscriptionFlows.TIME_BOUND_PASS;
+          }
           deps.callbacks().triggerFlowCanceled(flow);
           deps
             .eventManager()

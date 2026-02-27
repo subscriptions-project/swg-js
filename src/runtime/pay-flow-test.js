@@ -149,7 +149,7 @@ describes.realWin('PayStartFlow', (env) => {
   let analyticsMock;
   let eventManagerMock;
   let clientConfigManagerMock;
-  const productTypeRegex = /^(SUBSCRIPTION|UI_CONTRIBUTION)$/;
+  const productTypeRegex = /^(SUBSCRIPTION|UI_CONTRIBUTION|TIME_BOUND_PASS)$/;
 
   beforeEach(() => {
     win = env.win;
@@ -269,6 +269,58 @@ describes.realWin('PayStartFlow', (env) => {
         getEventParams('')
       );
     await contribFlow.start();
+  });
+
+  it('should trigger the timeBoundPass flow if given timeBoundPass productType', async () => {
+    const subscriptionRequest = {
+      skuId: 'sku1',
+      publicationId: 'pub1',
+    };
+    const tbpFlow = new PayStartFlow(
+      runtime,
+      subscriptionRequest,
+      ProductType.TIME_BOUND_PASS
+    );
+    callbacksMock
+      .expects('triggerFlowStarted')
+      .withExactArgs('timeBoundPass', subscriptionRequest)
+      .once();
+    callbacksMock.expects('triggerFlowCanceled').never();
+    payClientMock
+      .expects('start')
+      .withExactArgs(
+        {
+          'apiVersion': 1,
+          'allowedPaymentMethods': ['CARD'],
+          'environment': 'TEST',
+          'playEnvironment': 'STAGING',
+          'swg': subscriptionRequest,
+          'i': {
+            'startTimeMs': sandbox.match.any,
+            'productType': sandbox.match(productTypeRegex),
+          },
+        },
+        {
+          forceRedirect: false,
+          forceDisableNative: false,
+        }
+      )
+      .once();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PAYMENT_FLOW_STARTED,
+        true,
+        getEventParams('sku1')
+      );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_PLAY_PAYMENT_FLOW_STARTED,
+        true,
+        getEventParams('')
+      );
+    await tbpFlow.start();
   });
 
   it('should have valid flow constructed for one time', async () => {
@@ -1579,6 +1631,32 @@ describes.realWin('PayCompleteFlow', (env) => {
       await expect(triggerPromise).to.be.rejectedWith(/intentional/);
     });
 
+    it('should indicate time bound pass product type if error indicates it', async () => {
+      const error = new Error('intentional');
+      error.name = 'AbortError';
+      error.productType = ProductType.TIME_BOUND_PASS;
+      analyticsMock.expects('setTransactionId').never();
+      analyticsMock.expects('addLabels').never();
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(
+          AnalyticsEvent.ACTION_USER_CANCELED_PAYFLOW,
+          true,
+          getEventParams('')
+        )
+        .once();
+      callbacksMock
+        .expects('triggerFlowCanceled')
+        .withExactArgs('timeBoundPass')
+        .once();
+
+      await responseCallback(Promise.reject(error));
+
+      expect(startStub).to.not.be.called;
+
+      await expect(triggerPromise).to.be.rejectedWith(/intentional/);
+    });
+
     it('should start flow on a correct payment response', async () => {
       analyticsMock.expects('setTransactionId').never();
       callbacksMock.expects('triggerFlowCanceled').never();
@@ -1800,6 +1878,39 @@ describes.realWin('PayCompleteFlow', (env) => {
       const response = await triggerPromise;
       expect(response).to.be.instanceof(SubscribeResponse);
       expect(response.productType).to.equal(ProductType.UI_CONTRIBUTION);
+      expect(response.productType).to.equal(ProductType.UI_CONTRIBUTION);
+    });
+
+    it('should log ACTION_PAYMENT_COMPLETE with time bound pass param', async () => {
+      PayCompleteFlow.waitingForPayClient = true;
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(AnalyticsEvent.EVENT_CONFIRM_TX_ID, true, undefined);
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(
+          AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+          true,
+          getEventParams('', SubscriptionFlows.TIME_BOUND_PASS)
+        );
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(
+          AnalyticsEvent.EVENT_TIME_BOUND_PASS_PAYMENT_COMPLETE,
+          true,
+          getEventParams('', SubscriptionFlows.TIME_BOUND_PASS)
+        );
+
+      const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
+      data['googleTransactionId'] = runtime.analytics().getTransactionId();
+      data['paymentRequest'] = {
+        'swg': {'oldSku': 'sku_to_replace'},
+        'i': {'productType': ProductType.TIME_BOUND_PASS},
+      };
+      await responseCallback(Promise.resolve(data));
+      const response = await triggerPromise;
+      expect(response).to.be.instanceof(SubscribeResponse);
+      expect(response.productType).to.equal(ProductType.TIME_BOUND_PASS);
     });
 
     it('should log ACTION_PAYMENT_COMPLETE with contribution param', async () => {
