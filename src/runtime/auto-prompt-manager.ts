@@ -44,6 +44,7 @@ import {Doc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {Intervention, PromptPreference} from './intervention';
+import {InterventionResult} from '../api/available-intervention';
 import {InterventionType} from '../api/intervention-type';
 import {MiniPromptApi} from './mini-prompt-api';
 import {OffersRequest} from '../api/subscriptions';
@@ -589,10 +590,20 @@ export class AutoPromptManager {
         onAlternateAction: this.getLargeMonetizationPromptFn_(
           /* shouldAnimateFade */ false
         ),
+        onResult: this.getOnResultCallback(action),
       });
       this.setLastAudienceActionFlow(audienceActionFlow);
       audienceActionFlow.start();
     };
+  }
+
+  private getOnResultCallback(
+    action: AudienceActionType
+  ): ((result: InterventionResult) => Promise<boolean> | boolean) | undefined {
+    if (action === InterventionType.TYPE_REGISTRATION_WALL) {
+      return this.clientConfigManager_.getGisCallback();
+    }
+    return undefined;
   }
 
   setLastAudienceActionFlow(flow: AudienceActionFlow): void {

@@ -34,6 +34,8 @@ export interface OptInResult {
   familyName: string | null;
   // Whether the user has consented to the terms and conditions. Null is returned if the CTA does not have terms.
   termsAndConditionsConsent: boolean | null;
+  // GIS ID Token.
+  idToken: string | null;
 }
 
 /**

@@ -33,7 +33,7 @@ export interface Message {
 
 /** Constructor for a message that carries information relating to RRM. */
 interface MessageConstructor {
-  new (data?: unknown[], includesLabel?: boolean): Message;
+  new(data?: unknown[], includesLabel?: boolean): Message;
 }
 
 /** */
@@ -928,6 +928,7 @@ export class CompleteAudienceActionResponse implements Message {
   private givenName_: string | null;
   private familyName_: string | null;
   private termsAndConditionsConsent_: boolean | null;
+  private idToken_: string | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
@@ -947,6 +948,8 @@ export class CompleteAudienceActionResponse implements Message {
     this.familyName_ = data[6 + base] == null ? null : (data[6 + base] as string);
 
     this.termsAndConditionsConsent_ = data[7 + base] == null ? null : (data[7 + base] as boolean);
+
+    this.idToken_ = data[8 + base] == null ? null : (data[8 + base] as string);
   }
 
   getSwgUserToken(): string | null {
@@ -1013,6 +1016,14 @@ export class CompleteAudienceActionResponse implements Message {
     this.termsAndConditionsConsent_ = value;
   }
 
+  getIdToken(): string | null {
+    return this.idToken_;
+  }
+
+  setIdToken(value: string): void {
+    this.idToken_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.swgUserToken_, // field 1 - swg_user_token
@@ -1023,6 +1034,7 @@ export class CompleteAudienceActionResponse implements Message {
       this.givenName_, // field 6 - given_name
       this.familyName_, // field 7 - family_name
       this.termsAndConditionsConsent_, // field 8 - terms_and_conditions_consent
+      this.idToken_, // field 9 - id_token
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1587,6 +1599,51 @@ export class FinishedLoggingResponse implements Message {
 
   label(): string {
     return 'FinishedLoggingResponse';
+  }
+}
+
+/** */
+export class GisSignIn implements Message {
+  private idToken_: string | null;
+  private gisClientId_: string | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.idToken_ = data[base] == null ? null : (data[base] as string);
+
+    this.gisClientId_ = data[1 + base] == null ? null : (data[1 + base] as string);
+  }
+
+  getIdToken(): string | null {
+    return this.idToken_;
+  }
+
+  setIdToken(value: string): void {
+    this.idToken_ = value;
+  }
+
+  getGisClientId(): string | null {
+    return this.gisClientId_;
+  }
+
+  setGisClientId(value: string): void {
+    this.gisClientId_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.idToken_, // field 1 - id_token
+      this.gisClientId_, // field 2 - gis_client_id
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'GisSignIn';
   }
 }
 
@@ -2523,7 +2580,7 @@ export class ViewSubscriptionsResponse implements Message {
   }
 }
 
-const PROTO_MAP: {[key: string]: MessageConstructor} = {
+const PROTO_MAP: { [key: string]: MessageConstructor } = {
   'AccountCreationRequest': AccountCreationRequest,
   'ActionRequest': ActionRequest,
   'AlreadySubscribedResponse': AlreadySubscribedResponse,
@@ -2540,6 +2597,7 @@ const PROTO_MAP: {[key: string]: MessageConstructor} = {
   'EntitlementsResponse': EntitlementsResponse,
   'EventParams': EventParams,
   'FinishedLoggingResponse': FinishedLoggingResponse,
+  'GisSignIn': GisSignIn,
   'LinkSaveTokenRequest': LinkSaveTokenRequest,
   'LinkingInfoResponse': LinkingInfoResponse,
   'LoginButtonCoordinates': LoginButtonCoordinates,

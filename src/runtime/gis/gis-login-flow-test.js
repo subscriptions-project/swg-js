@@ -16,6 +16,7 @@
 
 import {
   ElementCoordinates,
+  GisSignIn,
   LoginButtonCoordinates,
 } from '../../proto/api_messages';
 import {GisLoginFlow} from './gis-login-flow';
@@ -24,7 +25,6 @@ import {getStyle} from '../../utils/style';
 describes.realWin('GisLoginFlow', (env) => {
   let doc;
   let win;
-  let onGisIdToken;
   let activityIframeView;
   let gisLoginFlow;
   let messageMap;
@@ -58,8 +58,6 @@ describes.realWin('GisLoginFlow', (env) => {
       getBody: () => win.document.body,
     };
 
-    onGisIdToken = sandbox.spy();
-
     const el = win.document.createElement('iframe');
     sandbox.stub(el, 'getBoundingClientRect').returns({
       width: 500,
@@ -77,14 +75,10 @@ describes.realWin('GisLoginFlow', (env) => {
         messageMap[messageLabel] = cb;
       },
       getElement: () => el,
+      execute: sandbox.spy(),
     };
 
-    gisLoginFlow = new GisLoginFlow(
-      doc,
-      'client-id',
-      onGisIdToken,
-      activityIframeView
-    );
+    gisLoginFlow = new GisLoginFlow(doc, 'client-id', activityIframeView);
   });
 
   afterEach(() => {
@@ -129,19 +123,8 @@ describes.realWin('GisLoginFlow', (env) => {
 
     const overlay = win.document.body.querySelector('div');
 
-    const requestAccessTokenSpy = sandbox.spy();
     self.google = {
       accounts: {
-        oauth2: {
-          initTokenClient: (config) => {
-            return {
-              requestAccessToken: () => {
-                requestAccessTokenSpy();
-                config.callback({credential: 'fakeToken'});
-              },
-            };
-          },
-        },
         id: {
           prompt: () => {},
           initialize: (config) => {
@@ -155,8 +138,10 @@ describes.realWin('GisLoginFlow', (env) => {
 
     await 1;
 
-    expect(requestAccessTokenSpy).to.have.been.called;
-    expect(onGisIdToken).to.have.been.calledWith('fakeIdToken');
+    const gisSignIn = new GisSignIn();
+    gisSignIn.setIdToken('fakeIdToken');
+    gisSignIn.setGisClientId('client-id');
+    expect(activityIframeView.execute).to.have.been.calledWith(gisSignIn);
   });
 
   it('cancels existing requestAnimationFrame on scheduleUpdate', () => {
