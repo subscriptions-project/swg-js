@@ -1082,6 +1082,87 @@ export class Duration implements Message {
 }
 
 /** */
+export class ElementCoordinates implements Message {
+  private id_: string | null;
+  private left_: number | null;
+  private top_: number | null;
+  private width_: number | null;
+  private height_: number | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.id_ = data[base] == null ? null : (data[base] as string);
+
+    this.left_ = data[1 + base] == null ? null : (data[1 + base] as number);
+
+    this.top_ = data[2 + base] == null ? null : (data[2 + base] as number);
+
+    this.width_ = data[3 + base] == null ? null : (data[3 + base] as number);
+
+    this.height_ = data[4 + base] == null ? null : (data[4 + base] as number);
+  }
+
+  getId(): string | null {
+    return this.id_;
+  }
+
+  setId(value: string): void {
+    this.id_ = value;
+  }
+
+  getLeft(): number | null {
+    return this.left_;
+  }
+
+  setLeft(value: number): void {
+    this.left_ = value;
+  }
+
+  getTop(): number | null {
+    return this.top_;
+  }
+
+  setTop(value: number): void {
+    this.top_ = value;
+  }
+
+  getWidth(): number | null {
+    return this.width_;
+  }
+
+  setWidth(value: number): void {
+    this.width_ = value;
+  }
+
+  getHeight(): number | null {
+    return this.height_;
+  }
+
+  setHeight(value: number): void {
+    this.height_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.id_, // field 1 - id
+      this.left_, // field 2 - left
+      this.top_, // field 3 - top
+      this.width_, // field 4 - width
+      this.height_, // field 5 - height
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'ElementCoordinates';
+  }
+}
+
+/** */
 export class EntitlementJwt implements Message {
   private jwt_: string | null;
   private source_: string | null;
@@ -1585,6 +1666,39 @@ export class LinkingInfoResponse implements Message {
 
   label(): string {
     return 'LinkingInfoResponse';
+  }
+}
+
+/** */
+export class LoginButtonCoordinates implements Message {
+  private loginButtonCoordinates_: ElementCoordinates[] | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.loginButtonCoordinates_ = (data[base] as unknown[][] || []).map(item => new ElementCoordinates(item, includesLabel));
+  }
+
+  getLoginButtonCoordinatesList(): ElementCoordinates[] | null {
+    return this.loginButtonCoordinates_;
+  }
+
+  setLoginButtonCoordinatesList(value: ElementCoordinates[]): void {
+    this.loginButtonCoordinates_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.loginButtonCoordinates_ ? this.loginButtonCoordinates_.map(item => item.toArray(includeLabel)) : [], // field 1 - login_button_coordinates
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'LoginButtonCoordinates';
   }
 }
 
@@ -2421,6 +2535,7 @@ const PROTO_MAP: {[key: string]: MessageConstructor} = {
   'CloseWindowRequest': CloseWindowRequest,
   'CompleteAudienceActionResponse': CompleteAudienceActionResponse,
   'Duration': Duration,
+  'ElementCoordinates': ElementCoordinates,
   'EntitlementJwt': EntitlementJwt,
   'EntitlementsRequest': EntitlementsRequest,
   'EntitlementsResponse': EntitlementsResponse,
@@ -2428,6 +2543,7 @@ const PROTO_MAP: {[key: string]: MessageConstructor} = {
   'FinishedLoggingResponse': FinishedLoggingResponse,
   'LinkSaveTokenRequest': LinkSaveTokenRequest,
   'LinkingInfoResponse': LinkingInfoResponse,
+  'LoginButtonCoordinates': LoginButtonCoordinates,
   'OpenDialogRequest': OpenDialogRequest,
   'RewardedAdAlternateActionRequest': RewardedAdAlternateActionRequest,
   'RewardedAdLoadAdRequest': RewardedAdLoadAdRequest,

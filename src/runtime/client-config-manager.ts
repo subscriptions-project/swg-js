@@ -105,6 +105,20 @@ export class ClientConfigManager {
   }
 
   /**
+   * Gets the callback function to be called when the user logs in.
+   */
+  getGisCallback(): ((idToken: string) => void) | undefined {
+    return this.clientOptions_.onGisIdToken;
+  }
+
+  /**
+   * Gets the client ID.
+   */
+  getGisClientId(): string | undefined {
+    return this.clientOptions_.gisClientId;
+  }
+
+  /**
    * Returns whether scrolling on main page should be allowed when
    * subscription or contribution dialog is displayed.
    */
