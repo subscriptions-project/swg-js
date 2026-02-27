@@ -1204,7 +1204,6 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
   getEventManager(): Promise<ClientEventManager> {
     return Promise.resolve(this.eventManager_);
   }
-
   getLogger(): Promise<Logger> {
     return Promise.resolve(this.logger_);
   }
