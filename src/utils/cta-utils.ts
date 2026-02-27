@@ -167,14 +167,10 @@ export function startSubscriptionPayFlow(
   configId: string = ''
 ): void {
   const sku = response.getSku();
-  const isOneTime = response.getOneTime();
   if (sku) {
     const subscriptionRequest: SubscriptionRequest = {
       'skuId': sku,
     };
-    if (isOneTime) {
-      subscriptionRequest['oneTime'] = isOneTime;
-    }
     const oldSku = response.getOldSku();
     if (oldSku) {
       subscriptionRequest['oldSku'] = oldSku;
@@ -194,13 +190,10 @@ export function startSubscriptionPayFlow(
         true,
         getEventParams(sku, isInlineCta)
       );
-    const productType = isOneTime
-      ? ProductType.TIME_BOUND_PASS
-      : ProductType.SUBSCRIPTION;
     new PayStartFlow(
       deps,
       subscriptionRequest,
-      productType,
+      ProductType.SUBSCRIPTION,
       isInlineCta,
       configId
     ).start();

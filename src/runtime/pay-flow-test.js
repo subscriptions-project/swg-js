@@ -275,7 +275,6 @@ describes.realWin('PayStartFlow', (env) => {
     const subscriptionRequest = {
       skuId: 'sku1',
       publicationId: 'pub1',
-      oneTime: true,
     };
     const tbpFlow = new PayStartFlow(
       runtime,
@@ -295,11 +294,7 @@ describes.realWin('PayStartFlow', (env) => {
           'allowedPaymentMethods': ['CARD'],
           'environment': 'TEST',
           'playEnvironment': 'STAGING',
-          'swg': {
-            skuId: 'sku1',
-            publicationId: 'pub1',
-            paymentRecurrence: RecurrenceMapping['ONE_TIME'],
-          },
+          'swg': subscriptionRequest,
           'i': {
             'startTimeMs': sandbox.match.any,
             'productType': sandbox.match(productTypeRegex),
