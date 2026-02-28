@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-import {Doc} from '../model/doc';
-import {EntitlementsManager} from './entitlements-manager';
-import {PageConfig} from '../model/page-config';
-import {Storage} from '../runtime/storage';
-import {StorageKeys} from '../utils/constants';
-import {addQueryParams} from '../utils/url';
-import {createElement} from '../utils/dom';
-import {feOrigin} from './services';
-import {feUrl} from './services';
-import {setImportantStyles} from '../utils/style';
+import {Doc} from '../../model/doc';
+import {EntitlementsManager} from '../entitlements-manager';
+import {PageConfig} from '../../model/page-config';
+import {Storage} from '../storage';
+import {StorageKeys} from '../../utils/constants';
+import {addQueryParams} from '../../utils/url';
+import {createElement} from '../../utils/dom';
+import {feOrigin} from '../services';
+import {feUrl} from '../services';
+import {setImportantStyles} from '../../utils/style';
 
 /**
  * The states of the GisInteropManager.

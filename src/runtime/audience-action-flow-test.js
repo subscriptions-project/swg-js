@@ -31,6 +31,7 @@ import {AudienceActionIframeFlow} from './audience-action-flow';
 import {AutoPromptType} from '../api/basic-subscriptions';
 import {ClientEventManager} from './client-event-manager';
 import {ConfiguredRuntime} from './runtime';
+import {GisLoginFlow} from './gis/gis-login-flow';
 import {InterventionType} from '../api/intervention-type';
 import {MockActivityPort} from '../../test/mock-activity-port';
 import {PageConfig} from '../model/page-config';
@@ -367,7 +368,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     expect(toast).not.to.be.null;
     expect(toast.src_).to.contain('flavor=custom');
     expect(decodeURIComponent(toast.src_)).to.contain(
-      'Signed up with xxx@gmail.com for the newsletter'
+      'Signed up with xxx@gmail.com'
     );
   });
 
@@ -1374,6 +1375,84 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       expect(win.adsbygoogle[0]['params']['google_adtest']).to.be.null;
       activityIframeViewMock.verify();
     });
+  });
+
+  it('creates GisLoginFlow when clientId and onGisIdToken are present', async () => {
+    clientOptions.gisClientId = 'clientId';
+    clientOptions.onGisIdToken = () => {};
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledManually: false,
+    });
+    expect(audienceActionFlow.gisLoginFlow).to.not.be.undefined;
+  });
+
+  it('does not create GisLoginFlow when clientId is missing', async () => {
+    clientOptions.gisClientId = undefined;
+    clientOptions.onGisIdToken = () => {};
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledManually: false,
+    });
+    expect(audienceActionFlow.gisLoginFlow).to.be.undefined;
+  });
+
+  it('does not create GisLoginFlow when onGisIdToken is missing', async () => {
+    clientOptions.gisClientId = 'clientId';
+    clientOptions.onGisIdToken = undefined;
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledManually: false,
+    });
+    expect(audienceActionFlow.gisLoginFlow).to.be.undefined;
+  });
+
+  it('disposes GisLoginFlow on complete', async () => {
+    clientOptions.gisClientId = 'clientId';
+    clientOptions.onGisIdToken = () => {};
+    const gisLoginFlowDisposeSpy = sandbox.spy(
+      GisLoginFlow.prototype,
+      'dispose'
+    );
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledManually: false,
+    });
+    activitiesMock.expects('openIframe').resolves(port);
+    entitlementsManagerMock.expects('clear').once();
+    entitlementsManagerMock.expects('getEntitlements').once();
+    storageMock
+      .expects('set')
+      .withExactArgs(StorageKeys.USER_TOKEN, 'fake user token', true)
+      .exactly(1);
+    storageMock
+      .expects('set')
+      .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
+      .exactly(1);
+
+    sandbox.stub(Toast.prototype, 'open');
+
+    await audienceActionFlow.start();
+    const completeAudienceActionResponse = new CompleteAudienceActionResponse();
+    completeAudienceActionResponse.setActionCompleted(true);
+    completeAudienceActionResponse.setSwgUserToken('fake user token');
+    completeAudienceActionResponse.setUserEmail('xxx@gmail.com');
+    const messageCallback = messageMap[completeAudienceActionResponse.label()];
+    await messageCallback(completeAudienceActionResponse);
+
+    expect(gisLoginFlowDisposeSpy).to.be.calledOnce;
   });
 
   it('isAudienceActionType returns correct value for InterventionType', () => {

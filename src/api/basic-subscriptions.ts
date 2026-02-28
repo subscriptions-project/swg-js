@@ -123,6 +123,10 @@ export interface ClientOptions {
   allowScroll?: boolean;
   /** Skip account creation screen if requested. */
   skipAccountCreationScreen?: boolean;
+  /** Experimental: Callback returning the GIS ID Token */
+  onGisIdToken?: (idToken: string) => void;
+  /** Experimental: GIS Client ID */
+  gisClientId?: string;
 }
 
 export interface LoginRequest {
