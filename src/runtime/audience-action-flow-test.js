@@ -121,6 +121,10 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       {
         location: {href: WINDOW_LOCATION_DOMAIN + '/page/1'},
         document: env.win.document,
+        navigator: {
+          userAgent:
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15',
+        },
         gtag: () => {},
         innerHeight: WINDOW_INNER_HEIGHT,
         googletag,
@@ -214,7 +218,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
             WINDOW_LOCATION_DOMAIN
           )}&configurationId=${
             configurationId === undefined ? '' : configurationId
-          }&isClosable=false&calledManually=false&previewEnabled=false`,
+          }&isClosable=false&calledManually=false&previewEnabled=false&gisMode=GIS_MODE_DISABLED`,
           {
             _client: 'SwG 0.0.0',
             productType: ProductType.SUBSCRIPTION,
@@ -248,7 +252,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
         `https://news.google.com/swg/ui/v1/regwalliframe?_=_&origin=${encodeURIComponent(
           WINDOW_LOCATION_DOMAIN
-        )}&configurationId=configId&isClosable=false&calledManually=false&previewEnabled=false&hl=pt-BR`,
+        )}&configurationId=configId&isClosable=false&calledManually=false&previewEnabled=false&gisMode=GIS_MODE_DISABLED&hl=pt-BR`,
         {
           _client: 'SwG 0.0.0',
           productType: ProductType.SUBSCRIPTION,
@@ -934,7 +938,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
         `https://news.google.com/swg/ui/v1/surveyiframe?_=_&origin=${encodeURIComponent(
           WINDOW_LOCATION_DOMAIN
-        )}&configurationId=&isClosable=true&calledManually=false&previewEnabled=false`,
+        )}&configurationId=&isClosable=true&calledManually=false&previewEnabled=false&gisMode=GIS_MODE_DISABLED`,
         {
           _client: 'SwG 0.0.0',
           productType: ProductType.SUBSCRIPTION,
@@ -970,7 +974,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
         `https://news.google.com/swg/ui/v1/surveyiframe?_=_&origin=${encodeURIComponent(
           WINDOW_LOCATION_DOMAIN
-        )}&configurationId=&isClosable=true&calledManually=false&previewEnabled=true`,
+        )}&configurationId=&isClosable=true&calledManually=false&previewEnabled=true&gisMode=GIS_MODE_DISABLED`,
         {
           _client: 'SwG 0.0.0',
           productType: ProductType.SUBSCRIPTION,
@@ -984,6 +988,63 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
 
     activitiesMock.verify();
     activityIframeViewMock.expects('getElement').once();
+    expect(onCancelSpy).to.not.be.called;
+  });
+
+  it('passes gisMode=GIS_MODE_OVERLAY in query param for Safari with GIS', async () => {
+    clientOptions.gisClientId = 'clientId';
+    sandbox.stub(runtime.storage(), 'get').resolves(null);
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledManually: false,
+      onResult: () => {},
+    });
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        `https://news.google.com/swg/ui/v1/regwalliframe?_=_&origin=${encodeURIComponent(
+          WINDOW_LOCATION_DOMAIN
+        )}&configurationId=configId&isClosable=false&calledManually=false&previewEnabled=false&gisMode=GIS_MODE_OVERLAY`,
+        sandbox.match.any
+      )
+      .resolves(port);
+
+    await audienceActionFlow.start();
+
+    activitiesMock.verify();
+    expect(onCancelSpy).to.not.be.called;
+  });
+
+  it('passes gisMode=GIS_MODE_NORMAL in query param for Chrome with GIS', async () => {
+    clientOptions.gisClientId = 'clientId';
+    win.navigator.userAgent = 'Chrome';
+    sandbox.stub(runtime.storage(), 'get').resolves(null);
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledManually: false,
+      onResult: () => {},
+    });
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        `https://news.google.com/swg/ui/v1/regwalliframe?_=_&origin=${encodeURIComponent(
+          WINDOW_LOCATION_DOMAIN
+        )}&configurationId=configId&isClosable=false&calledManually=false&previewEnabled=false&gisMode=GIS_MODE_NORMAL`,
+        sandbox.match.any
+      )
+      .resolves(port);
+
+    await audienceActionFlow.start();
+
+    activitiesMock.verify();
     expect(onCancelSpy).to.not.be.called;
   });
 
