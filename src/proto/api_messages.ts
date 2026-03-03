@@ -33,7 +33,7 @@ export interface Message {
 
 /** Constructor for a message that carries information relating to RRM. */
 interface MessageConstructor {
-  new (data?: unknown[], includesLabel?: boolean): Message;
+  new(data?: unknown[], includesLabel?: boolean): Message;
 }
 
 /** */
@@ -273,6 +273,7 @@ export enum AnalyticsEvent {
   EVENT_COMPLETION_COUNT_FOR_REPEATABLE_ACTION_MISSING_ERROR = 3056,
   EVENT_BYOE_POP_UP_EMAIL_VALIDATION_ERROR = 3062,
   EVENT_BYOE_POP_UP_NAME_VALIDATION_ERROR = 3063,
+  EVENT_TIME_BOUND_PASS_PAYMENT_COMPLETE = 3064,
   EVENT_SUBSCRIPTION_STATE = 4000,
   FREE_ACCESS_EVENT_LANDING = 5000,
   FREE_ACCESS_EVENT_FREE_ACCESS_PROGRAM = 5001,
@@ -928,6 +929,7 @@ export class CompleteAudienceActionResponse implements Message {
   private givenName_: string | null;
   private familyName_: string | null;
   private termsAndConditionsConsent_: boolean | null;
+  private idToken_: string | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
@@ -947,6 +949,8 @@ export class CompleteAudienceActionResponse implements Message {
     this.familyName_ = data[6 + base] == null ? null : (data[6 + base] as string);
 
     this.termsAndConditionsConsent_ = data[7 + base] == null ? null : (data[7 + base] as boolean);
+
+    this.idToken_ = data[8 + base] == null ? null : (data[8 + base] as string);
   }
 
   getSwgUserToken(): string | null {
@@ -1013,6 +1017,14 @@ export class CompleteAudienceActionResponse implements Message {
     this.termsAndConditionsConsent_ = value;
   }
 
+  getIdToken(): string | null {
+    return this.idToken_;
+  }
+
+  setIdToken(value: string): void {
+    this.idToken_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.swgUserToken_, // field 1 - swg_user_token
@@ -1023,6 +1035,7 @@ export class CompleteAudienceActionResponse implements Message {
       this.givenName_, // field 6 - given_name
       this.familyName_, // field 7 - family_name
       this.termsAndConditionsConsent_, // field 8 - terms_and_conditions_consent
+      this.idToken_, // field 9 - id_token
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1077,6 +1090,87 @@ export class Duration implements Message {
 
   label(): string {
     return 'Duration';
+  }
+}
+
+/** */
+export class ElementCoordinates implements Message {
+  private id_: string | null;
+  private left_: number | null;
+  private top_: number | null;
+  private width_: number | null;
+  private height_: number | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.id_ = data[base] == null ? null : (data[base] as string);
+
+    this.left_ = data[1 + base] == null ? null : (data[1 + base] as number);
+
+    this.top_ = data[2 + base] == null ? null : (data[2 + base] as number);
+
+    this.width_ = data[3 + base] == null ? null : (data[3 + base] as number);
+
+    this.height_ = data[4 + base] == null ? null : (data[4 + base] as number);
+  }
+
+  getId(): string | null {
+    return this.id_;
+  }
+
+  setId(value: string): void {
+    this.id_ = value;
+  }
+
+  getLeft(): number | null {
+    return this.left_;
+  }
+
+  setLeft(value: number): void {
+    this.left_ = value;
+  }
+
+  getTop(): number | null {
+    return this.top_;
+  }
+
+  setTop(value: number): void {
+    this.top_ = value;
+  }
+
+  getWidth(): number | null {
+    return this.width_;
+  }
+
+  setWidth(value: number): void {
+    this.width_ = value;
+  }
+
+  getHeight(): number | null {
+    return this.height_;
+  }
+
+  setHeight(value: number): void {
+    this.height_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.id_, // field 1 - id
+      this.left_, // field 2 - left
+      this.top_, // field 3 - top
+      this.width_, // field 4 - width
+      this.height_, // field 5 - height
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'ElementCoordinates';
   }
 }
 
@@ -1510,6 +1604,51 @@ export class FinishedLoggingResponse implements Message {
 }
 
 /** */
+export class GisSignIn implements Message {
+  private idToken_: string | null;
+  private gisClientId_: string | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.idToken_ = data[base] == null ? null : (data[base] as string);
+
+    this.gisClientId_ = data[1 + base] == null ? null : (data[1 + base] as string);
+  }
+
+  getIdToken(): string | null {
+    return this.idToken_;
+  }
+
+  setIdToken(value: string): void {
+    this.idToken_ = value;
+  }
+
+  getGisClientId(): string | null {
+    return this.gisClientId_;
+  }
+
+  setGisClientId(value: string): void {
+    this.gisClientId_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.idToken_, // field 1 - id_token
+      this.gisClientId_, // field 2 - gis_client_id
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'GisSignIn';
+  }
+}
+
+/** */
 export class LinkSaveTokenRequest implements Message {
   private authCode_: string | null;
   private token_: string | null;
@@ -1584,6 +1723,39 @@ export class LinkingInfoResponse implements Message {
 
   label(): string {
     return 'LinkingInfoResponse';
+  }
+}
+
+/** */
+export class LoginButtonCoordinates implements Message {
+  private loginButtonCoordinates_: ElementCoordinates[] | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.loginButtonCoordinates_ = (data[base] as unknown[][] || []).map(item => new ElementCoordinates(item, includesLabel));
+  }
+
+  getLoginButtonCoordinatesList(): ElementCoordinates[] | null {
+    return this.loginButtonCoordinates_;
+  }
+
+  setLoginButtonCoordinatesList(value: ElementCoordinates[]): void {
+    this.loginButtonCoordinates_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.loginButtonCoordinates_ ? this.loginButtonCoordinates_.map(item => item.toArray(includeLabel)) : [], // field 1 - login_button_coordinates
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'LoginButtonCoordinates';
   }
 }
 
@@ -2409,7 +2581,7 @@ export class ViewSubscriptionsResponse implements Message {
   }
 }
 
-const PROTO_MAP: {[key: string]: MessageConstructor} = {
+const PROTO_MAP: { [key: string]: MessageConstructor } = {
   'AccountCreationRequest': AccountCreationRequest,
   'ActionRequest': ActionRequest,
   'AlreadySubscribedResponse': AlreadySubscribedResponse,
@@ -2420,13 +2592,16 @@ const PROTO_MAP: {[key: string]: MessageConstructor} = {
   'CloseWindowRequest': CloseWindowRequest,
   'CompleteAudienceActionResponse': CompleteAudienceActionResponse,
   'Duration': Duration,
+  'ElementCoordinates': ElementCoordinates,
   'EntitlementJwt': EntitlementJwt,
   'EntitlementsRequest': EntitlementsRequest,
   'EntitlementsResponse': EntitlementsResponse,
   'EventParams': EventParams,
   'FinishedLoggingResponse': FinishedLoggingResponse,
+  'GisSignIn': GisSignIn,
   'LinkSaveTokenRequest': LinkSaveTokenRequest,
   'LinkingInfoResponse': LinkingInfoResponse,
+  'LoginButtonCoordinates': LoginButtonCoordinates,
   'OpenDialogRequest': OpenDialogRequest,
   'RewardedAdAlternateActionRequest': RewardedAdAlternateActionRequest,
   'RewardedAdLoadAdRequest': RewardedAdLoadAdRequest,

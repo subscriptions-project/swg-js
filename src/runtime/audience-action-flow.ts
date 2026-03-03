@@ -43,6 +43,7 @@ import {ClientConfigManager} from './client-config-manager';
 import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {EntitlementsManager} from './entitlements-manager';
+import {GisLoginFlow} from './gis/gis-login-flow';
 import {I18N_STRINGS} from '../i18n/strings';
 import {InterventionResult} from '../api/available-intervention';
 import {InterventionType} from '../api/intervention-type';
@@ -138,6 +139,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   private readonly rewardedSlotClosedHandler;
   private readonly rewardedSlotGrantedHandler;
   private readonly slotRenderEndedHandler;
+  private readonly gisLoginFlow?: GisLoginFlow;
 
   constructor(
     private readonly deps_: Deps,
@@ -196,6 +198,17 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       setImportantStyles(this.activityIframeView_.getElement(), {
         'pointer-events': 'none',
       });
+    }
+
+    const clientId = this.clientConfigManager_.getGisClientId();
+    const isGisAllowed =
+      this.params_.action === InterventionType.TYPE_REGISTRATION_WALL;
+    if (!!clientId && !!this.params_.onResult && isGisAllowed) {
+      this.gisLoginFlow = new GisLoginFlow(
+        this.deps_.doc(),
+        clientId,
+        this.activityIframeView_
+      );
     }
   }
 
@@ -266,6 +279,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   ) {
     const {onResult, configurationId} = this.params_;
     this.dialogManager_.completeView(this.activityIframeView_);
+    this.gisLoginFlow?.dispose();
     const userToken = response.getSwgUserToken();
     await this.entitlementsManager_.updateEntitlements(userToken);
     if (this.isOptIn(this.params_.action) && onResult) {
@@ -277,6 +291,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
           givenName: response.getGivenName(),
           familyName: response.getFamilyName(),
           termsAndConditionsConsent: response.getTermsAndConditionsConsent(),
+          idToken: response.getIdToken(),
         },
       });
     }

@@ -25,6 +25,7 @@ import {ClientOptions} from '../api/basic-subscriptions';
 import {ClientTheme} from '../api/subscriptions';
 import {Deps} from './deps';
 import {Fetcher} from './fetcher';
+import {InterventionResult} from '../api/available-intervention';
 import {serviceUrl} from './services';
 
 /**
@@ -102,6 +103,22 @@ export class ClientConfigManager {
       ? ClientTheme.DARK
       : ClientTheme.LIGHT;
     return this.clientOptions_.theme || themeDefault;
+  }
+
+  /**
+   * Gets the callback function to be called when the user logs in.
+   */
+  getGisCallback():
+    | ((result: InterventionResult) => Promise<boolean> | boolean)
+    | undefined {
+    return this.clientOptions_.onGisIdToken;
+  }
+
+  /**
+   * Gets the client ID.
+   */
+  getGisClientId(): string | undefined {
+    return this.clientOptions_.gisClientId;
   }
 
   /**
