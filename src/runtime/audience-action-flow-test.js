@@ -51,6 +51,7 @@ const TEST_EMAIL = 'test email';
 const TEST_DISPLAY_NAME = 'test display name';
 const TEST_GIVEN_NAME = 'test given name';
 const TEST_FAMILY_NAME = 'test family name';
+const TEST_ID_TOKEN = 'test id token';
 
 const TEST_OPTINRESULT = {
   email: TEST_EMAIL,
@@ -58,6 +59,7 @@ const TEST_OPTINRESULT = {
   givenName: TEST_GIVEN_NAME,
   familyName: TEST_FAMILY_NAME,
   termsAndConditionsConsent: true,
+  idToken: TEST_ID_TOKEN,
 };
 
 const TEST_OPTINONRESULT = {
@@ -655,7 +657,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
   it(`handles CompleteAudienceActionResponse for OptIn with onResult`, async () => {
     const onResultMock = sandbox
       .mock()
-      .withExactArgs(TEST_OPTINONRESULT)
+      .withExactArgs(sandbox.match(TEST_OPTINONRESULT))
       .resolves(true)
       .once();
     const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
@@ -689,6 +691,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     completeAudienceActionResponse.setGivenName(TEST_GIVEN_NAME);
     completeAudienceActionResponse.setFamilyName(TEST_FAMILY_NAME);
     completeAudienceActionResponse.setTermsAndConditionsConsent(true);
+    completeAudienceActionResponse.setIdToken(TEST_ID_TOKEN);
     const messageCallback = messageMap[completeAudienceActionResponse.label()];
     await messageCallback(completeAudienceActionResponse);
 
@@ -1377,22 +1380,34 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     });
   });
 
-  it('creates GisLoginFlow when clientId and onGisIdToken are present', async () => {
+  it('creates GisLoginFlow when clientId and onResult are present', async () => {
     clientOptions.gisClientId = 'clientId';
-    clientOptions.onGisIdToken = () => {};
     const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       calledManually: false,
+      onResult: () => {},
     });
     expect(audienceActionFlow.gisLoginFlow).to.not.be.undefined;
   });
 
   it('does not create GisLoginFlow when clientId is missing', async () => {
     clientOptions.gisClientId = undefined;
-    clientOptions.onGisIdToken = () => {};
+    const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
+      action: 'TYPE_REGISTRATION_WALL',
+      configurationId: 'configId',
+      onCancel: onCancelSpy,
+      autoPromptType: AutoPromptType.SUBSCRIPTION,
+      calledManually: false,
+      onResult: () => {},
+    });
+    expect(audienceActionFlow.gisLoginFlow).to.be.undefined;
+  });
+
+  it('does not create GisLoginFlow when onResult is missing', async () => {
+    clientOptions.gisClientId = 'clientId';
     const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
       configurationId: 'configId',
@@ -1403,22 +1418,21 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     expect(audienceActionFlow.gisLoginFlow).to.be.undefined;
   });
 
-  it('does not create GisLoginFlow when onGisIdToken is missing', async () => {
+  it('does not create GisLoginFlow when action is not TYPE_REGISTRATION_WALL', async () => {
     clientOptions.gisClientId = 'clientId';
-    clientOptions.onGisIdToken = undefined;
     const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
-      action: 'TYPE_REGISTRATION_WALL',
+      action: 'TYPE_NEWSLETTER_SIGNUP',
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       calledManually: false,
+      onResult: () => {},
     });
     expect(audienceActionFlow.gisLoginFlow).to.be.undefined;
   });
 
   it('disposes GisLoginFlow on complete', async () => {
     clientOptions.gisClientId = 'clientId';
-    clientOptions.onGisIdToken = () => {};
     const gisLoginFlowDisposeSpy = sandbox.spy(
       GisLoginFlow.prototype,
       'dispose'
@@ -1429,6 +1443,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       calledManually: false,
+      onResult: () => {},
     });
     activitiesMock.expects('openIframe').resolves(port);
     entitlementsManagerMock.expects('clear').once();

@@ -1908,6 +1908,7 @@ describes.realWin('AutoPromptManager', (env) => {
         calledManually: false,
         shouldRenderPreview: true,
         onAlternateAction: undefined,
+        onResult: undefined,
       });
     });
 
@@ -1955,6 +1956,7 @@ describes.realWin('AutoPromptManager', (env) => {
         calledManually: false,
         shouldRenderPreview: false,
         onAlternateAction: undefined,
+        onResult: undefined,
       });
     });
 
@@ -2033,6 +2035,7 @@ describes.realWin('AutoPromptManager', (env) => {
         calledManually: false,
         shouldRenderPreview: true,
         onAlternateAction: undefined,
+        onResult: undefined,
       });
     });
 
@@ -2059,6 +2062,7 @@ describes.realWin('AutoPromptManager', (env) => {
         calledManually: false,
         shouldRenderPreview: true,
         onAlternateAction: undefined,
+        onResult: undefined,
       });
     });
 
@@ -2123,7 +2127,46 @@ describes.realWin('AutoPromptManager', (env) => {
         calledManually: false,
         shouldRenderPreview: false,
         onAlternateAction: sinon.match.func,
+        onResult: undefined,
       });
+    });
+
+    it('should pass getGisCallback to onResult for TYPE_REGISTRATION_WALL', async () => {
+      const mockCallback = () => {};
+      clientConfigManagerMock
+        .expects('getGisCallback')
+        .returns(mockCallback)
+        .once();
+
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [REGWALL_INTERVENTION],
+            engineId: '123',
+          },
+          actionOrchestration: {
+            interventionFunnel: {
+              interventions: [
+                {
+                  configId: 'regwall_config_id',
+                  type: 'TYPE_REGISTRATION_WALL',
+                },
+              ],
+            },
+          },
+        })
+        .once();
+      expectFrequencyCappingTimestamps(storageMock);
+
+      await autoPromptManager.showAutoPrompt({contentType: ContentType.CLOSED});
+
+      expect(actionFlowSpy).to.have.been.calledWith(
+        deps,
+        sinon.match({
+          action: 'TYPE_REGISTRATION_WALL',
+          onResult: mockCallback,
+        })
+      );
     });
 
     it('should show the first CTA and log an error if the FrequencyCapConfig is invalid', async () => {
@@ -2301,6 +2344,7 @@ describes.realWin('AutoPromptManager', (env) => {
         calledManually: false,
         shouldRenderPreview: false,
         onAlternateAction: sinon.match.func,
+        onResult: undefined,
       });
     });
 
@@ -2341,6 +2385,7 @@ describes.realWin('AutoPromptManager', (env) => {
         calledManually: false,
         shouldRenderPreview: false,
         onAlternateAction: sinon.match.func,
+        onResult: undefined,
       });
     });
 
@@ -2428,6 +2473,7 @@ describes.realWin('AutoPromptManager', (env) => {
         calledManually: false,
         shouldRenderPreview: false,
         onAlternateAction: sinon.match.func,
+        onResult: undefined,
       });
     });
 
@@ -2472,6 +2518,7 @@ describes.realWin('AutoPromptManager', (env) => {
         calledManually: false,
         shouldRenderPreview: false,
         onAlternateAction: sinon.match.func,
+        onResult: undefined,
       });
     });
 
@@ -2566,6 +2613,7 @@ describes.realWin('AutoPromptManager', (env) => {
         calledManually: false,
         shouldRenderPreview: false,
         onAlternateAction: sinon.match.func,
+        onResult: undefined,
       });
     });
 
@@ -2633,6 +2681,7 @@ describes.realWin('AutoPromptManager', (env) => {
         calledManually: false,
         shouldRenderPreview: false,
         onAlternateAction: sinon.match.func,
+        onResult: undefined,
       });
     });
 
@@ -2681,6 +2730,7 @@ describes.realWin('AutoPromptManager', (env) => {
         calledManually: false,
         shouldRenderPreview: false,
         onAlternateAction: sinon.match.func,
+        onResult: undefined,
       });
     });
 
@@ -2756,6 +2806,7 @@ describes.realWin('AutoPromptManager', (env) => {
         calledManually: false,
         shouldRenderPreview: false,
         onAlternateAction: sinon.match.func,
+        onResult: undefined,
       });
     });
 
@@ -2842,6 +2893,7 @@ describes.realWin('AutoPromptManager', (env) => {
         calledManually: false,
         shouldRenderPreview: false,
         onAlternateAction: sinon.match.func,
+        onResult: undefined,
       });
     });
 
@@ -2937,6 +2989,7 @@ describes.realWin('AutoPromptManager', (env) => {
         calledManually: false,
         shouldRenderPreview: false,
         onAlternateAction: sinon.match.func,
+        onResult: undefined,
       });
     });
 
@@ -3425,6 +3478,7 @@ describes.realWin('AutoPromptManager', (env) => {
         calledManually: false,
         shouldRenderPreview: false,
         onAlternateAction: undefined,
+        onResult: undefined,
       });
     });
 
@@ -3488,6 +3542,7 @@ describes.realWin('AutoPromptManager', (env) => {
         calledManually: false,
         shouldRenderPreview: false,
         onAlternateAction: undefined,
+        onResult: undefined,
       });
     });
 
@@ -3525,6 +3580,7 @@ describes.realWin('AutoPromptManager', (env) => {
         calledManually: false,
         shouldRenderPreview: false,
         onAlternateAction: undefined,
+        onResult: undefined,
       });
     });
 
@@ -3561,6 +3617,7 @@ describes.realWin('AutoPromptManager', (env) => {
         calledManually: false,
         shouldRenderPreview: false,
         onAlternateAction: undefined,
+        onResult: undefined,
       });
     });
 
@@ -3596,6 +3653,7 @@ describes.realWin('AutoPromptManager', (env) => {
         calledManually: false,
         shouldRenderPreview: false,
         onAlternateAction: undefined,
+        onResult: undefined,
       });
     });
 
@@ -3677,6 +3735,7 @@ describes.realWin('AutoPromptManager', (env) => {
         calledManually: false,
         shouldRenderPreview: false,
         onAlternateAction: undefined,
+        onResult: undefined,
       });
     });
 
@@ -4083,6 +4142,7 @@ describes.realWin('AutoPromptManager', (env) => {
           calledManually: false,
           shouldRenderPreview: false,
           onAlternateAction: sinon.match.func,
+          onResult: undefined,
         });
       });
 
@@ -4123,6 +4183,7 @@ describes.realWin('AutoPromptManager', (env) => {
           calledManually: false,
           shouldRenderPreview: false,
           onAlternateAction: sinon.match.func,
+          onResult: undefined,
         });
       });
 
@@ -4224,6 +4285,7 @@ describes.realWin('AutoPromptManager', (env) => {
           calledManually: false,
           shouldRenderPreview: false,
           onAlternateAction: sinon.match.func,
+          onResult: undefined,
         });
       });
 
@@ -4268,6 +4330,7 @@ describes.realWin('AutoPromptManager', (env) => {
           calledManually: false,
           shouldRenderPreview: false,
           onAlternateAction: sinon.match.func,
+          onResult: undefined,
         });
       });
 
@@ -4380,6 +4443,7 @@ describes.realWin('AutoPromptManager', (env) => {
           calledManually: false,
           shouldRenderPreview: false,
           onAlternateAction: sinon.match.func,
+          onResult: undefined,
         });
       });
 
@@ -4447,6 +4511,7 @@ describes.realWin('AutoPromptManager', (env) => {
           calledManually: false,
           shouldRenderPreview: false,
           onAlternateAction: sinon.match.func,
+          onResult: undefined,
         });
       });
 
@@ -4499,6 +4564,7 @@ describes.realWin('AutoPromptManager', (env) => {
           calledManually: false,
           shouldRenderPreview: false,
           onAlternateAction: sinon.match.func,
+          onResult: undefined,
         });
       });
 
@@ -4574,6 +4640,7 @@ describes.realWin('AutoPromptManager', (env) => {
           calledManually: false,
           shouldRenderPreview: false,
           onAlternateAction: sinon.match.func,
+          onResult: undefined,
         });
       });
 
@@ -4660,6 +4727,7 @@ describes.realWin('AutoPromptManager', (env) => {
           calledManually: false,
           shouldRenderPreview: false,
           onAlternateAction: sinon.match.func,
+          onResult: undefined,
         });
       });
 
@@ -4749,6 +4817,7 @@ describes.realWin('AutoPromptManager', (env) => {
           calledManually: false,
           shouldRenderPreview: false,
           onAlternateAction: sinon.match.func,
+          onResult: undefined,
         });
       });
 
@@ -5519,6 +5588,7 @@ describes.realWin('AutoPromptManager', (env) => {
           calledManually: false,
           shouldRenderPreview: false,
           onAlternateAction: sinon.match.func,
+          onResult: undefined,
         });
       });
 
@@ -5555,6 +5625,7 @@ describes.realWin('AutoPromptManager', (env) => {
           calledManually: false,
           shouldRenderPreview: false,
           onAlternateAction: sinon.match.func,
+          onResult: undefined,
         });
       });
 
@@ -5652,6 +5723,7 @@ describes.realWin('AutoPromptManager', (env) => {
           calledManually: false,
           shouldRenderPreview: false,
           onAlternateAction: sinon.match.func,
+          onResult: undefined,
         });
       });
 
@@ -5696,6 +5768,7 @@ describes.realWin('AutoPromptManager', (env) => {
           calledManually: false,
           shouldRenderPreview: false,
           onAlternateAction: sinon.match.func,
+          onResult: undefined,
         });
       });
 
@@ -5798,6 +5871,7 @@ describes.realWin('AutoPromptManager', (env) => {
           calledManually: false,
           shouldRenderPreview: false,
           onAlternateAction: sinon.match.func,
+          onResult: undefined,
         });
       });
 
@@ -5845,6 +5919,7 @@ describes.realWin('AutoPromptManager', (env) => {
           calledManually: false,
           shouldRenderPreview: false,
           onAlternateAction: sinon.match.func,
+          onResult: undefined,
         });
       });
 
@@ -5887,6 +5962,7 @@ describes.realWin('AutoPromptManager', (env) => {
           calledManually: false,
           shouldRenderPreview: false,
           onAlternateAction: sinon.match.func,
+          onResult: undefined,
         });
       });
 
@@ -5942,6 +6018,7 @@ describes.realWin('AutoPromptManager', (env) => {
           calledManually: false,
           shouldRenderPreview: false,
           onAlternateAction: sinon.match.func,
+          onResult: undefined,
         });
       });
 
@@ -6008,6 +6085,7 @@ describes.realWin('AutoPromptManager', (env) => {
           calledManually: false,
           shouldRenderPreview: false,
           onAlternateAction: sinon.match.func,
+          onResult: undefined,
         });
       });
 
@@ -6073,6 +6151,7 @@ describes.realWin('AutoPromptManager', (env) => {
           calledManually: false,
           shouldRenderPreview: false,
           onAlternateAction: sinon.match.func,
+          onResult: undefined,
         });
       });
 
