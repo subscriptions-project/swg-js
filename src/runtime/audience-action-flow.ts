@@ -201,12 +201,12 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     }
 
     const clientId = this.clientConfigManager_.getGisClientId();
-    const onGisIdToken = this.clientConfigManager_.getGisCallback();
-    if (!!clientId && !!onGisIdToken) {
+    const isGisAllowed =
+      this.params_.action === InterventionType.TYPE_REGISTRATION_WALL;
+    if (!!clientId && !!this.params_.onResult && isGisAllowed) {
       this.gisLoginFlow = new GisLoginFlow(
         this.deps_.doc(),
         clientId,
-        onGisIdToken,
         this.activityIframeView_
       );
     }
@@ -291,6 +291,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
           givenName: response.getGivenName(),
           familyName: response.getFamilyName(),
           termsAndConditionsConsent: response.getTermsAndConditionsConsent(),
+          idToken: response.getIdToken(),
         },
       });
     }
