@@ -21,6 +21,7 @@ import {
   GisSignIn,
   LoginButtonCoordinates,
 } from '../../proto/api_messages';
+import {GisMode} from './gis-utils';
 import {createElement} from '../../utils/dom';
 import {setImportantStyles} from '../../utils/style';
 
@@ -45,32 +46,37 @@ export class GisLoginFlow {
   constructor(
     private readonly doc: Doc,
     private readonly clientId: string,
-    private readonly activityIframeView_: ActivityIframeView
+    private readonly activityIframeView: ActivityIframeView,
+    private readonly gisMode: GisMode
   ) {
-    this.activityIframeView_.on(
-      LoginButtonCoordinates,
-      this.handleLoginButtonCoordinates.bind(this)
-    );
-    this.doc.getWin().addEventListener('resize', this.resizeHandler);
+    if (this.gisMode === GisMode.GisModeOverlay) {
+      this.activityIframeView.on(
+        LoginButtonCoordinates,
+        this.handleLoginButtonCoordinates.bind(this)
+      );
+      this.doc.getWin().addEventListener('resize', this.resizeHandler);
+    }
   }
 
   /**
    * Removes all overlays.
    */
   dispose() {
-    for (const overlay of this.overlays.values()) {
-      overlay.remove();
+    if (this.gisMode === GisMode.GisModeOverlay) {
+      for (const overlay of this.overlays.values()) {
+        overlay.remove();
+      }
+      this.overlays.clear();
+      if (this.rafId) {
+        cancelAnimationFrame(this.rafId);
+      }
+      this.doc.getWin().removeEventListener('resize', this.resizeHandler);
     }
-    this.overlays.clear();
-    if (this.rafId) {
-      cancelAnimationFrame(this.rafId);
-    }
-    this.doc.getWin().removeEventListener('resize', this.resizeHandler);
   }
 
   private updateOverlays() {
     this.positions.forEach((p, id) => {
-      const iframe = this.activityIframeView_.getElement();
+      const iframe = this.activityIframeView.getElement();
       const iframeBoundingBox = iframe.getBoundingClientRect();
       const iframeHeight = iframeBoundingBox.height;
       const iframeWidth = iframeBoundingBox.width;
@@ -155,7 +161,7 @@ export class GisLoginFlow {
     const gisSignIn = new GisSignIn();
     gisSignIn.setIdToken(idToken);
     gisSignIn.setGisClientId(this.clientId);
-    this.activityIframeView_.execute(gisSignIn);
+    this.activityIframeView.execute(gisSignIn);
   }
 
   private async getIdToken(): Promise<string> {

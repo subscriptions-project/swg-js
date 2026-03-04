@@ -20,6 +20,7 @@ import {
   LoginButtonCoordinates,
 } from '../../proto/api_messages';
 import {GisLoginFlow} from './gis-login-flow';
+import {GisMode} from './gis-utils';
 import {getStyle} from '../../utils/style';
 
 describes.realWin('GisLoginFlow', (env) => {
@@ -46,6 +47,7 @@ describes.realWin('GisLoginFlow', (env) => {
 
     win = env.win;
     sandbox.stub(win, 'addEventListener').callThrough();
+    sandbox.stub(win, 'removeEventListener').callThrough();
     sandbox.stub(self, 'requestAnimationFrame').callsFake((cb) => {
       cb();
       return 1;
@@ -78,7 +80,12 @@ describes.realWin('GisLoginFlow', (env) => {
       execute: sandbox.spy(),
     };
 
-    gisLoginFlow = new GisLoginFlow(doc, 'client-id', activityIframeView);
+    gisLoginFlow = new GisLoginFlow(
+      doc,
+      'client-id',
+      activityIframeView,
+      GisMode.GisModeOverlay
+    );
   });
 
   afterEach(() => {
@@ -88,6 +95,18 @@ describes.realWin('GisLoginFlow', (env) => {
 
   it('listens for resize events on the window', () => {
     expect(win.addEventListener).to.have.been.calledWith('resize');
+  });
+
+  it('does not listen for resize events on the window for normal mode', () => {
+    const normalFlow = new GisLoginFlow(
+      doc,
+      'client-id',
+      activityIframeView,
+      GisMode.GisModeNormal
+    );
+    expect(win.addEventListener).to.have.been.calledOnce; // From the beforeEach call
+    normalFlow.dispose();
+    expect(win.removeEventListener).to.not.have.been.called;
   });
 
   it('creates an overlay bounds on message and styles it appropriately', () => {
