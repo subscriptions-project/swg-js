@@ -20,6 +20,7 @@ import {
   ElementCoordinates,
   GisSignIn,
   LoginButtonCoordinates,
+  StartGisSignIn,
 } from '../../proto/api_messages';
 import {GisMode} from './gis-utils';
 import {createElement} from '../../utils/dom';
@@ -55,6 +56,8 @@ export class GisLoginFlow {
         this.handleLoginButtonCoordinates.bind(this)
       );
       this.doc.getWin().addEventListener('resize', this.resizeHandler);
+    } else if (this.gisMode === GisMode.GisModeNormal) {
+      this.activityIframeView.on(StartGisSignIn, this.login.bind(this));
     }
   }
 
@@ -68,7 +71,7 @@ export class GisLoginFlow {
       }
       this.overlays.clear();
       if (this.rafId) {
-        cancelAnimationFrame(this.rafId);
+        this.doc.getWin().cancelAnimationFrame(this.rafId);
       }
       this.doc.getWin().removeEventListener('resize', this.resizeHandler);
     }
@@ -98,10 +101,10 @@ export class GisLoginFlow {
 
   private scheduleUpdate() {
     if (this.rafId) {
-      cancelAnimationFrame(this.rafId);
+      this.doc.getWin().cancelAnimationFrame(this.rafId);
       this.rafId = null;
     }
-    this.rafId = requestAnimationFrame(() => {
+    this.rafId = this.doc.getWin().requestAnimationFrame(() => {
       this.rafId = null;
       this.updateOverlays();
     });
@@ -168,7 +171,7 @@ export class GisLoginFlow {
     // TODO: replace with GIS api call for id toke.
     return new Promise<string>((resolve) => {
       // @ts-ignore
-      google.accounts.id.initialize({
+      this.doc.getWin().google.accounts.id.initialize({
         /* eslint-disable-next-line google-camelcase/google-camelcase */
         client_id: this.clientId,
         callback: (idToken: {credential: string}) => {
@@ -176,7 +179,7 @@ export class GisLoginFlow {
         },
       });
       // @ts-ignore
-      google.accounts.id.prompt();
+      this.doc.getWin().google.accounts.id.prompt();
     });
   }
 }
