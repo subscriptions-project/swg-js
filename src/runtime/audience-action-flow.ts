@@ -44,6 +44,7 @@ import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {EntitlementsManager} from './entitlements-manager';
 import {GisLoginFlow} from './gis/gis-login-flow';
+import {GisMode, getGisMode} from './gis/gis-utils';
 import {I18N_STRINGS} from '../i18n/strings';
 import {InterventionResult} from '../api/available-intervention';
 import {InterventionType} from '../api/intervention-type';
@@ -162,12 +163,21 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     this.rewardedSlotGrantedHandler = this.rewardedSlotGranted.bind(this);
     this.slotRenderEndedHandler = this.slotRenderEnded.bind(this);
 
+    const clientId = this.clientConfigManager_.getGisClientId();
+    const gisMode = getGisMode(
+      this.deps_.win(),
+      clientId,
+      this.params_.action,
+      this.params_.onResult
+    );
+
     const iframeParams: {[key: string]: string} = {
       'origin': parseUrl(deps_.win().location.href).origin,
       'configurationId': this.params_.configurationId || '',
       'isClosable': (!!params_.isClosable).toString(),
       'calledManually': params_.calledManually.toString(),
       'previewEnabled': (!!params_.shouldRenderPreview).toString(),
+      'gisMode': gisMode,
     };
     if (this.clientConfigManager_.shouldForceLangInIframes()) {
       iframeParams['hl'] = this.clientConfigManager_.getLanguage();
@@ -200,14 +210,12 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       });
     }
 
-    const clientId = this.clientConfigManager_.getGisClientId();
-    const isGisAllowed =
-      this.params_.action === InterventionType.TYPE_REGISTRATION_WALL;
-    if (!!clientId && !!this.params_.onResult && isGisAllowed) {
+    if (gisMode !== GisMode.GisModeDisabled) {
       this.gisLoginFlow = new GisLoginFlow(
         this.deps_.doc(),
-        clientId,
-        this.activityIframeView_
+        clientId!,
+        this.activityIframeView_,
+        gisMode
       );
     }
   }
