@@ -43,7 +43,7 @@ subscriptions.createButton(function() {
 The API call with options:
 
 ```js
-subscriptions.createButton({theme: 'dark', lang: 'pt-br'}, function () {
+subscriptions.createButton({theme: 'dark', lang: 'pt-br'}, function() {
   // Handle the action.
 });
 ```
@@ -94,9 +94,9 @@ OR
 subscriptions.attachSmartButton(
   buttonElement, 
   function() {
-  // Callback to attach the action on button click event.
-  // i.e. To Launch Offers flow:
-  // subscriptions.showOffers({isClosable: true});
+    // Callback to attach the action on button click event.
+    // i.e. To Launch Offers flow:
+    // subscriptions.showOffers({isClosable: true});
 });
 ```
 
@@ -119,10 +119,10 @@ The `SmartButton` is rendered with following CSS specifications to render
 `button` and the `message` within:
 
 ```css
-min-height: 126px;
-min-width: 300px;
-width: 300px;
-background: transparent;
+  min-height: 126px;
+  min-width: 300px;
+  width: 300px;
+  background: transparent;
 ```
 
 User can specify `width` and `height` to be higher than `min-width` and `min-height`

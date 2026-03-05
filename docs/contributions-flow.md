@@ -21,11 +21,11 @@ This flow allows the publication site to display a flow where users can contribu
 First, please setup the contribution response callback via `setOnPaymentResponse`:
 
 ```js
-subscriptions.setOnPaymentResponse(function (paymentResponse) {
-  paymentResponse.then(function (response) {
+subscriptions.setOnPaymentResponse(function(paymentResponse) {
+  paymentResponse.then(function(response) {
     // Handle the payment response.
     // Some websites would create or update a user at this point.
-    response.complete().then(function () {
+    response.complete().then(function() {
       // The payment is fully processed.
       // Some websites would update their UI at this point,
       // if the purchase unlocked content.
@@ -54,7 +54,7 @@ A user will get a choice to either select one of the amounts to contribute to, o
 To handle the login request:
 
 ```js
-subscriptions.setOnLoginRequest(function () {
+subscriptions.setOnLoginRequest(function() {
   // Handle login request.
 });
 ```
@@ -86,12 +86,12 @@ The SubscriptionResponse object has the following structure:
   "raw": "",
   "purchaseData": {
     "raw": "",
-    "signature": ""
+    "signature": "",
   },
   "productType": "UI_CONTRIBUTION",
   "userData": {
     "idToken": "...",
-    "data": {},
+    "data": { },
     "id": "",
     "email": "",
     "emailVerified": true,

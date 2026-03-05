@@ -23,8 +23,8 @@ It's recommended that the site install entitlements listener as early as practic
 For instance:
 
 ```js
-subscriptions.setOnEntitlementsResponse(function (entitlementsPromise) {
-  entitlementsPromise.then(function (entitlements) {
+subscriptions.setOnEntitlementsResponse(function(entitlementsPromise) {
+  entitlementsPromise.then(function(entitlements) {
     // Handle the entitlements.
   });
 });
@@ -41,7 +41,7 @@ subscriptions.start();
 Likewise, at any point, the site can call `getEntitlements` method to access the entitlements, whether they were previously fetched or not:
 
 ```js
-subscriptions.getEntitlements().then(function (entitlements) {
+subscriptions.getEntitlements().then(function(entitlements) {
   // Handle the entitlements.
 });
 ```
@@ -112,12 +112,11 @@ subscriptions
 ```
 
 ## Entitlement response
-
-| Name              | Type             | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| ----------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| source            | String           | <ul><li>When provided by Google subscriptions: `"google"`</li><li>When provided by Google metering: `"google:metering"`</li><li>When provided by the publisher: the `publicationID` </li></ul>                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| products          | Array of strings | Subscribe with Google Product IDs the user can access.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| subscriptionToken | String           | <ul><li> When provided by Google subscriptions this is a quoted string that represents an [IN_APP_PURCHASE_DATA](https://developer.android.com/google/play/billing/billing_reference#purchase-data-table) JSON object </li><li> When provided by Google metering this is a JWT containing metering details. </li><li> When provided by the publisher: this is an opaque string the publisher provided to Google during the account linking process.The publisher should use this string to lookup the subscription on their backend </li><li> If you're going to provide JSON in your subscriptionToken, be sure to escape it properly (example below) </li></ul> |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| source | String | <ul><li>When provided by Google subscriptions: `"google"`</li><li>When provided by Google metering: `"google:metering"`</li><li>When provided by the publisher: the `publicationID` </li></ul> |
+products | Array of strings | Subscribe with Google Product IDs the user can access. |
+subscriptionToken | String  | <ul><li> When provided by Google subscriptions this is a quoted string that represents an [IN_APP_PURCHASE_DATA](https://developer.android.com/google/play/billing/billing_reference#purchase-data-table) JSON object </li><li> When provided by Google metering this is a JWT containing metering details. </li><li> When provided by the publisher: this is an opaque string the publisher provided to Google during the account linking process.The publisher should use this string to lookup the subscription on their backend </li><li> If you're going to provide JSON in your subscriptionToken, be sure to escape it properly (example below) </li></ul> |
 
 An example response:
 
@@ -151,8 +150,8 @@ The successful entitlements object should be acknowledged by the publication sit
 For instance:
 
 ```js
-subscriptions.setOnEntitlementsResponse(function (entitlementsPromise) {
-  entitlementsPromise.then(function (entitlements) {
+subscriptions.setOnEntitlementsResponse(function(entitlementsPromise) {
+  entitlementsPromise.then(function(entitlements) {
     // Handle the entitlements.
     entitlements.ack();
   });
@@ -165,12 +164,12 @@ To verify the entitlements from Google are valid and authorized, check the valid
 
 The following registered claims are used:
 
-| Claim                                                      | Value                                                                          | Description                                                |
-| ---------------------------------------------------------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------- |
-| [`exp`](https://tools.ietf.org/html/rfc7519#section-4.1.4) | [NumericDate](https://tools.ietf.org/html/rfc7519#page-6) (e.g. `1543596936` ) | When the token expires                                     |
-| [`iat`](https://tools.ietf.org/html/rfc7519#section-4.1.6) | [NumericDate](https://tools.ietf.org/html/rfc7519#page-6) (e.g. `1543595136` ) | When the token was issued                                  |
-| [`iss`](https://tools.ietf.org/html/rfc7519#section-4.1.1) | `subscribewithgoogle@system.gserviceaccount.com`                               | Issuer of the token                                        |
-| [`aud`](https://tools.ietf.org/html/rfc7519#section-4.1.3) | URL (e.g. `https://example.com` )                                              | Audience of the token which will be the publisher's origin |
+| Claim | Value | Description |
+| ----- | ----- | ----------- |
+| [`exp`](https://tools.ietf.org/html/rfc7519#section-4.1.4) | [NumericDate](https://tools.ietf.org/html/rfc7519#page-6) (e.g. `1543596936` ) | When the token expires |
+| [`iat`](https://tools.ietf.org/html/rfc7519#section-4.1.6) | [NumericDate](https://tools.ietf.org/html/rfc7519#page-6) (e.g. `1543595136` ) | When the token was issued |
+| [`iss`](https://tools.ietf.org/html/rfc7519#section-4.1.1) | `subscribewithgoogle@system.gserviceaccount.com` | Issuer of the token |
+| [`aud`](https://tools.ietf.org/html/rfc7519#section-4.1.3) | URL (e.g. `https://example.com` ) | Audience of the token which will be the publisher's origin |
 
 To validate the signature, use these [X.509 certificates](https://www.googleapis.com/robot/v1/metadata/x509/subscribewithgoogle@system.gserviceaccount.com) or these [JWKs](https://www.googleapis.com/robot/v1/metadata/jwk/subscribewithgoogle@system.gserviceaccount.com).
 
