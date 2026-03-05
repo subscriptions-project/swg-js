@@ -34,6 +34,7 @@ describes.realWin('GisLoginFlow', (env) => {
   let messageMap;
   let message;
   let cancelAnimationFrameSpy;
+  let onResizeCallback;
 
   beforeEach(() => {
     const coordinates = new ElementCoordinates();
@@ -100,6 +101,9 @@ describes.realWin('GisLoginFlow', (env) => {
       const messageLabel = messageType.label();
       messageMap[messageLabel] = cb;
     });
+    sandbox.stub(activityIframeView, 'onResize').callsFake((cb) => {
+      onResizeCallback = cb;
+    });
   });
 
   afterEach(() => {
@@ -117,8 +121,13 @@ describes.realWin('GisLoginFlow', (env) => {
       );
     });
 
-    it('listens for resize events on the window', () => {
+    it('listens for resize events from both window and activityIframeView', () => {
       expect(win.addEventListener).to.have.been.calledWith('resize');
+      expect(activityIframeView.onResize).to.have.been.called;
+
+      // Verify callback triggers a frame request
+      onResizeCallback();
+      expect(win.requestAnimationFrame).to.have.been.called;
     });
 
     it('creates an overlay bounds on message and styles it appropriately', () => {

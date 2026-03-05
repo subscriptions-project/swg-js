@@ -56,6 +56,7 @@ export class GisLoginFlow {
         this.handleLoginButtonCoordinates.bind(this)
       );
       this.doc.getWin().addEventListener('resize', this.resizeHandler);
+      this.activityIframeView.onResize(this.resizeHandler);
     } else if (this.gisMode === GisMode.GisModeNormal) {
       this.activityIframeView.on(StartGisSignIn, this.login.bind(this));
     }
@@ -149,9 +150,10 @@ export class GisLoginFlow {
     const overlay = createElement(this.doc.getRootNode(), 'div', {});
     setImportantStyles(overlay, {
       'position': 'absolute',
-      'background-color': 'red', // TODO: set 'transparent',
+      'background-color': 'transparent',
       'z-index': '2147483647',
       'pointer-events': 'auto',
+      'cursor': 'pointer',
     });
     overlay.onclick = this.login.bind(this);
     this.overlays.set(key, overlay);
