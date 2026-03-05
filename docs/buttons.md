@@ -35,7 +35,7 @@ Both APIs require a callback and accept an optional `options` object. The config
 The API call without options:
 
 ```js
-subscriptions.createButton(function () {
+subscriptions.createButton(function() {
   // Handle the action.
 });
 ```
@@ -53,10 +53,7 @@ subscriptions.createButton({theme: 'dark', lang: 'pt-br'}, function () {
 The SwG button styles are available in the SwG stylesheet:
 
 ```html
-<link
-  rel="stylesheet"
-  href="https://news.google.com/swg/js/v1/swg-button.css"
-/>
+<link rel="stylesheet" href="https://news.google.com/swg/js/v1/swg-button.css"/>
 ```
 
 Note that this stylesheet is installed by `swg.js` automatically.
@@ -83,7 +80,7 @@ button element available in the page to render the `SmartButton` within.
 subscriptions.attachSmartButton(
   buttonElement,
   {theme: 'light', lang: 'en'},
-  function () {
+  function() {
     // Callback to attach the action on button click event.
     // i.e. To Launch Offers flow:
     // subscriptions.showOffers({isClosable: true});
@@ -94,7 +91,9 @@ subscriptions.attachSmartButton(
 OR
 
 ```js
-subscriptions.attachSmartButton(buttonElement, function () {
+subscriptions.attachSmartButton(
+  buttonElement, 
+  function() {
   // Callback to attach the action on button click event.
   // i.e. To Launch Offers flow:
   // subscriptions.showOffers({isClosable: true});
