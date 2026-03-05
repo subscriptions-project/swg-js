@@ -81,9 +81,9 @@ subscriptions.attachSmartButton(
   buttonElement,
   {theme: 'light', lang: 'en'},
   function() {
-    // Callback to attach the action on button click event.
-    // i.e. To Launch Offers flow:
-    // subscriptions.showOffers({isClosable: true});
+      // Callback to attach the action on button click event.
+      // i.e. To Launch Offers flow:
+      // subscriptions.showOffers({isClosable: true});
   }
 );
 ```
@@ -92,11 +92,11 @@ OR
 
 ```js
 subscriptions.attachSmartButton(
-  buttonElement, 
+  buttonElement,
   function() {
-    // Callback to attach the action on button click event.
-    // i.e. To Launch Offers flow:
-    // subscriptions.showOffers({isClosable: true});
+      // Callback to attach the action on button click event.
+      // i.e. To Launch Offers flow:
+      // subscriptions.showOffers({isClosable: true});
 });
 ```
 
