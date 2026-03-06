@@ -15,46 +15,42 @@
  */
 'use strict';
 
+const {expect} = require('@playwright/test');
 const {swgPageUrl} = require('../util');
 
-/**
- * @fileoverview Page object for the basic contribution page.
- */
-const commands = {
-  viewContributionOffers: function () {
-    return this.pause(1000)
-      .log('Viewing contribution offers')
-      .switchToFrame('[src*="about:blank"]', 'SwG outer iFrame')
-      .switchToFrame('[src*="contributionoffersiframe"]', 'SwG inner iFrame');
-  },
-  contribute: function () {
-    return this.log('Clicking contribute button')
-      .assert.textContains('@contributeBtn', 'Contribute $10.00 / month')
-      .click('@contributeBtn');
-  },
-};
+class EnterpriseContributionPage {
+  constructor(page) {
+    this.page = page;
+    this.swgBasicButton = page.locator('.swg-button-v2-dark');
 
-module.exports = {
-  url: function () {
-    return swgPageUrl(
-      this.api.launchUrl,
+    this.offersIframe = page
+      .frameLocator('iframe[src*="about:blank"]')
+      .frameLocator('iframe[src*="contributionoffersiframe"]');
+    this.contributeBtn = this.offersIframe.locator('.PNojLb button').first();
+    this.contributionHeader = this.offersIframe.locator('.jNru1c').first();
+    this.priceChip = this.offersIframe.locator('.h57Fgb').first();
+  }
+
+  async navigate() {
+    const experiments = process.env.SWG_EXPERIMENTS
+      ? process.env.SWG_EXPERIMENTS.split(',')
+      : [];
+    const url = swgPageUrl(
+      'http://localhost:8000',
       '/examples/sample-pub/config/rrme-contributions-prod/1?showContributionOptions',
-      this.api.globals.swg_experiments
+      experiments
     );
-  },
-  commands: [commands],
-  elements: {
-    swgBasicButton: {
-      selector: '.swg-button-v2-dark',
-    },
-    contributeBtn: {
-      selector: '.PNojLb button',
-    },
-    contributionHeader: {
-      selector: '.jNru1c',
-    },
-    priceChip: {
-      selector: '.h57Fgb',
-    },
-  },
-};
+    await this.page.goto(url);
+  }
+
+  async viewContributionOffers() {
+    await this.page.waitForTimeout(1000);
+  }
+
+  async contribute() {
+    await expect(this.contributeBtn).toContainText('Contribute $10.00 / month');
+    await this.contributeBtn.click();
+  }
+}
+
+module.exports = {EnterpriseContributionPage};

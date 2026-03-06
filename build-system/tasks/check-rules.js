@@ -227,6 +227,9 @@ function normalizeRelativePath(path) {
  *   false otherwise
  */
 function matchTerms(file, terms) {
+  if (!file.contents) {
+    return false;
+  }
   const contents = stripComments(file.contents.toString());
   const relative = normalizeRelativePath(file.relative);
   return Object.keys(terms)
@@ -325,6 +328,9 @@ function hasAnyTerms(file) {
  *  content, false otherwise
  */
 function isMissingTerms(file) {
+  if (!file.contents) {
+    return false;
+  }
   const contents = file.contents.toString();
   return Object.keys(requiredTerms)
     .map((term) => {

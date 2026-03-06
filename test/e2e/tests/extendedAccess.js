@@ -13,23 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
-module.exports = {
-  '@tags': ['extendedAccess'],
+const {ExtendedAccessPage} = require('../pages/extendedAccess');
+const {test, expect} = require('@playwright/test');
 
-  'Show regwall': (browser) => {
-    const extendedAccess = browser.page.extendedAccess();
-    extendedAccess
-      .navigate()
-      .waitForElementPresent('@swgRegwallDialog', 'Found regwall')
-      .waitForElementVisible('@swgRegwallDialog')
-      .pause(3000)
-      .assert.screenshotIdenticalToBaseline('body', 'regwall')
-      .assert.textContains('@title', 'Get more with Google')
-      .assert.textContains(
-        '@description',
-        'This content usually requires payment'
-      )
-      .end();
-  },
-};
+test.describe('extendedAccess @extendedAccess', () => {
+  test('Show regwall', async ({page}) => {
+    const extendedAccess = new ExtendedAccessPage(page);
+
+    await extendedAccess.navigate();
+    await expect(extendedAccess.swgRegwallDialog).toBeAttached({
+      timeout: 10000,
+    });
+    await expect(extendedAccess.swgRegwallDialog).toBeVisible();
+    await page.waitForTimeout(3000);
+
+    await expect(page).toHaveScreenshot('regwall.png', {fullPage: true});
+
+    await expect(extendedAccess.title).toContainText('Get more with Google');
+    await expect(extendedAccess.description).toContainText(
+      'This content usually requires payment'
+    );
+  });
+});

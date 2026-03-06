@@ -13,23 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
-module.exports = {
-  '@tags': ['contribution'],
+const constants = require('../constants');
+const {ContributionPage} = require('../pages/contribution');
+const {test, expect} = require('@playwright/test');
 
-  'Show contribution options': (browser) => {
-    const contribution = browser.page.contribution();
-    contribution
-      .navigate()
-      .waitForElementPresent('@swgDialog', 'Found SwG dialog')
-      .waitForElementVisible('@swgDialog')
-      .pause(3000)
-      .assert.screenshotIdenticalToBaseline('body', 'classic-contribution')
-      .viewContributionOptions()
-      .assert.textContains('@header', 'Contribute with your Google Account')
-      .assert.textContains('.Borcjc', '$0.99')
-      .contribute()
-      .checkPayment()
-      .end();
-  },
-};
+test.describe('contribution @contribution', () => {
+  test('Show contribution options', async ({page, context}) => {
+    const contribution = new ContributionPage(page);
+
+    await contribution.navigate();
+    await expect(contribution.swgDialog).toBeAttached({timeout: 10000});
+    await expect(contribution.swgDialog).toBeVisible();
+    await page.waitForTimeout(3000);
+
+    await expect(page).toHaveScreenshot('classic-contribution.png', {
+      fullPage: true,
+    });
+
+    await contribution.viewContributionOptions();
+    await expect(contribution.header).toContainText(
+      'Contribute with your Google Account'
+    );
+    // Using manual locator since Nightwatch test used `.assert.textContains('.Borcjc', '$0.99')`
+    await expect(contribution.priceItem).toContainText('$0.99');
+
+    const [newPage] = await Promise.all([
+      context.waitForEvent('page'),
+      contribution.contribute(),
+    ]);
+
+    await newPage.waitForLoadState();
+    await newPage.waitForTimeout(2000);
+    await expect(newPage).toHaveURL(
+      new RegExp('.*' + constants.google.domain + '.*')
+    );
+  });
+});

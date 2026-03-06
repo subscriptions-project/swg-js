@@ -17,48 +17,51 @@
 
 const {swgPageUrl} = require('../util');
 
-/**
- * @fileoverview Page object for the basic contribution page.
- */
-const commands = {
-  viewNewsletter: function () {
-    return this.pause(1000)
-      .log('Viewing newsletter')
-      .switchToFrame('[src*="about:blank"]', 'SwG outer iFrame')
-      .switchToFrame('[src*="newsletteriframe"]', 'SwG inner iFrame');
-  },
-  consentToNewsletter: function () {
-    return this.log('Checking consent checkbox').click('@consentCheckbox');
-  },
-  optInAction: function () {
-    return this.log('Clicking opt in button').click('@optInButton');
-  },
-};
+class EnterpriseNewsletterPage {
+  constructor(page) {
+    this.page = page;
+    this.swgDialog = page.locator('.swg-dialog').first();
 
-module.exports = {
-  url: function () {
-    return swgPageUrl(
-      this.api.launchUrl,
+    this.newsletterIframe = page
+      .frameLocator('iframe[src*="about:blank"]')
+      .frameLocator('iframe[src*="newsletteriframe"]');
+    this.consentCheckbox = this.newsletterIframe
+      .locator('[jsname="ERYeZe"] input')
+      .first();
+    this.consentMessage = this.newsletterIframe
+      .locator('[jsname="ERYeZe"] label')
+      .first();
+    this.newsletterHeader = this.newsletterIframe
+      .locator('[jsname="ekWun"]')
+      .first();
+    this.optInButton = this.newsletterIframe
+      .locator('[jsname="rANL7b"] button')
+      .first();
+  }
+
+  async navigate() {
+    const experiments = process.env.SWG_EXPERIMENTS
+      ? process.env.SWG_EXPERIMENTS.split(',')
+      : [];
+    const url = swgPageUrl(
+      'http://localhost:8000',
       '/examples/sample-pub/config/rrme-contributions-prod/1?showNewsletterSignup',
-      this.api.globals.swg_experiments
+      experiments
     );
-  },
-  commands: [commands],
-  elements: {
-    consentCheckbox: {
-      selector: '[jsname="ERYeZe"] input',
-    },
-    consentMessage: {
-      selector: '[jsname="ERYeZe"] label',
-    },
-    newsletterHeader: {
-      selector: '[jsname="ekWun"]',
-    },
-    optInButton: {
-      selector: '[jsname="rANL7b"] button',
-    },
-    swgDialog: {
-      selector: '.swg-dialog',
-    },
-  },
-};
+    await this.page.goto(url);
+  }
+
+  async viewNewsletter() {
+    await this.page.waitForTimeout(1000);
+  }
+
+  async consentToNewsletter() {
+    await this.consentCheckbox.click();
+  }
+
+  async optInAction() {
+    await this.optInButton.click();
+  }
+}
+
+module.exports = {EnterpriseNewsletterPage};
