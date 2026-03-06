@@ -13,43 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
-module.exports = {
-  '@tags': ['smart'],
+const {SmartButtonPage} = require('../pages/smartButton');
+const {test, expect} = require('@playwright/test');
 
-  'Show Smart Button': (browser) => {
-    const smartButton = browser.page.smartButton();
-    smartButton
-      .navigate()
-      // button > iframe > button
-      .assert.elementPresent('@smartButton')
-      .switchToFrame('[src*="smartboxiframe"]', 'SwG Smart Button iFrame')
-      .assert.elementPresent('@smartButtonLabel')
-      .assert.attributeContains(
-        '@smartButtonLabel',
-        'aria-label',
-        'Subscribe with Google'
-      )
-      .assert.visible(
-        '.Z40VLd',
-        'Subscribe to The Scenic in less than 2 minutes'
-      )
-      .end();
-  },
+test.describe('smart @smart', () => {
+  test('Show Smart Button', async ({page}) => {
+    const smartButton = new SmartButtonPage(page);
 
-  'Show offers after clicking smart button': function (browser) {
-    const smartButton = browser.page.smartButton();
-    smartButton
-      .navigate()
-      .switchToFrame('[src*="smartboxiframe"]', 'SwG Smart Button iFrame')
-      .click('.swg-button-light', function (result) {
-        this.log('Clicking smart button.');
-        if (this.capabilities.browserName == 'chrome') {
-          this.assert.strictEqual(result.status, 0);
-        } else {
-          this.assert.strictEqual(result.value, null);
-        }
-      })
-      .end();
-  },
-};
+    await smartButton.navigate();
+
+    await expect(smartButton.smartButtonWrapper).toBeAttached({timeout: 10000});
+
+    // Switch to iframe and check button label
+    await expect(smartButton.smartButtonLabel).toBeAttached();
+    await expect(smartButton.smartButtonLabel).toHaveAttribute(
+      'aria-label',
+      /Subscribe with Google/
+    );
+
+    // Check message
+    await expect(smartButton.subscribeMessage).toBeVisible();
+  });
+
+  test('Show offers after clicking smart button', async ({page}) => {
+    const smartButton = new SmartButtonPage(page);
+
+    await smartButton.navigate();
+
+    await smartButton.smartButtonLabel.click();
+
+    // In Playwright, clicks resolve successfully if status is roughly equivalent to 0.
+    // If it doesn't fail, the click was successful.
+  });
+});

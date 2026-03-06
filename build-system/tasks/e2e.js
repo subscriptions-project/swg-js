@@ -15,31 +15,44 @@
  */
 'use strict';
 
+const args = require('./args');
+const {execOrDie} = require('../exec');
+
 async function e2e() {
-  // Load this on-demand to support optional dependencies.
-  const nightwatch = require('nightwatch');
-  nightwatch.cli(async (argv) => {
-    argv.config = 'test/e2e/nightwatch.conf.js';
+  const env = args.env || '';
+  const updateSnapshots =
+    args['update-screenshots'] || args['update-snapshots']
+      ? '--update-snapshots'
+      : '';
 
-    const runner = nightwatch.CliRunner(argv);
-    runner.setup();
+  const grep = args.tag ? `--grep "@${args.tag}"` : '';
+  const grepInvert = args.skiptags
+    ? `--grep-invert "@${args.skiptags.split(',').join('|@')}"`
+    : '';
 
-    try {
-      await runner.runTests();
-    } catch (err) {
-      console.error('An error occurred:', err);
-    }
-  });
+  if (env === 'all_experiments_enabled') {
+    process.env.SWG_EXPERIMENTS = [
+      'logging-audience-activity',
+      'disable-desktop-miniprompt',
+      'background_click_behavior_experiment',
+    ].join(',');
+  }
+
+  const cmd = `npx playwright test ${updateSnapshots} ${grep} ${grepInvert}`;
+  console.log('Running e2e command:', cmd);
+  execOrDie(cmd);
 }
 
 module.exports = {
   e2e,
 };
-e2e.description = 'Run e2e tests';
+e2e.description = 'Run e2e tests via Playwright';
 e2e.flags = {
   'tag':
     ' Filter test modules by tags. Only tests that have the specified will be' +
     ' loaded',
   'skiptags':
     ' Skips tests that have the specified tag or tags (comma separated).',
+  'update-screenshots':
+    'Updates VRT snapshots using playwright --update-snapshots',
 };

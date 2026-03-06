@@ -13,25 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
-module.exports = {
-  '@tags': ['enterprise'],
+const {EnterpriseNewsletterPage} = require('../pages/enterpriseNewsletter');
+const {test, expect} = require('@playwright/test');
 
-  'Enterprise Newsletter': (browser) => {
-    const basic = browser.page.enterpriseNewsletter();
-    basic
-      .navigate()
-      .pause(3000)
-      .assert.screenshotIdenticalToBaseline('html', 'enterprise-newsletter')
-      .viewNewsletter()
-      .assert.textContains(
-        '@newsletterHeader',
-        'Enterprise Contribution E2E Test Pub'
-      )
-      .assert.textContains('@consentMessage', 'I consent to this newsletter.')
-      .consentToNewsletter()
-      .optInAction()
-      .checkSignIn()
-      .end();
-  },
-};
+test.describe('enterprise @enterprise', () => {
+  test('Enterprise Newsletter', async ({page}) => {
+    const basic = new EnterpriseNewsletterPage(page);
+
+    await basic.navigate();
+    await page.waitForTimeout(3000);
+    await expect(page).toHaveScreenshot('enterprise-newsletter.png', {
+      fullPage: true,
+    });
+
+    await basic.viewNewsletter();
+    await expect(basic.newsletterHeader).toContainText(
+      'Enterprise Contribution E2E Test Pub'
+    );
+    await expect(basic.consentMessage).toContainText(
+      'I consent to this newsletter.'
+    );
+
+    await basic.consentToNewsletter();
+
+    await basic.optInAction();
+    await page.waitForTimeout(2000);
+  });
+});

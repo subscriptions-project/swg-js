@@ -13,23 +13,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
-module.exports = {
-  '@tags': ['basic'],
+const constants = require('../constants');
+const {BasicSubscriptionPage} = require('../pages/basicSubscription');
+const {test, expect} = require('@playwright/test');
 
-  'Subscribe': (browser) => {
-    const basic = browser.page.basicSubscription();
-    basic
-      .navigate()
-      .waitForElementPresent('@swgBasicButton', 'Found button')
-      .waitForElementVisible('@swgBasicButton')
-      .click('@swgBasicButton')
-      .pause(3000)
-      .assert.screenshotIdenticalToBaseline('html', 'basic-subscription')
-      .viewSubscriptionOffers()
-      .assert.textContains('@subscriptionHeader', 'Swgjs Subscription Demos')
-      .subscribe()
-      .checkPayment()
-      .end();
-  },
-};
+test.describe('basic @basic', () => {
+  test('Subscribe', async ({page, context}) => {
+    const basic = new BasicSubscriptionPage(page);
+
+    await basic.navigate();
+
+    await expect(basic.swgBasicButton).toBeAttached({timeout: 10000});
+    await expect(basic.swgBasicButton).toBeVisible();
+    await basic.swgBasicButton.click();
+
+    // Pause for animations/loading to finish
+    await page.waitForTimeout(3000);
+
+    // Visual Regression Test using Playwright native
+    await expect(page).toHaveScreenshot('basic-subscription.png', {
+      fullPage: true,
+    });
+
+    await basic.viewSubscriptionOffers();
+    await expect(basic.subscriptionHeader).toContainText(
+      'Swgjs Subscription Demos'
+    );
+
+    // We expect basic.subscribe() to open a new tab/popup for Google Pay
+    const [newPage] = await Promise.all([
+      context.waitForEvent('page'),
+      basic.subscribe(),
+    ]);
+
+    await newPage.waitForLoadState();
+
+    // Equivalent of checkPayment()
+    await newPage.waitForTimeout(2000);
+    await expect(newPage).toHaveURL(
+      new RegExp('.*' + constants.google.domain + '.*')
+    );
+  });
+});

@@ -15,15 +15,12 @@
  */
 'use strict';
 
-const publicationExports = require('./publication');
-const {swgPageUrl} = require('../util');
+const {PublicationPage} = require('./publication');
 
-module.exports = Object.assign({}, publicationExports, {
-  url: function () {
-    return swgPageUrl(
-      this.api.launchUrl,
-      '/examples/sample-pub/1?manualInitialization',
-      this.api.globals.swg_experiments
-    );
-  },
-});
+class ManualInitializationPage extends PublicationPage {
+  getPath() {
+    return '/examples/sample-pub/1?manualInitialization';
+  }
+}
+
+module.exports = {ManualInitializationPage};

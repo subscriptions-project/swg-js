@@ -13,23 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
-module.exports = {
-  '@tags': ['enterprise'],
+const constants = require('../constants');
+const {EnterpriseSubscriptionPage} = require('../pages/enterpriseSubscription');
+const {test, expect} = require('@playwright/test');
 
-  'Enterprise Subscriptions': (browser) => {
-    const basic = browser.page.enterpriseSubscription();
-    basic
-      .navigate()
-      .pause(3000)
-      .assert.screenshotIdenticalToBaseline('html', 'enterprise-subscription')
-      .viewSubscriptionOffers()
-      .assert.textContains(
-        '@subscriptionHeader',
-        'Enterprise Subscription E2E Test Pub'
-      )
-      .subscribe()
-      .checkPayment()
-      .end();
-  },
-};
+test.describe('enterprise @enterprise', () => {
+  test('Enterprise Subscriptions', async ({page, context}) => {
+    const basic = new EnterpriseSubscriptionPage(page);
+
+    await basic.navigate();
+    await page.waitForTimeout(3000);
+    await expect(page).toHaveScreenshot('enterprise-subscription.png', {
+      fullPage: true,
+    });
+
+    await basic.viewSubscriptionOffers();
+    await expect(basic.subscriptionHeader).toContainText(
+      'Enterprise Subscription E2E Test Pub'
+    );
+
+    const [newPage] = await Promise.all([
+      context.waitForEvent('page'),
+      basic.subscribe(),
+    ]);
+
+    await newPage.waitForLoadState();
+    await newPage.waitForTimeout(2000);
+    await expect(newPage).toHaveURL(
+      new RegExp('.*' + constants.google.domain + '.*')
+    );
+  });
+});

@@ -13,23 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
-module.exports = {
-  '@tags': ['basic'],
+const constants = require('../constants');
+const {BasicContributionPage} = require('../pages/basicContribution');
+const {test, expect} = require('@playwright/test');
 
-  'Show button': (browser) => {
-    const basic = browser.page.basicContribution();
-    basic
-      .navigate()
-      .waitForElementPresent('@swgBasicButton', 'Found button')
-      .waitForElementVisible('@swgBasicButton')
-      .click('@swgBasicButton')
-      .pause(3000)
-      .assert.screenshotIdenticalToBaseline('html', 'basic-contribution')
-      .viewContributionOffers()
-      .assert.textContains('@priceChip', '$1')
-      .contribute()
-      .checkPayment()
-      .end();
-  },
-};
+test.describe('basic @basic', () => {
+  test('Show button', async ({page, context}) => {
+    const basic = new BasicContributionPage(page);
+
+    await basic.navigate();
+    await expect(basic.swgBasicButton).toBeAttached({timeout: 10000});
+    await expect(basic.swgBasicButton).toBeVisible();
+    await basic.swgBasicButton.click();
+
+    await page.waitForTimeout(3000);
+    await expect(page).toHaveScreenshot('basic-contribution.png', {
+      fullPage: true,
+    });
+
+    await basic.viewContributionOffers();
+    await expect(basic.priceChip).toContainText('$1');
+
+    const [newPage] = await Promise.all([
+      context.waitForEvent('page'),
+      basic.contribute(),
+    ]);
+
+    await newPage.waitForLoadState();
+    await newPage.waitForTimeout(2000);
+    await expect(newPage).toHaveURL(
+      new RegExp('.*' + constants.google.domain + '.*')
+    );
+  });
+});

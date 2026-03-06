@@ -13,26 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
-module.exports = {
-  '@tags': ['basic'],
+const constants = require('../constants');
+const {BasicNewsletterPage} = require('../pages/basicNewsletter');
+const {test, expect} = require('@playwright/test');
 
-  'Show button': (browser) => {
-    const basic = browser.page.basicNewsletter();
-    basic
-      .navigate()
-      .waitForElementPresent('@swgDialog', 'Found SwG dialog')
-      .waitForElementVisible('@swgDialog')
-      .pause(3000)
-      .assert.screenshotIdenticalToBaseline('html', 'basic-newsletter')
-      .viewNewsletter()
-      .assert.textContains(
-        '@consentMessage',
-        'Please sign up for my newsletter!'
-      )
-      .consentToNewsletter()
-      .optInAction()
-      .checkSignIn()
-      .end();
-  },
-};
+test.describe('basic @basic', () => {
+  test('Show button', async ({page, context}) => {
+    const basic = new BasicNewsletterPage(page);
+
+    await basic.navigate();
+    await expect(basic.swgDialog).toBeAttached({timeout: 10000});
+    await expect(basic.swgDialog).toBeVisible();
+    await page.waitForTimeout(3000);
+
+    await expect(page).toHaveScreenshot('basic-newsletter.png', {
+      fullPage: true,
+    });
+
+    await basic.viewNewsletter();
+    await expect(basic.consentMessage).toContainText(
+      'Please sign up for my newsletter!'
+    );
+
+    await basic.consentToNewsletter();
+
+    // checkSignIn is triggered by optInAction (new tab)
+    const [newPage] = await Promise.all([
+      context.waitForEvent('page'),
+      basic.optInAction(),
+    ]);
+
+    await newPage.waitForLoadState();
+    await newPage.waitForTimeout(2000);
+    await expect(newPage).toHaveURL(
+      new RegExp('.*' + constants.google.accountsDomain + '.*')
+    );
+  });
+});

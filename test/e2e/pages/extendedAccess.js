@@ -17,27 +17,27 @@
 
 const {swgPageUrl} = require('../util');
 
-/**
- * @fileoverview Page object for the extended access feature on scenic.
- */
+class ExtendedAccessPage {
+  constructor(page) {
+    this.page = page;
+    this.swgRegwallDialog = page.locator('#swg-regwall-dialog').first();
+    this.title = page.locator('.gaa-metering-regwall--title').first();
+    this.description = page
+      .locator('.gaa-metering-regwall--description')
+      .first();
+  }
 
-module.exports = {
-  url: function () {
-    return swgPageUrl(
-      this.api.launchUrl,
+  async navigate() {
+    const experiments = process.env.SWG_EXPERIMENTS
+      ? process.env.SWG_EXPERIMENTS.split(',')
+      : [];
+    const url = swgPageUrl(
+      'http://localhost:8000',
       '/examples/sample-pub/1?metering',
-      this.api.globals.swg_experiments
+      experiments
     );
-  },
-  elements: {
-    swgRegwallDialog: {
-      selector: '#swg-regwall-dialog',
-    },
-    title: {
-      selector: '.gaa-metering-regwall--title',
-    },
-    description: {
-      selector: '.gaa-metering-regwall--description',
-    },
-  },
-};
+    await this.page.goto(url);
+  }
+}
+
+module.exports = {ExtendedAccessPage};
