@@ -556,22 +556,40 @@ describes.realWin('BasicRuntime', (env) => {
       await basicRuntime.setOnPaymentResponse(callback);
     });
 
-    it('should delegate "setOnLoginRequest" to ConfiguredBasicRuntime', async () => {
+    it('should delegate "setOnLoginRequest" to ConfiguredBasicRuntime without callback', async () => {
       configuredBasicRuntimeMock
         .expects('setOnLoginRequest')
-        .withExactArgs()
+        .withExactArgs(undefined)
         .once();
 
       await basicRuntime.setOnLoginRequest();
     });
 
-    it('should delegate "setOnLoginRequest" to ConfiguredClassicRuntime', async () => {
-      configuredClassicRuntimeMock.expects('setOnLoginRequest').once();
+    it('should delegate "setOnLoginRequest" to ConfiguredBasicRuntime with callback', async () => {
+      const callback = () => {};
+      configuredBasicRuntimeMock
+        .expects('setOnLoginRequest')
+        .withExactArgs(callback)
+        .once();
 
+      await basicRuntime.setOnLoginRequest(callback);
+    });
+
+    it('should not overwrite custom login request callback with default', async () => {
+      const callback = () => {};
+      configuredClassicRuntimeMock
+        .expects('setOnLoginRequest')
+        .withExactArgs(callback)
+        .once();
+
+      await basicRuntime.setOnLoginRequest(callback);
+
+      // This should be ignored because a custom callback has already been set.
+      configuredClassicRuntimeMock.expects('setOnLoginRequest').never();
       await basicRuntime.setOnLoginRequest();
     });
 
-    it('should trigger login request', async () => {
+    it('should trigger login request using default behavior', async () => {
       configuredBasicRuntime.setOnLoginRequest();
 
       const openStub = sandbox.stub(
@@ -589,6 +607,17 @@ describes.realWin('BasicRuntime', (env) => {
         {publicationId: 'pub1', _client: 'SwG 0.0.0'},
         {'width': 600, 'height': 600}
       );
+    });
+
+    it('should trigger login request using custom callback', async () => {
+      const callback = sandbox.spy();
+      configuredBasicRuntime.setOnLoginRequest(callback);
+
+      await configuredBasicRuntime
+        .callbacks()
+        .triggerLoginRequest({linkRequested: true});
+
+      expect(callback).to.be.calledOnceWithExactly({linkRequested: true});
     });
 
     it('should delegate "processEntitlements"', async () => {
