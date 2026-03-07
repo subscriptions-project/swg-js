@@ -24,6 +24,7 @@ import {
   BasicSubscriptions,
   ClientOptions,
   ContentType,
+  LoginRequest,
 } from '../api/basic-subscriptions';
 import {ButtonApi, ButtonAttributeValues} from './button-api';
 import {Callbacks} from './callbacks';
@@ -275,9 +276,11 @@ export class BasicRuntime implements BasicSubscriptions {
     runtime.setOnPaymentResponse(callback);
   }
 
-  async setOnLoginRequest(): Promise<void> {
+  async setOnLoginRequest(
+    callback?: (loginRequest: LoginRequest) => void
+  ): Promise<void> {
     const runtime = await this.configured_(false);
-    runtime.setOnLoginRequest();
+    runtime.setOnLoginRequest(callback);
   }
 
   async setupAndShowAutoPrompt(options: {
@@ -336,6 +339,7 @@ export class BasicRuntime implements BasicSubscriptions {
 
 export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
   private audienceActivityEventListener_?: AudienceActivityEventListener;
+  private hasCustomLoginRequestCallback_ = false;
 
   private readonly doc_: Doc;
   private readonly win_: Window;
@@ -517,7 +521,18 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     this.configuredClassicRuntime_.setOnPaymentResponse(callback);
   }
 
-  setOnLoginRequest(): void {
+  setOnLoginRequest(callback?: (loginRequest: LoginRequest) => void): void {
+    if (callback) {
+      this.hasCustomLoginRequestCallback_ = true;
+      this.configuredClassicRuntime_.setOnLoginRequest(callback);
+      return;
+    }
+    // Prevent default from overwriting a custom callback
+    // when init() is called after setOnLoginRequest(callback).
+    if (this.hasCustomLoginRequestCallback_) {
+      return;
+    }
+
     this.configuredClassicRuntime_.setOnLoginRequest(() => {
       const publicationId = this.pageConfig().getPublicationId();
       const args = feArgs({
