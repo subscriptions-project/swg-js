@@ -377,14 +377,14 @@ describes.realWin('GisInteropManager', (env) => {
       expect(iframeSpy).to.not.have.been.called;
     });
 
-    it('should remove iframe and transition to YIELDED on yield()', () => {
+    it('should remove iframe and transition to YIELDED on yield()', async () => {
       const clock = sandbox.useFakeTimers();
       const iframeSpy = sandbox.spy(
         communicationIframe.contentWindow,
         'postMessage'
       );
 
-      manager.yield();
+      await manager.yield();
 
       expect(manager.getState()).to.equal(GisInteropManagerStates.YIELDED);
 

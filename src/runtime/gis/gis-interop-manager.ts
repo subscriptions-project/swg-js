@@ -100,6 +100,8 @@ export class GisInteropManager {
   // Whether gis.js is ready to receive messages through the communication iframe.
   private gisReady = false;
   private readonly messageHandlerBound = this.messageHandler.bind(this);
+  private readonly communicationIframeEstablishedPromise: Promise<void>;
+  private communicationIframeEstablishedPromiseResolve!: () => void;
 
   constructor(
     private readonly doc: Doc,
@@ -108,18 +110,17 @@ export class GisInteropManager {
     private readonly pageConfig: PageConfig
   ) {
     this.doc.getWin().addEventListener('message', this.messageHandlerBound);
+    this.communicationIframeEstablishedPromise = new Promise((resolve) => {
+      this.communicationIframeEstablishedPromiseResolve = resolve;
+    });
   }
 
   public getState(): GisInteropManagerStates {
     return this.state;
   }
 
-  public yield() {
-    if (
-      this.state !== GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED
-    ) {
-      return;
-    }
+  public async yield() {
+    await this.communicationIframeEstablishedPromise;
     this.state = GisInteropManagerStates.YIELDED;
     this.doc.getWin().removeEventListener('message', this.messageHandlerBound);
     this.sendIframe({type: 'RRM_GIS_YIELD'});
@@ -194,6 +195,7 @@ export class GisInteropManager {
 
     if (this.iframeLoaded && this.gisReady) {
       this.state = GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED;
+      this.communicationIframeEstablishedPromiseResolve();
     }
   }
 
