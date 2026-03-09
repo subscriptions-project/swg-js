@@ -123,19 +123,39 @@ describes.realWin('GisLoginFlow', (env) => {
     getScripts().forEach((script) => script.remove());
   });
 
-  it('creates gsi script if not present', () => {
-    getScripts().forEach((script) => script.remove());
+  describe('if gsi script if not present', async () => {
+    beforeEach(() => {
+      getScripts().forEach((script) => script.remove());
 
-    expect(getScripts().length).to.equal(0);
+      expect(getScripts().length).to.equal(0);
 
-    new GisLoginFlow(
-      doc,
-      'client-id',
-      activityIframeView,
-      GisMode.GisModeOverlay
-    );
+      new GisLoginFlow(
+        doc,
+        'client-id',
+        activityIframeView,
+        GisMode.GisModeNormal
+      );
+    });
 
-    expect(getScripts().length).to.equal(1);
+    it('creates gsi script if not present', async () => {
+      expect(getScripts().length).to.equal(1);
+    });
+
+    it('starts gis sign in', async () => {
+      getScripts()[0].onload();
+
+      const startGisSignInMessage = new StartGisSignIn();
+      const startGisSignInCallback = messageMap[startGisSignInMessage.label()];
+
+      const loginPromise = startGisSignInCallback(startGisSignInMessage);
+
+      await loginPromise;
+
+      const gisSignIn = new GisSignIn();
+      gisSignIn.setIdToken('fakeIdToken');
+      gisSignIn.setGisClientId('client-id');
+      expect(activityIframeView.execute).to.have.been.calledWith(gisSignIn);
+    });
   });
 
   describe('GisModeOverlay', () => {
