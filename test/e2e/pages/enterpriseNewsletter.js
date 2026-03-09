@@ -55,7 +55,7 @@ module.exports = {
       selector: '[jsname="ekWun"]',
     },
     optInButton: {
-      selector: '[jsname="rANL7b"] button',
+      selector: '[jsname="ykYhEd"]',
     },
     swgDialog: {
       selector: '.swg-dialog',
