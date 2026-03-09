@@ -43,6 +43,7 @@ export class GisLoginFlow {
   private readonly positions = new Map<string, ValidatedCoordinates>();
   private rafId: number | null = null;
   private readonly resizeHandler = this.scheduleUpdate.bind(this);
+  private gisScriptPromise: Promise<void>;
 
   constructor(
     private readonly doc: Doc,
@@ -60,6 +61,24 @@ export class GisLoginFlow {
     } else if (this.gisMode === GisMode.GisModeNormal) {
       this.activityIframeView.on(StartGisSignIn, this.login.bind(this));
     }
+
+    this.gisScriptPromise = new Promise((resolve) => {
+      const hasGis = this.doc
+        .getRootNode()
+        .querySelector('script[src="https://accounts.google.com/gsi/client"]');
+      if (!hasGis) {
+        const gisScript = createElement(this.doc.getRootNode(), 'script', {
+          'src': 'https://accounts.google.com/gsi/client',
+          'async': 'true',
+        });
+        gisScript.onload = () => {
+          resolve();
+        };
+        this.doc.getHead()?.appendChild(gisScript);
+      } else {
+        resolve();
+      }
+    });
   }
 
   /**
@@ -170,6 +189,7 @@ export class GisLoginFlow {
   }
 
   private async getIdToken(): Promise<string> {
+    await this.gisScriptPromise;
     // TODO: replace with GIS api call for id toke.
     return new Promise<string>((resolve) => {
       // @ts-ignore
