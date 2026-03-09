@@ -158,6 +158,7 @@ export class AvailableIntervention {
         onAlternateAction: params.onAlternateAction,
         onSignIn: params.onSignIn,
         preference: this.intervention.preference,
+        clientId: params.clientId,
       }).start();
     }
     throw Error(`Can't show ${this.type}`);

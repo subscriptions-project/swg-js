@@ -344,8 +344,6 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
   private readonly autoPromptManager_: AutoPromptManager;
   private readonly buttonApi_: ButtonApi;
   private readonly inlineCtaApi_: InlineCtaApi;
-  // TODO: Use this variable.
-  // @ts-ignore: Unused variable
   private readonly gisInteropManager_?: GisInteropManager;
 
   constructor(
@@ -443,6 +441,10 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
 
   creationTimestamp(): number {
     return this.creationTimestamp_;
+  }
+
+  gisInteropManager(): GisInteropManager | undefined {
+    return this.gisInteropManager_;
   }
 
   doc(): Doc {

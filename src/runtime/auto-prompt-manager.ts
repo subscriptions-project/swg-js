@@ -337,15 +337,18 @@ export class AutoPromptManager {
   ): Promise<void> {
     this.isInDevMode_ = false;
     if (!article) {
+      this.yeildControlToGis_();
       return;
     }
 
     if (!clientConfig.uiPredicates?.canDisplayAutoPrompt) {
+      this.yeildControlToGis_();
       return;
     }
 
     const hasValidEntitlements = entitlements.enablesThis();
     if (hasValidEntitlements) {
+      this.yeildControlToGis_();
       return;
     }
 
@@ -407,6 +410,7 @@ export class AutoPromptManager {
       : undefined;
 
     if (!promptFn) {
+      this.yeildControlToGis_();
       return;
     }
 
@@ -591,6 +595,7 @@ export class AutoPromptManager {
           /* shouldAnimateFade */ false
         ),
         onResult: this.getOnResultCallback(action),
+        clientId: this.clientConfigManager_.getClientId(),
       });
       this.setLastAudienceActionFlow(audienceActionFlow);
       audienceActionFlow.start();
@@ -1028,5 +1033,9 @@ export class AutoPromptManager {
     const articleExpFlags =
       this.entitlementsManager_.parseArticleExperimentConfigFlags(article);
     return articleExpFlags.includes(experimentFlag);
+  }
+
+  private yeildControlToGis_() {
+    this.deps_.gisInteropManager()?.yield();
   }
 }

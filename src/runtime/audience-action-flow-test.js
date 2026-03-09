@@ -1001,6 +1001,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       calledManually: false,
       onResult: () => {},
+      clientId: 'clientId',
     });
     activitiesMock
       .expects('openIframe')
@@ -1030,6 +1031,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       calledManually: false,
       onResult: () => {},
+      clientId: 'clientId',
     });
     activitiesMock
       .expects('openIframe')
@@ -1450,6 +1452,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       calledManually: false,
       onResult: () => {},
+      clientId: 'clientId',
     });
     expect(audienceActionFlow.gisLoginFlow).to.not.be.undefined;
   });
@@ -1463,6 +1466,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       calledManually: false,
       onResult: () => {},
+      clientId: undefined,
     });
     expect(audienceActionFlow.gisLoginFlow).to.be.undefined;
   });
@@ -1475,6 +1479,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       calledManually: false,
+      clientId: 'clientId',
     });
     expect(audienceActionFlow.gisLoginFlow).to.be.undefined;
   });
@@ -1488,6 +1493,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       calledManually: false,
       onResult: () => {},
+      clientId: 'clientId',
     });
     expect(audienceActionFlow.gisLoginFlow).to.be.undefined;
   });
@@ -1505,6 +1511,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       calledManually: false,
       onResult: () => {},
+      clientId: 'clientId',
     });
     activitiesMock.expects('openIframe').resolves(port);
     entitlementsManagerMock.expects('clear').once();
