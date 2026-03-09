@@ -601,7 +601,7 @@ export class AutoPromptManager {
     action: AudienceActionType
   ): ((result: InterventionResult) => Promise<boolean> | boolean) | undefined {
     if (action === InterventionType.TYPE_REGISTRATION_WALL) {
-      return this.clientConfigManager_.getGisCallback();
+      return this.clientConfigManager_.getOnGisOptIn();
     }
     return undefined;
   }

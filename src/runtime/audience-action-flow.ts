@@ -163,7 +163,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     this.rewardedSlotGrantedHandler = this.rewardedSlotGranted.bind(this);
     this.slotRenderEndedHandler = this.slotRenderEnded.bind(this);
 
-    const clientId = this.clientConfigManager_.getGisClientId();
+    const clientId = this.clientConfigManager_.getClientId();
     const gisMode = getGisMode(
       this.deps_.win(),
       clientId,

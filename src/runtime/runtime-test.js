@@ -1077,6 +1077,16 @@ describes.realWin('ConfiguredRuntime', (env) => {
     expect(entitlementsManagerSpy.getCall(1).args[4]).to.be.true;
   });
 
+  it('should set gisInterop flag and create manager if true', () => {
+    runtime = new ConfiguredRuntime(win, config);
+    expect(runtime.gisInteropManager_).to.be.undefined;
+
+    runtime = new ConfiguredRuntime(win, config, {
+      gisInterop: true,
+    });
+    expect(runtime.gisInteropManager_).to.exist;
+  });
+
   describe('while configuring', () => {
     let resolveConfig;
     let rejectConfig;
@@ -1414,6 +1424,11 @@ describes.realWin('ConfiguredRuntime', (env) => {
         expect(mistake).to.throw(
           'paySwgVersion must be a string, type: number'
         );
+      });
+
+      it('throws on unknown gisInterop value', () => {
+        const mistake = () => runtime.configure({gisInterop: 'true'});
+        expect(mistake).to.throw('gisInterop must be a boolean, type: string');
       });
     });
 

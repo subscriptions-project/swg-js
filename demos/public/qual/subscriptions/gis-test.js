@@ -60,10 +60,10 @@ function initSwg() {
       isPartOfProductId: "CAowwoSCAQ:basic",
       clientOptions: {
         theme: "light",
-        lang: "ja",
-        gisClientId: clientId,
-        onGisIdToken: (idToken) => {
-          log('onGisIdToken', idToken);
+        lang: "en",
+        clientId: clientId,
+        onGisOptIn: (idToken) => {
+          log('onGisOptIn', idToken);
         }
       },
       gisInterop: true,

@@ -399,6 +399,8 @@ export interface Config {
   enablePropensity?: boolean;
   publisherProvidedId?: string;
   paySwgVersion?: string;
+  /** GIS interop is WIP / experimental. Do not use. */
+  gisInterop?: boolean;
 }
 
 /**

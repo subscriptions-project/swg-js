@@ -2131,10 +2131,10 @@ describes.realWin('AutoPromptManager', (env) => {
       });
     });
 
-    it('should pass getGisCallback to onResult for TYPE_REGISTRATION_WALL', async () => {
+    it('should pass getOnGisOptIn to onResult for TYPE_REGISTRATION_WALL', async () => {
       const mockCallback = () => {};
       clientConfigManagerMock
-        .expects('getGisCallback')
+        .expects('getOnGisOptIn')
         .returns(mockCallback)
         .once();
 

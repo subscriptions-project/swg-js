@@ -63,6 +63,7 @@ import {Fetcher as FetcherInterface, XhrFetcher} from './fetcher';
 import {FreeAccess} from './free-access';
 import {FreeAccessApi} from '../api/free-access-api';
 import {GetEntitlementsParamsExternalDef} from '../api/subscriptions';
+import {GisInteropManager} from './gis/gis-interop-manager';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {JsError} from './jserror';
 import {
@@ -251,6 +252,7 @@ export class Runtime implements SubscriptionsInterface {
       /* integr */ {
         configPromise: this.configuredRuntimePromise_.then(),
         enableGoogleAnalytics: true,
+        gisInterop: this.config_.gisInterop,
       },
       this.config_,
       {
@@ -622,6 +624,10 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
   private lastContributionsFlow_: ContributionsFlow | null = null;
   private publisherProvidedId_?: string;
 
+  // TODO: Use this variable.
+  // @ts-ignore: Unused variable
+  private readonly gisInteropManager_?: GisInteropManager;
+
   private readonly eventManager_: ClientEventManager;
   private readonly doc_: DocInterface;
   private readonly win_: Window;
@@ -653,6 +659,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
           configPromise?: Promise<void>;
           enableGoogleAnalytics?: boolean;
           enableDefaultMeteringHandler?: boolean;
+          gisInterop?: boolean;
         }
       | undefined,
     config?: Config,
@@ -715,6 +722,15 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
       this, // See note about 'this' above
       integr.enableDefaultMeteringHandler || false
     );
+
+    this.gisInteropManager_ = !!integr.gisInterop
+      ? new GisInteropManager(
+          this.doc_,
+          this.storage_,
+          this.entitlementsManager_,
+          this.pageConfig_
+        )
+      : undefined;
 
     this.clientConfigManager_ = new ClientConfigManager(
       this, // See note about 'this' above
@@ -885,6 +901,11 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
           if (typeof value !== 'string') {
             error = 'paySwgVersion must be a string, type: ' + typeof value;
             break;
+          }
+          break;
+        case 'gisInterop':
+          if (!isBoolean(value)) {
+            error = 'gisInterop must be a boolean, type: ' + typeof value;
           }
           break;
         default:
