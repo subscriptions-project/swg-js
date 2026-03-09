@@ -20,9 +20,11 @@
  */
 
 import {INTERNAL_RUNTIME_VERSION} from './constants';
+declare let IS_ESM_BUILD: boolean;
 import {installRuntime} from './runtime/runtime';
 import {log} from './utils/log';
 
 log(`Subscriptions Runtime: ${INTERNAL_RUNTIME_VERSION}`);
 
-installRuntime(self);
+const autoStart = !(typeof IS_ESM_BUILD !== 'undefined' && IS_ESM_BUILD === true);
+export const subscriptions = installRuntime(self, {autoStart});

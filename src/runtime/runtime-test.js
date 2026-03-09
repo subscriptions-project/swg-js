@@ -37,6 +37,7 @@ import {
   Runtime,
   getRuntime,
   installRuntime,
+  resetRuntimeForTesting,
 } from './runtime';
 import {ContributionsFlow} from './contributions-flow';
 import {DeferredAccountFlow} from './deferred-account-flow';
@@ -81,6 +82,7 @@ describes.realWin('installRuntime', (env) => {
     sandbox.stub(self.console, 'warn');
 
     win = env.win;
+    resetRuntimeForTesting();
   });
 
   afterEach(() => {
