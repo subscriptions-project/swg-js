@@ -147,9 +147,7 @@ describes.realWin('GisLoginFlow', (env) => {
       const startGisSignInMessage = new StartGisSignIn();
       const startGisSignInCallback = messageMap[startGisSignInMessage.label()];
 
-      const loginPromise = startGisSignInCallback(startGisSignInMessage);
-
-      await loginPromise;
+      await startGisSignInCallback(startGisSignInMessage);
 
       const gisSignIn = new GisSignIn();
       gisSignIn.setIdToken('fakeIdToken');
