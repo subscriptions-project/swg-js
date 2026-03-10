@@ -368,6 +368,12 @@ describes.realWin('Runtime', (env) => {
       expect(analytics.readyForLogging_).to.be.true;
     });
 
+    it('should return undefined for gisInteropManager', async () => {
+      runtime.init('pub2');
+      const configuredRuntime = await runtime.configured_(true);
+      expect(configuredRuntime.gisInteropManager()).to.be.undefined;
+    });
+
     it('sets paySwgVersion from config', async () => {
       runtime.configure({paySwgVersion: '123'});
       runtime.init('pub2');
