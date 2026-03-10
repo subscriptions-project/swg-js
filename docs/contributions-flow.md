@@ -35,9 +35,10 @@ subscriptions.setOnPaymentResponse(function(paymentResponse) {
 ```
 
 Once you receive the contribution response:
- 1. You can process the contribution. For instance you can create a new account based on the `userData` info and save contribution for this account.
- 2. Once contribution is processed, call `response.complete()`. This method will signal to SwG that your site has accepted the contribution. It will return a promise that will be resolved once the user has acknowledged contribution.
- 3. Once the `response.complete()` promise is resolved, you can unblock your content, show additional UI to the user or perform any actions you see fit.
+
+1.  You can process the contribution. For instance you can create a new account based on the `userData` info and save contribution for this account.
+2.  Once contribution is processed, call `response.complete()`. This method will signal to SwG that your site has accepted the contribution. It will return a promise that will be resolved once the user has acknowledged contribution.
+3.  Once the `response.complete()` promise is resolved, you can unblock your content, show additional UI to the user or perform any actions you see fit.
 
 To activate contribution flow itself, call the `contribute` method with the desired SKU:
 
@@ -73,20 +74,23 @@ subscriptions.showContributions({skus: ['sku1', 'sku2']});
 The `setOnPaymentResponse` callback will be called once the contribution is complete, or when the previously executed contribution is recovered.
 
 ## Contribution response
-The response returned by the `setOnPaymentResponse` callback is the [`SubscribeResponse`](../src/api/subscribe-response.js) object. It includes purchase details, as well as user data.
+
+The response returned by the `setOnPaymentResponse` callback is the [`SubscribeResponse`](../src/api/subscribe-response.ts) object. It includes purchase details, as well as user data.
 
 ### Structure
+
 The SubscriptionResponse object has the following structure:
+
 ```json
 {
   "raw": "",
-  "purchaseData" : {
+  "purchaseData": {
     "raw": "",
     "signature": "",
   },
   "productType": "UI_CONTRIBUTION",
   "userData": {
-    "idToken" : "...",
+    "idToken": "...",
     "data": { },
     "id": "",
     "email": "",
@@ -101,4 +105,4 @@ The SubscriptionResponse object has the following structure:
 
 For details, please refer to [Subscription flow](./subscribe-flow.md)
 
-*Important!* Please ensure you set up the `setOnPaymentResponse` on any page where you accept purchases, not just before you call `contribute` or `showContributions`. The SwG client ensures it can recover contributions even when browsers unload pages.
+_Important!_ Please ensure you set up the `setOnPaymentResponse` on any page where you accept purchases, not just before you call `contribute` or `showContributions`. The SwG client ensures it can recover contributions even when browsers unload pages.

@@ -21,12 +21,13 @@ This flow would notify the publication site when SwG believes that the reader is
 It's recommended that the site install entitlements listener as early as practical using `setOnEntitlementsResponse` method.
 
 For instance:
+
 ```js
 subscriptions.setOnEntitlementsResponse(function(entitlementsPromise) {
   entitlementsPromise.then(function(entitlements) {
     // Handle the entitlements.
   });
-})
+});
 ```
 
 This callback will be called whenever the new entitlements have been updated.
@@ -82,9 +83,9 @@ subscriptions
   .then((entitlements) => {
       // Check if an entitlement unlocks the article.
       if (entitlements.enablesThis()) {
-        // Check if a Google metering entitlement unlocks the article. 
+        // Check if a Google metering entitlement unlocks the article.
         if (entitlements.enablesThisWithGoogleMetering()) {
-          // Consume the entitlement. This lets Google know a specific free 
+          // Consume the entitlement. This lets Google know a specific free
           // read was "used up", which allows Google to calculate how many
           // free reads are left for a given user.
           //
@@ -118,6 +119,7 @@ products | Array of strings | Subscribe with Google Product IDs the user can acc
 subscriptionToken | String  | <ul><li> When provided by Google subscriptions this is a quoted string that represents an [IN_APP_PURCHASE_DATA](https://developer.android.com/google/play/billing/billing_reference#purchase-data-table) JSON object </li><li> When provided by Google metering this is a JWT containing metering details. </li><li> When provided by the publisher: this is an opaque string the publisher provided to Google during the account linking process.The publisher should use this string to lookup the subscription on their backend </li><li> If you're going to provide JSON in your subscriptionToken, be sure to escape it properly (example below) </li></ul> |
 
 An example response:
+
 ```js
 {
   service: "subscribe.google.com",
@@ -138,23 +140,26 @@ An example response:
   isReadyToPay: false
 }
 ```
-See the [Entitlements](../src/api/entitlements.js) object for more detail.
+
+See the [Entitlements](../src/api/entitlements.ts) object for more detail.
 
 ## Entitlement acknowledgement
 
 The successful entitlements object should be acknowledged by the publication site to stop it from showing the notification. This is done by calling the `entitlements.ack()` method.
 
 For instance:
+
 ```js
 subscriptions.setOnEntitlementsResponse(function(entitlementsPromise) {
   entitlementsPromise.then(function(entitlements) {
     // Handle the entitlements.
     entitlements.ack();
   });
-})
+});
 ```
 
 ## Validate entitlements
+
 To verify the entitlements from Google are valid and authorized, check the validity of the JWT representation of the entitlements.
 
 The following registered claims are used:
@@ -168,15 +173,18 @@ The following registered claims are used:
 
 To validate the signature, use these [X.509 certificates](https://www.googleapis.com/robot/v1/metadata/x509/subscribewithgoogle@system.gserviceaccount.com) or these [JWKs](https://www.googleapis.com/robot/v1/metadata/jwk/subscribewithgoogle@system.gserviceaccount.com).
 
-> __Note:__ The keys rotate, so make sure to check against each one
+> **Note:** The keys rotate, so make sure to check against each one
 
 ## Sample code
+
 This example is a skeleton for the following:
-1) Checking if the user has entitlements to the product linked to the content,
-2) Checking if the user's subscription is recognized by the publisher,
-3) Using the login flow functions if so,
-4) Initiating the Deferred Account Creation Flow if not,
-5) Remove the "Subscribed with ... [publication] [Manage Link]" bottom toast.
+
+1. Checking if the user has entitlements to the product linked to the content,
+2. Checking if the user's subscription is recognized by the publisher,
+3. Using the login flow functions if so,
+4. Initiating the Deferred Account Creation Flow if not,
+5. Remove the "Subscribed with ... [publication] [Manage Link]" bottom toast.
+
 ```js
 subscriptions.setOnEntitlementsResponse(entitlementsPromise => {
   entitlementsPromise.then(entitlements => {
