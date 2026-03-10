@@ -576,6 +576,8 @@ describes.realWin('BasicRuntime', (env) => {
     });
 
     it('should not overwrite custom login request callback with default', async () => {
+      sandbox.stub(configuredBasicRuntime, 'setupDefaultLoginRequestCallback_');
+
       const callback = () => {};
       configuredClassicRuntimeMock
         .expects('setOnLoginRequest')
@@ -585,8 +587,23 @@ describes.realWin('BasicRuntime', (env) => {
       await basicRuntime.setOnLoginRequest(callback);
 
       // This should be ignored because a custom callback has already been set.
-      configuredClassicRuntimeMock.expects('setOnLoginRequest').never();
       await basicRuntime.setOnLoginRequest();
+    });
+
+    it('should overwrite default login request callback with custom callback', async () => {
+      sandbox.stub(configuredBasicRuntime, 'setupDefaultLoginRequestCallback_');
+
+      // First, simulate init() which registers the default callback
+      await basicRuntime.setOnLoginRequest();
+
+      const callback = () => {};
+      configuredClassicRuntimeMock
+        .expects('setOnLoginRequest')
+        .withExactArgs(callback)
+        .once();
+
+      // Second, register custom callback which should overwrite the default
+      await basicRuntime.setOnLoginRequest(callback);
     });
 
     it('should trigger login request using default behavior', async () => {
