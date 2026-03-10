@@ -54,7 +54,7 @@ The `setOnPaymentResponse` callback will be called once the subscription is comp
 
 ## Subscribe response
 
-The response returned by the `setOnPaymentResponse` callback is the [`SubscribeResponse`](../src/api/subscribe-response.js) object. It includes purchase details, as well as user data and the purchased entitlement.
+The response returned by the `setOnPaymentResponse` callback is the [`SubscribeResponse`](../src/api/subscribe-response.ts) object. It includes purchase details, as well as user data and the purchased entitlement.
 
 ### Structure
 

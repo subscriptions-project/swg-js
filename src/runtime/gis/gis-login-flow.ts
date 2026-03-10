@@ -20,7 +20,9 @@ import {
   ElementCoordinates,
   GisSignIn,
   LoginButtonCoordinates,
+  StartGisSignIn,
 } from '../../proto/api_messages';
+import {GisMode} from './gis-utils';
 import {createElement} from '../../utils/dom';
 import {setImportantStyles} from '../../utils/style';
 
@@ -41,36 +43,63 @@ export class GisLoginFlow {
   private readonly positions = new Map<string, ValidatedCoordinates>();
   private rafId: number | null = null;
   private readonly resizeHandler = this.scheduleUpdate.bind(this);
+  private gisScriptPromise: Promise<void>;
 
   constructor(
     private readonly doc: Doc,
     private readonly clientId: string,
-    private readonly activityIframeView_: ActivityIframeView
+    private readonly activityIframeView: ActivityIframeView,
+    private readonly gisMode: GisMode
   ) {
-    this.activityIframeView_.on(
-      LoginButtonCoordinates,
-      this.handleLoginButtonCoordinates.bind(this)
-    );
-    this.doc.getWin().addEventListener('resize', this.resizeHandler);
+    if (this.gisMode === GisMode.GisModeOverlay) {
+      this.activityIframeView.on(
+        LoginButtonCoordinates,
+        this.handleLoginButtonCoordinates.bind(this)
+      );
+      this.doc.getWin().addEventListener('resize', this.resizeHandler);
+      this.activityIframeView.onResize(this.resizeHandler);
+    } else if (this.gisMode === GisMode.GisModeNormal) {
+      this.activityIframeView.on(StartGisSignIn, this.login.bind(this));
+    }
+
+    this.gisScriptPromise = new Promise((resolve) => {
+      const hasGis = this.doc
+        .getRootNode()
+        .querySelector('script[src="https://accounts.google.com/gsi/client"]');
+      if (!hasGis) {
+        const gisScript = createElement(this.doc.getRootNode(), 'script', {
+          'src': 'https://accounts.google.com/gsi/client',
+          'async': 'true',
+        });
+        gisScript.onload = () => {
+          resolve();
+        };
+        this.doc.getHead()?.appendChild(gisScript);
+      } else {
+        resolve();
+      }
+    });
   }
 
   /**
    * Removes all overlays.
    */
   dispose() {
-    for (const overlay of this.overlays.values()) {
-      overlay.remove();
+    if (this.gisMode === GisMode.GisModeOverlay) {
+      for (const overlay of this.overlays.values()) {
+        overlay.remove();
+      }
+      this.overlays.clear();
+      if (this.rafId) {
+        this.doc.getWin().cancelAnimationFrame(this.rafId);
+      }
+      this.doc.getWin().removeEventListener('resize', this.resizeHandler);
     }
-    this.overlays.clear();
-    if (this.rafId) {
-      cancelAnimationFrame(this.rafId);
-    }
-    this.doc.getWin().removeEventListener('resize', this.resizeHandler);
   }
 
   private updateOverlays() {
     this.positions.forEach((p, id) => {
-      const iframe = this.activityIframeView_.getElement();
+      const iframe = this.activityIframeView.getElement();
       const iframeBoundingBox = iframe.getBoundingClientRect();
       const iframeHeight = iframeBoundingBox.height;
       const iframeWidth = iframeBoundingBox.width;
@@ -92,10 +121,10 @@ export class GisLoginFlow {
 
   private scheduleUpdate() {
     if (this.rafId) {
-      cancelAnimationFrame(this.rafId);
+      this.doc.getWin().cancelAnimationFrame(this.rafId);
       this.rafId = null;
     }
-    this.rafId = requestAnimationFrame(() => {
+    this.rafId = this.doc.getWin().requestAnimationFrame(() => {
       this.rafId = null;
       this.updateOverlays();
     });
@@ -140,9 +169,10 @@ export class GisLoginFlow {
     const overlay = createElement(this.doc.getRootNode(), 'div', {});
     setImportantStyles(overlay, {
       'position': 'absolute',
-      'background-color': 'red', // TODO: set 'transparent',
+      'background-color': 'transparent',
       'z-index': '2147483647',
       'pointer-events': 'auto',
+      'cursor': 'pointer',
     });
     overlay.onclick = this.login.bind(this);
     this.overlays.set(key, overlay);
@@ -155,14 +185,15 @@ export class GisLoginFlow {
     const gisSignIn = new GisSignIn();
     gisSignIn.setIdToken(idToken);
     gisSignIn.setGisClientId(this.clientId);
-    this.activityIframeView_.execute(gisSignIn);
+    this.activityIframeView.execute(gisSignIn);
   }
 
   private async getIdToken(): Promise<string> {
+    await this.gisScriptPromise;
     // TODO: replace with GIS api call for id toke.
     return new Promise<string>((resolve) => {
       // @ts-ignore
-      google.accounts.id.initialize({
+      this.doc.getWin().google.accounts.id.initialize({
         /* eslint-disable-next-line google-camelcase/google-camelcase */
         client_id: this.clientId,
         callback: (idToken: {credential: string}) => {
@@ -170,7 +201,7 @@ export class GisLoginFlow {
         },
       });
       // @ts-ignore
-      google.accounts.id.prompt();
+      this.doc.getWin().google.accounts.id.prompt();
     });
   }
 }

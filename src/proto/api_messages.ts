@@ -2075,6 +2075,39 @@ export class SmartBoxMessage implements Message {
 }
 
 /** */
+export class StartGisSignIn implements Message {
+  private unused_: boolean | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.unused_ = data[base] == null ? null : (data[base] as boolean);
+  }
+
+  getUnused(): boolean | null {
+    return this.unused_;
+  }
+
+  setUnused(value: boolean): void {
+    this.unused_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.unused_, // field 1 - unused
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'StartGisSignIn';
+  }
+}
+
+/** */
 export class SubscribeResponse implements Message {
   private subscribe_: boolean | null;
 
@@ -2609,6 +2642,7 @@ const PROTO_MAP: { [key: string]: MessageConstructor } = {
   'RewardedAdViewAdRequest': RewardedAdViewAdRequest,
   'SkuSelectedResponse': SkuSelectedResponse,
   'SmartBoxMessage': SmartBoxMessage,
+  'StartGisSignIn': StartGisSignIn,
   'SubscribeResponse': SubscribeResponse,
   'SubscriptionLinkingCompleteResponse': SubscriptionLinkingCompleteResponse,
   'SubscriptionLinkingLinkResult': SubscriptionLinkingLinkResult,

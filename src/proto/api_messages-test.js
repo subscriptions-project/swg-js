@@ -19,7 +19,7 @@
  * Auto generated, do not edit
  */
 
-import { AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CloseWindowRequest, CompleteAudienceActionResponse, CtaMode, Duration, ElementCoordinates, EmailValidationStatus, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, GisSignIn, LinkSaveTokenRequest, LinkingInfoResponse, LoginButtonCoordinates, OpenDialogRequest, OptInType, ReaderSurfaceType, RewardedAdAlternateActionRequest, RewardedAdLoadAdRequest, RewardedAdLoadAdResponse, RewardedAdViewAdRequest, SkuSelectedResponse, SmartBoxMessage, SubscribeResponse, SubscriptionLinkingCompleteResponse, SubscriptionLinkingLinkResult, SubscriptionLinkingResponse, SurveyAnswer, SurveyDataTransferRequest, SurveyDataTransferResponse, SurveyQuestion, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel } from './api_messages';
+import { AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CloseWindowRequest, CompleteAudienceActionResponse, CtaMode, Duration, ElementCoordinates, EmailValidationStatus, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, GisSignIn, LinkSaveTokenRequest, LinkingInfoResponse, LoginButtonCoordinates, OpenDialogRequest, OptInType, ReaderSurfaceType, RewardedAdAlternateActionRequest, RewardedAdLoadAdRequest, RewardedAdLoadAdResponse, RewardedAdViewAdRequest, SkuSelectedResponse, SmartBoxMessage, StartGisSignIn, SubscribeResponse, SubscriptionLinkingCompleteResponse, SubscriptionLinkingLinkResult, SubscriptionLinkingResponse, SurveyAnswer, SurveyDataTransferRequest, SurveyDataTransferResponse, SurveyQuestion, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel } from './api_messages';
 
 describe('deserialize', () => {
     it('throws if deserialization fails', () => {
@@ -608,7 +608,7 @@ describe('CompleteAudienceActionResponse', () => {
         completeaudienceactionresponse1.setGivenName('');
         completeaudienceactionresponse1.setFamilyName('');
         completeaudienceactionresponse1.setTermsAndConditionsConsent(false);
-      completeaudienceactionresponse1.setIdToken('');
+        completeaudienceactionresponse1.setIdToken('');
 
       let completeaudienceactionresponseDeserialized;
 
@@ -1687,6 +1687,47 @@ describe('SmartBoxMessage', () => {
       expect(smartboxmessageDeserialized.getIsClicked()).to.deep.equal(
           smartboxmessage1.getIsClicked());
   });
+});
+
+describe('StartGisSignIn', () => {
+    it('should deserialize correctly', () => {
+        const /** !StartGisSignIn  */ startgissignin1 = new StartGisSignIn();
+        startgissignin1.setUnused(false);
+
+        let startgissigninDeserialized;
+
+        // Verify includeLabel undefined
+        // Verify serialized arrays.
+        startgissigninDeserialized = deserialize(
+            startgissignin1.toArray(undefined));
+        expect(startgissigninDeserialized.toArray(undefined)).to.deep.equal(
+            startgissignin1.toArray(undefined));
+
+        // Verify fields.
+        expect(startgissigninDeserialized.getUnused()).to.deep.equal(
+            startgissignin1.getUnused());
+
+        // Verify includeLabel true
+        // Verify serialized arrays.
+        startgissigninDeserialized = deserialize(
+            startgissignin1.toArray(true));
+        expect(startgissigninDeserialized.toArray(true)).to.deep.equal(
+            startgissignin1.toArray(true));
+
+        // Verify fields.
+        expect(startgissigninDeserialized.getUnused()).to.deep.equal(
+            startgissignin1.getUnused());
+
+        // Verify includeLabel false
+        // Verify serialized arrays.
+        startgissigninDeserialized = new StartGisSignIn(startgissignin1.toArray(false), false);
+        expect(startgissigninDeserialized.toArray(false)).to.deep.equal(
+            startgissignin1.toArray(false));
+
+        // Verify fields.
+        expect(startgissigninDeserialized.getUnused()).to.deep.equal(
+            startgissignin1.getUnused());
+    });
 });
 
 describe('SubscribeResponse', () => {
