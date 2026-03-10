@@ -31,10 +31,14 @@ const commands = {
     return this.log('Checking consent checkbox').click('@consentCheckbox');
   },
   optInWithGoogleAction: function () {
-    return this.log('Clicking opt in with Google button').click('@optInWithGoogleButton');
+    return this.log('Clicking opt in with Google button').click(
+      '@optInWithGoogleButton'
+    );
   },
   optInWithEmailAction: function () {
-    return this.log('Clicking opt in with email button').click('@optInWithEmailButton');
+    return this.log('Clicking opt in with email button').click(
+      '@optInWithEmailButton'
+    );
   },
 };
 
