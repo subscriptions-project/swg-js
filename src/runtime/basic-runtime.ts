@@ -24,6 +24,7 @@ import {
   BasicSubscriptions,
   ClientOptions,
   ContentType,
+  LoginRequest,
 } from '../api/basic-subscriptions';
 import {ButtonApi, ButtonAttributeValues} from './button-api';
 import {Callbacks} from './callbacks';
@@ -140,6 +141,7 @@ export class BasicRuntime implements BasicSubscriptions {
   private enableDefaultMeteringHandler_ = true;
   private publisherProvidedId_?: string;
   private gisInterop?: boolean;
+  private hasCustomLoginRequestCallback_ = false;
 
   private readonly creationTimestamp_: number;
   private readonly doc_: Doc;
@@ -257,7 +259,12 @@ export class BasicRuntime implements BasicSubscriptions {
       isClosable,
       contentType: this.getContentType_(isAccessibleForFree ?? isOpenAccess),
     });
-    this.setOnLoginRequest();
+
+    // Register a callback for login request if a custom callback has not yet been set.
+    if (!this.hasCustomLoginRequestCallback_) {
+      this.setOnLoginRequest();
+    }
+
     this.processEntitlements();
   }
 
@@ -275,9 +282,14 @@ export class BasicRuntime implements BasicSubscriptions {
     runtime.setOnPaymentResponse(callback);
   }
 
-  async setOnLoginRequest(): Promise<void> {
+  async setOnLoginRequest(
+    callback?: (loginRequest: LoginRequest) => void
+  ): Promise<void> {
+    if (callback) {
+      this.hasCustomLoginRequestCallback_ = true;
+    }
     const runtime = await this.configured_(false);
-    runtime.setOnLoginRequest();
+    runtime.setOnLoginRequest(callback);
   }
 
   async setupAndShowAutoPrompt(options: {
@@ -517,7 +529,22 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     this.configuredClassicRuntime_.setOnPaymentResponse(callback);
   }
 
-  setOnLoginRequest(): void {
+  setOnLoginRequest(callback?: (loginRequest: LoginRequest) => void): void {
+    if (callback) {
+      this.configuredClassicRuntime_.setOnLoginRequest(callback);
+      return;
+    }
+
+    this.setupDefaultLoginRequestCallback_();
+  }
+
+  /**
+   * Sets up the default login request behavior, which triggers the RRM
+   * entitlement check flow on "Already a subscriber?" button click.
+   * This default callback is used as a fallback if a custom callback
+   * has not already been provided via setOnLoginRequest(callback).
+   */
+  private setupDefaultLoginRequestCallback_(): void {
     this.configuredClassicRuntime_.setOnLoginRequest(() => {
       const publicationId = this.pageConfig().getPublicationId();
       const args = feArgs({
