@@ -30,8 +30,11 @@ const commands = {
   consentToNewsletter: function () {
     return this.log('Checking consent checkbox').click('@consentCheckbox');
   },
-  optInAction: function () {
-    return this.log('Clicking opt in button').click('@optInButton');
+  optInWithGoogleAction: function () {
+    return this.log('Clicking opt in with Google button').click('@optInWithGoogleButton');
+  },
+  optInWithEmailAction: function () {
+    return this.log('Clicking opt in with email button').click('@optInWithEmailButton');
   },
 };
 
@@ -54,8 +57,11 @@ module.exports = {
     newsletterHeader: {
       selector: '[jsname="ekWun"]',
     },
-    optInButton: {
+    optInWithGoogleButton: {
       selector: '[jsname="ykYhEd"]',
+    },
+    optInWithEmailButton: {
+      selector: '[jsname="Zhn5O"]',
     },
     swgDialog: {
       selector: '.swg-dialog',

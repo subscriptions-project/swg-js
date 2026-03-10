@@ -14,25 +14,15 @@
  * limitations under the License.
  */
 
-module.exports = {
-  '@tags': ['basic'],
+/**
+ * @fileoverview Switch to Google account sign in window and check that it prompts
+ * the user to sign in.
+ */
 
-  'Show button': (browser) => {
-    const basic = browser.page.basicNewsletter();
-    basic
-      .navigate()
-      .waitForElementPresent('@swgDialog', 'Found SwG dialog')
-      .waitForElementVisible('@swgDialog')
-      .pause(3000)
-      .assert.screenshotIdenticalToBaseline('html', 'basic-newsletter')
-      .viewNewsletter()
-      .assert.textContains(
-        '@consentMessage',
-        'Please sign up for my newsletter!'
-      )
-      .consentToNewsletter()
-      .optInWithGoogleAction()
-      .checkSignIn()
-      .end();
-  },
+const constants = require('../constants');
+
+module.exports.command = function () {
+  return this.pause(2000)
+    .switchToTab('Email opt in')
+    .assert.urlContains(constants.google.newsDomain);
 };
