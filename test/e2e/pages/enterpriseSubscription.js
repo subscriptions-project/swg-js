@@ -15,40 +15,39 @@
  */
 'use strict';
 
+const {expect} = require('@playwright/test');
 const {swgPageUrl} = require('../util');
 
-/**
- * @fileoverview Page object for the basic subscription page.
- */
-const commands = {
-  viewSubscriptionOffers: function () {
-    return this.pause(1000)
-      .log('Viewing subscription offers')
-      .switchToFrame('[src*="about:blank"]', 'SwG outer iFrame')
-      .switchToFrame('[src*="subscriptionoffersiframe"]', 'SwG inner iFrame');
-  },
-  subscribe: function () {
-    return this.log('Clicking buy button')
-      .assert.textContains('@buyButton', 'Subscribe now')
-      .click('@buyButton');
-  },
-};
+class EnterpriseSubscriptionPage {
+  constructor(page) {
+    this.page = page;
+    this.offersIframe = page
+      .frameLocator('iframe[src*="about:blank"]')
+      .frameLocator('iframe[src*="subscriptionoffersiframe"]');
+    this.buyButton = this.offersIframe.locator('.skWZYc button').first();
+    this.subscriptionHeader = this.offersIframe.locator('.jNru1c').first();
+  }
 
-module.exports = {
-  url: function () {
-    return swgPageUrl(
-      this.api.launchUrl,
+  async navigate() {
+    const experiments = process.env.SWG_EXPERIMENTS
+      ? process.env.SWG_EXPERIMENTS.split(',')
+      : [];
+    const url = swgPageUrl(
+      'http://localhost:8000',
       '/examples/sample-pub/config/rrme-subscriptions-prod/1',
-      this.api.globals.swg_experiments
+      experiments
     );
-  },
-  commands: [commands],
-  elements: {
-    buyButton: {
-      selector: '.skWZYc button',
-    },
-    subscriptionHeader: {
-      selector: '.jNru1c',
-    },
-  },
-};
+    await this.page.goto(url);
+  }
+
+  async viewSubscriptionOffers() {
+    await this.page.waitForTimeout(1000);
+  }
+
+  async subscribe() {
+    await expect(this.buyButton).toContainText('Subscribe now');
+    await this.buyButton.click();
+  }
+}
+
+module.exports = {EnterpriseSubscriptionPage};

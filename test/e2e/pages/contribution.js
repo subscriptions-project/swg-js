@@ -1,7 +1,4 @@
 /**
- * @fileoverview Description of this file.
- */
-/**
  * Copyright 2019 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,43 +15,44 @@
  */
 'use strict';
 
+const {expect} = require('@playwright/test');
 const {swgPageUrl} = require('../util');
 
-/**
- * @fileoverview Page object for the first article with contribution on scenic.
- */
-const commands = {
-  viewContributionOptions: function () {
-    return this.pause(1000)
-      .log('Viewing contribution options')
-      .switchToFrame('[src*="about:blank"]', 'SwG outer iFrame')
-      .switchToFrame('[src*="contributionsiframe"]', 'SwG inner iFrame');
-  },
-  contribute: function () {
-    return this.log('Clicking contribution button')
-      .assert.textContains('@contributionBtn', 'Contribute $0.99/week')
-      .click('@contributionBtn');
-  },
-};
+class ContributionPage {
+  constructor(page) {
+    this.page = page;
+    this.swgDialog = page.locator('.swg-dialog').first();
 
-module.exports = {
-  url: function () {
-    return swgPageUrl(
-      this.api.launchUrl,
+    this.contributionsIframe = page
+      .frameLocator('iframe[src*="about:blank"]')
+      .frameLocator('iframe[src*="contributionsiframe"]');
+    this.contributionBtn = this.contributionsIframe
+      .locator('.ContributionButtonText')
+      .first();
+    this.header = this.contributionsIframe.locator('.K2Fgzb').first();
+    this.priceItem = this.contributionsIframe.locator('.Borcjc').first();
+  }
+
+  async navigate() {
+    const experiments = process.env.SWG_EXPERIMENTS
+      ? process.env.SWG_EXPERIMENTS.split(',')
+      : [];
+    const url = swgPageUrl(
+      'http://localhost:8000',
       '/examples/sample-pub/1?showContributionOptions',
-      this.api.globals.swg_experiments
+      experiments
     );
-  },
-  commands: [commands],
-  elements: {
-    swgDialog: {
-      selector: '.swg-dialog',
-    },
-    contributionBtn: {
-      selector: '.ContributionButtonText',
-    },
-    header: {
-      selector: '.K2Fgzb',
-    },
-  },
-};
+    await this.page.goto(url);
+  }
+
+  async viewContributionOptions() {
+    await this.page.waitForTimeout(1000);
+  }
+
+  async contribute() {
+    await expect(this.contributionBtn).toContainText('Contribute $0.99/week');
+    await this.contributionBtn.click();
+  }
+}
+
+module.exports = {ContributionPage};

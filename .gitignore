@@ -13,10 +13,10 @@ node_modules
 .tm_properties
 .settings
 .vscode
-tests_output
+playwright-report/
+test-results/
 typings
 typings.json
 build-system/runner/TESTS-TestSuites.xml
 test/coverage
-vrt-report
 yarn.lock

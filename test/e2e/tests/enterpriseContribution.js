@@ -13,23 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+'use strict';
 
-module.exports = {
-  '@tags': ['enterprise'],
+const constants = require('../constants');
+const {EnterpriseContributionPage} = require('../pages/enterpriseContribution');
+const {test, expect} = require('@playwright/test');
 
-  'Enterprise Contributions': (browser) => {
-    const basic = browser.page.enterpriseContribution();
-    basic
-      .navigate()
-      .pause(3000)
-      .assert.screenshotIdenticalToBaseline('html', 'enterprise-contribution')
-      .viewContributionOffers()
-      .assert.textContains(
-        '@contributionHeader',
-        'Enterprise Contribution E2E Test Pub'
-      )
-      .contribute()
-      .checkPayment()
-      .end();
-  },
-};
+test.describe('enterprise @enterprise', () => {
+  test('Enterprise Contributions', async ({page, context}) => {
+    const basic = new EnterpriseContributionPage(page);
+
+    await basic.navigate();
+    await page.waitForTimeout(3000);
+    await expect(page).toHaveScreenshot('enterprise-contribution.png', {
+      fullPage: true,
+    });
+
+    await basic.viewContributionOffers();
+    await expect(basic.contributionHeader).toContainText(
+      'Enterprise Contribution E2E Test Pub'
+    );
+
+    const [newPage] = await Promise.all([
+      context.waitForEvent('page'),
+      basic.contribute(),
+    ]);
+
+    await newPage.waitForLoadState();
+    await newPage.waitForTimeout(2000);
+    await expect(newPage).toHaveURL(
+      new RegExp('.*' + constants.google.domain + '.*')
+    );
+  });
+});

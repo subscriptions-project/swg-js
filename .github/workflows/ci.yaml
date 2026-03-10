@@ -41,22 +41,25 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
       - name: E2E Tests
         run: . ./build_and_run_e2e.sh
 
-      - name: Upload e2e VRT baseline
+      - name: Upload Playwright Report
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: vrt-baseline
-          path: test/e2e/vrt/baseline
+          name: playwright-report
+          path: playwright-report/
 
-      - name: Upload e2e VRT report
+      - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: vrt-report
-          path: vrt-report
+          name: test-results
+          path: test-results/
 
   e2e-with-all-experiments-enabled:
     runs-on: ubuntu-latest
@@ -72,22 +75,25 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
       - name: E2E Tests with all experiments enabled
         run: . ./build_and_run_e2e.sh all_experiments_enabled
 
-      - name: Upload e2e with all experiments VRT baseline
+      - name: Upload Playwright Report
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: all-experiments-vrt-baseline
-          path: test/e2e/vrt/baseline
+          name: all-experiments-playwright-report
+          path: playwright-report/
 
-      - name: Upload e2e with all experiments VRT report
+      - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v6
         with:
-          name: all-experiments-vrt-report
-          path: vrt-report
+          name: all-experiments-test-results
+          path: test-results/
 
   binaries:
     runs-on: ubuntu-latest

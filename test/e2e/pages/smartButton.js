@@ -1,7 +1,4 @@
 /**
- * @fileoverview Description of this file.
- */
-/**
  * Copyright 2019 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,23 +17,31 @@
 
 const {swgPageUrl} = require('../util');
 
-/**
- * @fileoverview Page object for the first article with smart button.
- */
-module.exports = {
-  url: function () {
-    return swgPageUrl(
-      this.api.launchUrl,
+class SmartButtonPage {
+  constructor(page) {
+    this.page = page;
+
+    // The smartButton element wrapper
+    this.smartButtonWrapper = page.locator('#smartButton').first();
+
+    this.smartboxIframe = page.frameLocator('iframe[src*="smartboxiframe"]');
+    this.smartButtonLabel = this.smartboxIframe
+      .locator('.swg-button-light')
+      .first();
+    this.subscribeMessage = this.smartboxIframe.locator('.Z40VLd').first();
+  }
+
+  async navigate() {
+    const experiments = process.env.SWG_EXPERIMENTS
+      ? process.env.SWG_EXPERIMENTS.split(',')
+      : [];
+    const url = swgPageUrl(
+      'http://localhost:8000',
       '/examples/sample-pub/1?smartbutton',
-      this.api.globals.swg_experiments
+      experiments
     );
-  },
-  elements: {
-    smartButton: {
-      selector: '#smartButton',
-    },
-    smartButtonLabel: {
-      selector: '.swg-button-light',
-    },
-  },
-};
+    await this.page.goto(url);
+  }
+}
+
+module.exports = {SmartButtonPage};
