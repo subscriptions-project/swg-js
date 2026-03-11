@@ -405,6 +405,10 @@ describes.realWin('GisInteropManager', (env) => {
         (f) => f === communicationIframe
       );
       expect(foundcommunicationIframe).to.be.undefined;
+
+      // Should ignore further calls to yield()
+      await manager.yield();
+      expect(manager.getState()).to.equal(GisInteropManagerStates.YIELDED);
     });
   });
 

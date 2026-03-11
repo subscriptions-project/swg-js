@@ -454,7 +454,7 @@ describes.realWin('BasicRuntime', (env) => {
       }
     );
 
-    it('should set gisInterop integration flag', async () => {
+    it('should set gisInterop config flag', async () => {
       basicRuntime.init({
         ...DEFAULT_INIT_PARAMS,
         gisInterop: true,
@@ -462,7 +462,7 @@ describes.realWin('BasicRuntime', (env) => {
 
       await basicRuntime.configured_(true);
 
-      expect(configuredRuntimeSpy.getCall(0).args[2].gisInterop).to.be.true;
+      expect(configuredRuntimeSpy.getCall(0).args[3].gisInterop).to.be.true;
     });
 
     it('should create GisInteropManager when gisInterop is true', async () => {
@@ -1546,7 +1546,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
     });
 
     it('should instantiate GisInteropManager when enabled', () => {
-      new ConfiguredBasicRuntime(win, pageConfig, {
+      new ConfiguredBasicRuntime(win, pageConfig, /* integr */ undefined, {
         gisInterop: true,
       });
 
@@ -1557,7 +1557,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
     });
 
     it('should NOT instantiate GisInteropManager when disabled', () => {
-      new ConfiguredBasicRuntime(win, pageConfig, {
+      new ConfiguredBasicRuntime(win, pageConfig, /* integr */ undefined, {
         gisInterop: false,
       });
 

@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-const clientId =
-  '365425805315-ulc9hop6lvq3blgc7ubvtcu5322t3fcn.apps.googleusercontent.com';
 const sessionId = 'test-session-123';
 
 
@@ -58,6 +56,7 @@ function initSwg() {
       type: "NewsArticle",
       isPartOfType: ["Product"],
       isPartOfProductId: "CAowwoSCAQ:basic",
+      isAccessibleForFree: true,
       clientOptions: {
         theme: "light",
         lang: "en",

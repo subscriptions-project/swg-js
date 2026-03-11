@@ -120,6 +120,9 @@ export class GisInteropManager {
   }
 
   public async yield() {
+    if (this.state === GisInteropManagerStates.YIELDED) {
+      return;
+    }
     await this.communicationIframeEstablishedPromise;
     this.state = GisInteropManagerStates.YIELDED;
     this.doc.getWin().removeEventListener('message', this.messageHandlerBound);

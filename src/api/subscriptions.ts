@@ -399,6 +399,7 @@ export interface Config {
   enablePropensity?: boolean;
   publisherProvidedId?: string;
   paySwgVersion?: string;
+  gisInterop?: boolean;
 }
 
 /**

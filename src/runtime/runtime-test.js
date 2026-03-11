@@ -44,6 +44,7 @@ import {DialogManager} from '../components/dialog-manager';
 import {Entitlement, Entitlements} from '../api/entitlements';
 import {Event} from '../api/logger-api';
 import {ExperimentFlags} from './experiment-flags';
+import {GisInteropManager} from './gis/gis-interop-manager';
 import {GlobalDoc} from '../model/doc';
 import {JsError} from './jserror';
 import {
@@ -1065,6 +1066,62 @@ describes.realWin('ConfiguredRuntime', (env) => {
           enableSwgAnalytics: 1,
         })
     ).to.throw();
+  });
+
+  it('should allow gisInterop to be set in config', () => {
+    expect(
+      () =>
+        new ConfiguredRuntime(win, config, null, {
+          gisInterop: true,
+        })
+    ).to.not.throw();
+  });
+
+  it('should throw if gisInterop set but not boolean', () => {
+    expect(
+      () =>
+        new ConfiguredRuntime(win, config, null, {
+          gisInterop: 'true',
+        })
+    ).to.throw();
+  });
+
+  it('should instantiate GisInteropManager when enabled', () => {
+    sandbox.spy(win, 'addEventListener');
+    new ConfiguredRuntime(win, config, null, {
+      gisInterop: true,
+    });
+
+    expect(win.addEventListener).to.have.been.calledWith(
+      'message',
+      sandbox.match.func
+    );
+  });
+
+  it('should NOT instantiate GisInteropManager when disabled', () => {
+    sandbox.spy(win, 'addEventListener');
+    new ConfiguredRuntime(win, config, null, {
+      gisInterop: false,
+    });
+
+    expect(win.addEventListener).to.not.have.been.calledWith(
+      'message',
+      sandbox.match.func
+    );
+  });
+
+  it('should NOT call yield on GisInteropManager when isBasic is true', () => {
+    const yieldSpy = sandbox.spy(GisInteropManager.prototype, 'yield');
+    new ConfiguredRuntime(
+      win,
+      config,
+      {isBasic: true},
+      {
+        gisInterop: true,
+      }
+    );
+
+    expect(yieldSpy).to.not.have.been.called;
   });
 
   it('should pass enableDefaultMeteringHandler into EntitlementsManager during constuction and default to false', () => {
