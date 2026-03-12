@@ -125,9 +125,9 @@ export interface ClientOptions {
   /** Skip account creation screen if requested. */
   skipAccountCreationScreen?: boolean;
   /** Experimental: Callback returning the GIS ID Token */
-  onGisIdToken?: (result: InterventionResult) => Promise<boolean> | boolean;
+  onGisOptIn?: (result: InterventionResult) => Promise<boolean> | boolean;
   /** Experimental: GIS Client ID */
-  gisClientId?: string;
+  clientId?: string;
 }
 
 export interface LoginRequest {

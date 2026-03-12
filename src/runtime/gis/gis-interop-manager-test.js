@@ -377,34 +377,68 @@ describes.realWin('GisInteropManager', (env) => {
       expect(iframeSpy).to.not.have.been.called;
     });
 
-    it('should remove iframe and transition to YIELDED on yield()', () => {
-      const clock = sandbox.useFakeTimers();
-      const iframeSpy = sandbox.spy(
-        communicationIframe.contentWindow,
-        'postMessage'
-      );
+    describe('in YIELDED state', () => {
+      let iframeSpy;
 
-      manager.yield();
+      beforeEach(async () => {
+        iframeSpy = sandbox.spy(
+          communicationIframe.contentWindow,
+          'postMessage'
+        );
+        await manager.yield();
 
-      expect(manager.getState()).to.equal(GisInteropManagerStates.YIELDED);
+        expect(manager.getState()).to.equal(GisInteropManagerStates.YIELDED);
+      });
 
-      expect(iframeSpy).to.have.been.calledWith(
-        {
-          type: 'RRM_GIS_YIELD',
-          sessionId: 'test-session-id',
-        },
-        {
-          targetOrigin: 'https://news.google.com',
-        }
-      );
+      it('should notify iframe', () => {
+        expect(iframeSpy).to.have.been.calledWith(
+          {
+            type: 'RRM_GIS_YIELD',
+            sessionId: 'test-session-id',
+          },
+          {
+            targetOrigin: 'https://news.google.com',
+          }
+        );
+      });
 
-      clock.tick(1001);
+      it('should ignore further calls to yield()', async () => {
+        expect(iframeSpy).to.have.been.calledOnce;
+        await manager.yield();
+        expect(iframeSpy).to.have.been.calledOnce;
+      });
 
-      const iframes = doc.getBody().querySelectorAll('iframe');
-      const foundcommunicationIframe = Array.from(iframes).find(
-        (f) => f === communicationIframe
-      );
-      expect(foundcommunicationIframe).to.be.undefined;
+      it('should handle messages', async () => {
+        entitlementsManagerMock.updateEntitlements.resolves();
+
+        win.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              type: 'RRM_GIS_TOKEN_UPDATED',
+              swgUserToken: 'new-user-token',
+              sessionId: 'test-session-id',
+            },
+            source: communicationIframe.contentWindow,
+            origin: 'https://example.com',
+          })
+        );
+
+        await Promise.resolve();
+
+        expect(
+          entitlementsManagerMock.updateEntitlements
+        ).to.have.been.calledWith('new-user-token');
+
+        expect(iframeSpy).to.have.been.calledWith(
+          {
+            type: 'RRM_GIS_REDIRECT_OK',
+            sessionId: 'test-session-id',
+          },
+          {
+            targetOrigin: 'https://news.google.com',
+          }
+        );
+      });
     });
   });
 

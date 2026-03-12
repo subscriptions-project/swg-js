@@ -160,6 +160,7 @@ export class BasicRuntime implements BasicSubscriptions {
 
   private configured_(commit: boolean): Promise<ConfiguredBasicRuntime> {
     this.config_.publisherProvidedId = this.publisherProvidedId_;
+    this.config_.gisInterop = this.gisInterop;
     if (!this.committed_ && commit && !this.pageConfigWriter_) {
       this.committed_ = true;
 
@@ -175,7 +176,7 @@ export class BasicRuntime implements BasicSubscriptions {
                 configPromise: this.configuredPromise_.then(),
                 enableDefaultMeteringHandler:
                   this.enableDefaultMeteringHandler_,
-                gisInterop: this.gisInterop,
+                isBasic: true,
               },
               this.config_,
               this.clientOptions_,
@@ -356,9 +357,6 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
   private readonly autoPromptManager_: AutoPromptManager;
   private readonly buttonApi_: ButtonApi;
   private readonly inlineCtaApi_: InlineCtaApi;
-  // TODO: Use this variable.
-  // @ts-ignore: Unused variable
-  private readonly gisInteropManager_?: GisInteropManager;
 
   constructor(
     winOrDoc: Window | Document | Doc,
@@ -368,7 +366,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       configPromise?: Promise<void>;
       enableDefaultMeteringHandler?: boolean;
       enableGoogleAnalytics?: boolean;
-      gisInterop?: boolean;
+      isBasic?: boolean;
     } = {},
     config?: Config,
     clientOptions?: ClientOptions,
@@ -392,15 +390,6 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       clientOptions,
       creationTimestamp_
     );
-
-    this.gisInteropManager_ = !!integr.gisInterop
-      ? new GisInteropManager(
-          this.doc_,
-          this.storage(),
-          this.entitlementsManager(),
-          pageConfig
-        )
-      : undefined;
 
     // Do not show toast in swgz.
     this.entitlementsManager().blockNextToast();
@@ -455,6 +444,10 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
 
   creationTimestamp(): number {
     return this.creationTimestamp_;
+  }
+
+  gisInteropManager(): GisInteropManager | undefined {
+    return this.configuredClassicRuntime_.gisInteropManager();
   }
 
   doc(): Doc {

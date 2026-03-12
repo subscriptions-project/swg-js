@@ -992,7 +992,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
   });
 
   it('passes gisMode=GIS_MODE_OVERLAY in query param for Safari with GIS', async () => {
-    clientOptions.gisClientId = 'clientId';
+    clientOptions.clientId = 'clientId';
     sandbox.stub(runtime.storage(), 'get').resolves(null);
     const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
@@ -1001,6 +1001,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       calledManually: false,
       onResult: () => {},
+      clientId: 'clientId',
     });
     activitiesMock
       .expects('openIframe')
@@ -1020,7 +1021,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
   });
 
   it('passes gisMode=GIS_MODE_NORMAL in query param for Chrome with GIS', async () => {
-    clientOptions.gisClientId = 'clientId';
+    clientOptions.clientId = 'clientId';
     win.navigator.userAgent = 'Chrome';
     sandbox.stub(runtime.storage(), 'get').resolves(null);
     const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
@@ -1030,6 +1031,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       calledManually: false,
       onResult: () => {},
+      clientId: 'clientId',
     });
     activitiesMock
       .expects('openIframe')
@@ -1442,7 +1444,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
   });
 
   it('creates GisLoginFlow when clientId and onResult are present', async () => {
-    clientOptions.gisClientId = 'clientId';
+    clientOptions.clientId = 'clientId';
     const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
       configurationId: 'configId',
@@ -1450,12 +1452,13 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       calledManually: false,
       onResult: () => {},
+      clientId: 'clientId',
     });
     expect(audienceActionFlow.gisLoginFlow).to.not.be.undefined;
   });
 
   it('does not create GisLoginFlow when clientId is missing', async () => {
-    clientOptions.gisClientId = undefined;
+    clientOptions.clientId = undefined;
     const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
       configurationId: 'configId',
@@ -1463,24 +1466,26 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       calledManually: false,
       onResult: () => {},
+      clientId: undefined,
     });
     expect(audienceActionFlow.gisLoginFlow).to.be.undefined;
   });
 
   it('does not create GisLoginFlow when onResult is missing', async () => {
-    clientOptions.gisClientId = 'clientId';
+    clientOptions.clientId = 'clientId';
     const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_REGISTRATION_WALL',
       configurationId: 'configId',
       onCancel: onCancelSpy,
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       calledManually: false,
+      clientId: 'clientId',
     });
     expect(audienceActionFlow.gisLoginFlow).to.be.undefined;
   });
 
   it('does not create GisLoginFlow when action is not TYPE_REGISTRATION_WALL', async () => {
-    clientOptions.gisClientId = 'clientId';
+    clientOptions.clientId = 'clientId';
     const audienceActionFlow = new AudienceActionIframeFlow(runtime, {
       action: 'TYPE_NEWSLETTER_SIGNUP',
       configurationId: 'configId',
@@ -1488,12 +1493,13 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       calledManually: false,
       onResult: () => {},
+      clientId: 'clientId',
     });
     expect(audienceActionFlow.gisLoginFlow).to.be.undefined;
   });
 
   it('disposes GisLoginFlow on complete', async () => {
-    clientOptions.gisClientId = 'clientId';
+    clientOptions.clientId = 'clientId';
     const gisLoginFlowDisposeSpy = sandbox.spy(
       GisLoginFlow.prototype,
       'dispose'
@@ -1505,6 +1511,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
       autoPromptType: AutoPromptType.SUBSCRIPTION,
       calledManually: false,
       onResult: () => {},
+      clientId: 'clientId',
     });
     activitiesMock.expects('openIframe').resolves(port);
     entitlementsManagerMock.expects('clear').once();

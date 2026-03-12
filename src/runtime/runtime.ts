@@ -63,6 +63,7 @@ import {Fetcher as FetcherInterface, XhrFetcher} from './fetcher';
 import {FreeAccess} from './free-access';
 import {FreeAccessApi} from '../api/free-access-api';
 import {GetEntitlementsParamsExternalDef} from '../api/subscriptions';
+import {GisInteropManager} from './gis/gis-interop-manager';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {JsError} from './jserror';
 import {
@@ -643,6 +644,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
   private readonly propensityModule_: Propensity;
   private readonly offersApi_: OffersApi;
   private readonly buttonApi_: ButtonApi;
+  private readonly gisInteropManager_?: GisInteropManager;
 
   constructor(
     winOrDoc: Window | Document | DocInterface,
@@ -653,6 +655,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
           configPromise?: Promise<void>;
           enableGoogleAnalytics?: boolean;
           enableDefaultMeteringHandler?: boolean;
+          isBasic?: boolean;
         }
       | undefined,
     config?: Config,
@@ -760,10 +763,27 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
       );
       this.jserror_.error('Redirect error', error);
     });
+
+    this.gisInteropManager_ = !!this.config_.gisInterop
+      ? new GisInteropManager(
+          this.doc_,
+          this.storage_,
+          this.entitlementsManager_,
+          this.pageConfig_
+        )
+      : undefined;
+
+    if (!integr?.isBasic) {
+      this.gisInteropManager_?.yield();
+    }
   }
 
   creationTimestamp(): number {
     return this.creationTimestamp_;
+  }
+
+  gisInteropManager(): GisInteropManager | undefined {
+    return this.gisInteropManager_;
   }
 
   doc(): DocInterface {
@@ -885,6 +905,11 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
           if (typeof value !== 'string') {
             error = 'paySwgVersion must be a string, type: ' + typeof value;
             break;
+          }
+          break;
+        case 'gisInterop':
+          if (value !== undefined && !isBoolean(value)) {
+            error = 'gisInterop must be a boolean, type: ' + typeof value;
           }
           break;
         default:

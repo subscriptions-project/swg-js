@@ -49,6 +49,13 @@ import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {createElement} from '../utils/dom';
 import {tick} from '../../test/tick';
 
+const DEFAULT_INIT_PARAMS = {
+  type: 'NewsArticle',
+  isAccessibleForFree: true,
+  isPartOfType: ['Product'],
+  isPartOfProductId: 'herald-foo-times.com:basic',
+};
+
 describes.realWin('installBasicRuntime', (env) => {
   let win;
 
@@ -165,10 +172,7 @@ describes.realWin('BasicRuntime', (env) => {
 
     it('should initialize and generate markup as specified', async () => {
       basicRuntime.init({
-        type: 'NewsArticle',
-        isAccessibleForFree: true,
-        isPartOfType: ['Product'],
-        isPartOfProductId: 'herald-foo-times.com:basic',
+        ...DEFAULT_INIT_PARAMS,
       });
 
       await basicRuntime.configured_(true);
@@ -210,10 +214,7 @@ describes.realWin('BasicRuntime', (env) => {
 
     it('should initialize and save client options', async () => {
       basicRuntime.init({
-        type: 'NewsArticle',
-        isAccessibleForFree: true,
-        isPartOfType: ['Product'],
-        isPartOfProductId: 'herald-foo-times.com:basic',
+        ...DEFAULT_INIT_PARAMS,
         clientOptions: {
           disableButton: false,
           forceLangInIframes: true,
@@ -233,10 +234,7 @@ describes.realWin('BasicRuntime', (env) => {
       win.document.documentElement.lang = '';
 
       basicRuntime.init({
-        type: 'NewsArticle',
-        isAccessibleForFree: true,
-        isPartOfType: ['Product'],
-        isPartOfProductId: 'herald-foo-times.com:basic',
+        ...DEFAULT_INIT_PARAMS,
         clientOptions: {
           disableButton: false,
           theme: ClientTheme.DARK,
@@ -255,10 +253,7 @@ describes.realWin('BasicRuntime', (env) => {
       win.document.documentElement.lang = 'pt-br';
 
       basicRuntime.init({
-        type: 'NewsArticle',
-        isAccessibleForFree: true,
-        isPartOfType: ['Product'],
-        isPartOfProductId: 'herald-foo-times.com:basic',
+        ...DEFAULT_INIT_PARAMS,
         clientOptions: {
           disableButton: false,
           theme: ClientTheme.DARK,
@@ -277,10 +272,7 @@ describes.realWin('BasicRuntime', (env) => {
       win.document.documentElement.lang = '';
 
       basicRuntime.init({
-        type: 'NewsArticle',
-        isAccessibleForFree: true,
-        isPartOfType: ['Product'],
-        isPartOfProductId: 'herald-foo-times.com:basic',
+        ...DEFAULT_INIT_PARAMS,
         clientOptions: {
           lang: 'pt-br',
           disableButton: false,
@@ -300,10 +292,7 @@ describes.realWin('BasicRuntime', (env) => {
       win.document.documentElement.lang = 'pt-br';
 
       basicRuntime.init({
-        type: 'NewsArticle',
-        isAccessibleForFree: true,
-        isPartOfType: ['Product'],
-        isPartOfProductId: 'herald-foo-times.com:basic',
+        ...DEFAULT_INIT_PARAMS,
         clientOptions: {
           lang: 'fr',
           disableButton: false,
@@ -321,10 +310,7 @@ describes.realWin('BasicRuntime', (env) => {
 
     it('should allow caller to disable default metering handler', async () => {
       basicRuntime.init({
-        type: 'NewsArticle',
-        isAccessibleForFree: true,
-        isPartOfType: ['Product'],
-        isPartOfProductId: 'herald-foo-times.com:basic',
+        ...DEFAULT_INIT_PARAMS,
         disableDefaultMeteringHandler: true,
       });
 
@@ -468,18 +454,37 @@ describes.realWin('BasicRuntime', (env) => {
       }
     );
 
-    it('should set gisInterop integration flag', async () => {
+    it('should set gisInterop config flag', async () => {
       basicRuntime.init({
-        type: 'NewsArticle',
-        isAccessibleForFree: true,
-        isPartOfType: ['Product'],
-        isPartOfProductId: 'herald-foo-times.com:basic',
+        ...DEFAULT_INIT_PARAMS,
         gisInterop: true,
       });
 
       await basicRuntime.configured_(true);
 
-      expect(configuredRuntimeSpy.getCall(0).args[2].gisInterop).to.be.true;
+      expect(configuredRuntimeSpy.getCall(0).args[3].gisInterop).to.be.true;
+    });
+
+    it('should create GisInteropManager when gisInterop is true', async () => {
+      basicRuntime.init({
+        ...DEFAULT_INIT_PARAMS,
+        gisInterop: true,
+      });
+
+      const configuredRuntime = await basicRuntime.configured_(true);
+
+      expect(configuredRuntime.gisInteropManager()).to.exist;
+    });
+
+    it('should NOT create GisInteropManager when gisInterop is false', async () => {
+      basicRuntime.init({
+        ...DEFAULT_INIT_PARAMS,
+        gisInterop: false,
+      });
+
+      const configuredRuntime = await basicRuntime.configured_(true);
+
+      expect(configuredRuntime.gisInteropManager()).to.not.exist;
     });
   });
 
@@ -1541,7 +1546,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
     });
 
     it('should instantiate GisInteropManager when enabled', () => {
-      new ConfiguredBasicRuntime(win, pageConfig, {
+      new ConfiguredBasicRuntime(win, pageConfig, /* integr */ undefined, {
         gisInterop: true,
       });
 
@@ -1552,7 +1557,7 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
     });
 
     it('should NOT instantiate GisInteropManager when disabled', () => {
-      new ConfiguredBasicRuntime(win, pageConfig, {
+      new ConfiguredBasicRuntime(win, pageConfig, /* integr */ undefined, {
         gisInterop: false,
       });
 

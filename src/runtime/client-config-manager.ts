@@ -108,17 +108,17 @@ export class ClientConfigManager {
   /**
    * Gets the callback function to be called when the user logs in.
    */
-  getGisCallback():
+  getOnGisOptIn():
     | ((result: InterventionResult) => Promise<boolean> | boolean)
     | undefined {
-    return this.clientOptions_.onGisIdToken;
+    return this.clientOptions_.onGisOptIn;
   }
 
   /**
-   * Gets the client ID.
+   * Gets the GIS client ID.
    */
-  getGisClientId(): string | undefined {
-    return this.clientOptions_.gisClientId;
+  getClientId(): string | undefined {
+    return this.clientOptions_.clientId;
   }
 
   /**

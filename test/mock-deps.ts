@@ -33,4 +33,5 @@ export class MockDeps {
   eventManager() {}
   clientConfigManager() {}
   creationTimestamp() {}
+  gisInteropManager() {}
 }
