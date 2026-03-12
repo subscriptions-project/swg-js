@@ -125,11 +125,7 @@ export class GisInteropManager {
     }
     await this.communicationIframeEstablishedPromise;
     this.state = GisInteropManagerStates.YIELDED;
-    this.doc.getWin().removeEventListener('message', this.messageHandlerBound);
     this.sendIframe({type: 'RRM_GIS_YIELD'});
-    setTimeout(() => {
-      this.communicationIframe?.remove();
-    }, 1000);
   }
 
   private messageHandler(ev: MessageEvent) {
@@ -140,7 +136,8 @@ export class GisInteropManager {
     ) {
       this.handleLoadingCommunicationIframeState(ev);
     } else if (
-      this.state === GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED
+      this.state === GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED ||
+      this.state === GisInteropManagerStates.YIELDED
     ) {
       this.handleCommunicationIframeEstablishedState(ev);
     }
