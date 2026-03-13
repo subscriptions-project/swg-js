@@ -117,6 +117,7 @@ export function installBasicRuntime(win: Window): void {
   // they'll be queued up to receive the SwG Basic runtime when it's ready.
   (win[BASIC_RUNTIME_PROP] as {}) = {
     push: callWhenRuntimeIsReady,
+    getDiagnostics: () => publicBasicRuntime.getDiagnostics(),
   };
 
   // Set variable for testing.
@@ -306,6 +307,15 @@ export class BasicRuntime implements BasicSubscriptions {
   async dismissSwgUI(): Promise<void> {
     const runtime = await this.configured_(false);
     runtime.dismissSwgUI();
+  }
+
+  getDiagnostics(): {isGisReady: boolean} {
+    return {
+      isGisReady:
+        !!this.gisInterop &&
+        !!this.clientOptions_?.clientId &&
+        !!this.clientOptions_?.onGisOptIn,
+    };
   }
 
   /**
@@ -651,6 +661,15 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     this.dialogManager().completeAll();
   }
 
+  getDiagnostics(): {isGisReady: boolean} {
+    return {
+      isGisReady:
+        !!this.config().gisInterop &&
+        !!this.clientConfigManager().getClientId() &&
+        !!this.clientConfigManager().getOnGisOptIn(),
+    };
+  }
+
   /**
    * Sets up all the buttons on the page with attribute
    * 'swg-standard-button:subscription' or 'swg-standard-button:contribution'.
@@ -720,5 +739,6 @@ function createPublicBasicRuntime(
     setupAndShowAutoPrompt:
       basicRuntime.setupAndShowAutoPrompt.bind(basicRuntime),
     dismissSwgUI: basicRuntime.dismissSwgUI.bind(basicRuntime),
+    getDiagnostics: basicRuntime.getDiagnostics.bind(basicRuntime),
   };
 }
