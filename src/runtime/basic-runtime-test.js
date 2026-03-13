@@ -109,6 +109,13 @@ describes.realWin('installBasicRuntime', (env) => {
     expect(getBasicRuntime()).to.equal(runtime1);
   });
 
+  it('should expose getDiagnostics on global SWG_BASIC', () => {
+    installBasicRuntime(win);
+    expect(win.SWG_BASIC.getDiagnostics).to.be.a('function');
+    const diagnostics = win.SWG_BASIC.getDiagnostics();
+    expect(diagnostics).to.have.property('isGisReady');
+  });
+
   it('handles recursive calls after installation', async () => {
     installBasicRuntime(win);
     let progress = '';

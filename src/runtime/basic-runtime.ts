@@ -117,6 +117,7 @@ export function installBasicRuntime(win: Window): void {
   // they'll be queued up to receive the SwG Basic runtime when it's ready.
   (win[BASIC_RUNTIME_PROP] as {}) = {
     push: callWhenRuntimeIsReady,
+    getDiagnostics: () => publicBasicRuntime.getDiagnostics(),
   };
 
   // Set variable for testing.
