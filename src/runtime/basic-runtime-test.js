@@ -483,8 +483,53 @@ describes.realWin('BasicRuntime', (env) => {
       });
 
       const configuredRuntime = await basicRuntime.configured_(true);
-
       expect(configuredRuntime.gisInteropManager()).to.not.exist;
+    });
+
+    it('should return getDiagnostics().isGisReady true when all params are present', () => {
+      basicRuntime.init({
+        ...DEFAULT_INIT_PARAMS,
+        gisInterop: true,
+        clientOptions: {
+          clientId: 'test-client-id',
+          onGisOptIn: () => {},
+        },
+      });
+      expect(basicRuntime.getDiagnostics().isGisReady).to.be.true;
+    });
+
+    it('should return getDiagnostics().isGisReady false when gisInterop is false', () => {
+      basicRuntime.init({
+        ...DEFAULT_INIT_PARAMS,
+        gisInterop: false,
+        clientOptions: {
+          clientId: 'test-client-id',
+          onGisOptIn: () => {},
+        },
+      });
+      expect(basicRuntime.getDiagnostics().isGisReady).to.be.false;
+    });
+
+    it('should return getDiagnostics().isGisReady false when clientId is missing', () => {
+      basicRuntime.init({
+        ...DEFAULT_INIT_PARAMS,
+        gisInterop: true,
+        clientOptions: {
+          onGisOptIn: () => {},
+        },
+      });
+      expect(basicRuntime.getDiagnostics().isGisReady).to.be.false;
+    });
+
+    it('should return getDiagnostics().isGisReady false when onGisOptIn is missing', () => {
+      basicRuntime.init({
+        ...DEFAULT_INIT_PARAMS,
+        gisInterop: true,
+        clientOptions: {
+          clientId: 'test-client-id',
+        },
+      });
+      expect(basicRuntime.getDiagnostics().isGisReady).to.be.false;
     });
   });
 
@@ -814,6 +859,51 @@ describes.realWin('BasicRuntime', (env) => {
       configuredBasicRuntimeMock.expects('setupInlineCta').once();
 
       await basicRuntime.setupInlineCta();
+    });
+
+    it('should return getDiagnostics().isGisReady true when all params are present in ConfiguredBasicRuntime', () => {
+      sandbox
+        .stub(configuredBasicRuntime, 'config')
+        .returns({gisInterop: true});
+      clientConfigManagerMock
+        .expects('getClientId')
+        .returns('test-client-id')
+        .once();
+      clientConfigManagerMock
+        .expects('getOnGisOptIn')
+        .returns(() => {})
+        .once();
+      expect(configuredBasicRuntime.getDiagnostics().isGisReady).to.be.true;
+    });
+
+    it('should return getDiagnostics().isGisReady false when gisInterop is false in ConfiguredBasicRuntime', () => {
+      sandbox
+        .stub(configuredBasicRuntime, 'config')
+        .returns({gisInterop: false});
+      expect(configuredBasicRuntime.getDiagnostics().isGisReady).to.be.false;
+    });
+
+    it('should return getDiagnostics().isGisReady false when clientId is missing in ConfiguredBasicRuntime', () => {
+      sandbox
+        .stub(configuredBasicRuntime, 'config')
+        .returns({gisInterop: true});
+      clientConfigManagerMock.expects('getClientId').returns(undefined).once();
+      expect(configuredBasicRuntime.getDiagnostics().isGisReady).to.be.false;
+    });
+
+    it('should return getDiagnostics().isGisReady false when onGisOptIn is missing in ConfiguredBasicRuntime', () => {
+      sandbox
+        .stub(configuredBasicRuntime, 'config')
+        .returns({gisInterop: true});
+      clientConfigManagerMock
+        .expects('getClientId')
+        .returns('test-client-id')
+        .once();
+      clientConfigManagerMock
+        .expects('getOnGisOptIn')
+        .returns(undefined)
+        .once();
+      expect(configuredBasicRuntime.getDiagnostics().isGisReady).to.be.false;
     });
   });
 });

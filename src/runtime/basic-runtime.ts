@@ -308,6 +308,15 @@ export class BasicRuntime implements BasicSubscriptions {
     runtime.dismissSwgUI();
   }
 
+  getDiagnostics(): {isGisReady: boolean} {
+    return {
+      isGisReady:
+        !!this.gisInterop &&
+        !!this.clientOptions_?.clientId &&
+        !!this.clientOptions_?.onGisOptIn,
+    };
+  }
+
   /**
    * Sets up all the buttons on the page with attribute
    * 'swg-standard-button:subscription' or 'swg-standard-button:contribution'.
@@ -651,6 +660,15 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     this.dialogManager().completeAll();
   }
 
+  getDiagnostics(): {isGisReady: boolean} {
+    return {
+      isGisReady:
+        !!this.config().gisInterop &&
+        !!this.clientConfigManager().getClientId() &&
+        !!this.clientConfigManager().getOnGisOptIn(),
+    };
+  }
+
   /**
    * Sets up all the buttons on the page with attribute
    * 'swg-standard-button:subscription' or 'swg-standard-button:contribution'.
@@ -720,5 +738,6 @@ function createPublicBasicRuntime(
     setupAndShowAutoPrompt:
       basicRuntime.setupAndShowAutoPrompt.bind(basicRuntime),
     dismissSwgUI: basicRuntime.dismissSwgUI.bind(basicRuntime),
+    getDiagnostics: basicRuntime.getDiagnostics.bind(basicRuntime),
   };
 }
