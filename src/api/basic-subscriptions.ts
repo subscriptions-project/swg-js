@@ -16,7 +16,6 @@
 
 import {ClientTheme} from './subscriptions';
 import {Entitlements} from './entitlements';
-import {InterventionResult} from './available-intervention';
 import {SubscribeResponse} from './subscribe-response';
 
 /**
@@ -125,7 +124,7 @@ export interface ClientOptions {
   /** Skip account creation screen if requested. */
   skipAccountCreationScreen?: boolean;
   /** Experimental: Callback returning the GIS ID Token */
-  onGisOptIn?: (result: InterventionResult) => Promise<boolean> | boolean;
+  onGisOptIn?: (token: string | null) => void;
   /** Experimental: GIS Client ID */
   clientId?: string;
 }

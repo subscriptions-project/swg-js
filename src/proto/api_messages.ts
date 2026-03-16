@@ -332,6 +332,14 @@ export enum EventOriginator {
 }
 
 /** */
+export enum GisMode {
+  GIS_MODE_UNSPECIFIED = 0,
+  GIS_MODE_DISABLED = 1,
+  GIS_MODE_NORMAL = 2,
+  GIS_MODE_OVERLAY = 3,
+}
+
+/** */
 export enum OptInType {
   OPT_IN_TYPE_UNSPECIFIED = 0,
   OPT_IN_TYPE_FIRST_PARTY = 1,
@@ -1393,6 +1401,7 @@ export class EventParams implements Message {
   private ctaMode_: CtaMode | null;
   private optInType_: OptInType | null;
   private emailValidationStatus_: EmailValidationStatus | null;
+  private gisMode_: GisMode | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
@@ -1425,6 +1434,8 @@ export class EventParams implements Message {
     this.optInType_ = data[11 + base] == null ? null : (data[11 + base] as OptInType);
 
     this.emailValidationStatus_ = data[12 + base] == null ? null : (data[12 + base] as EmailValidationStatus);
+
+    this.gisMode_ = data[13 + base] == null ? null : (data[13 + base] as GisMode);
   }
 
   getSmartboxMessage(): string | null {
@@ -1531,6 +1542,14 @@ export class EventParams implements Message {
     this.emailValidationStatus_ = value;
   }
 
+  getGisMode(): GisMode | null {
+    return this.gisMode_;
+  }
+
+  setGisMode(value: GisMode): void {
+    this.gisMode_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.smartboxMessage_, // field 1 - smartbox_message
@@ -1546,6 +1565,7 @@ export class EventParams implements Message {
       this.ctaMode_, // field 11 - cta_mode
       this.optInType_, // field 12 - opt_in_type
       this.emailValidationStatus_, // field 13 - email_validation_status
+      this.gisMode_, // field 14 - gis_mode
     ];
     if (includeLabel) {
       arr.unshift(this.label());
