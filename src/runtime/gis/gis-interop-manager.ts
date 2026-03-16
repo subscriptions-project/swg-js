@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import {AnalyticsEvent} from '../../proto/api_messages';
+import {ClientEventManager} from '../client-event-manager';
 import {Doc} from '../../model/doc';
 import {EntitlementsManager} from '../entitlements-manager';
 import {PageConfig} from '../../model/page-config';
@@ -32,6 +34,7 @@ export enum GisInteropManagerStates {
   WAITING_FOR_PING,
   LOADING_COMMUNICATION_IFRAME,
   COMMUNICATION_IFRAME_ESTABLISHED,
+  TOKEN_UPDATE_IN_PROGRESS,
   YIELDED,
 }
 
@@ -107,7 +110,8 @@ export class GisInteropManager {
     private readonly doc: Doc,
     private readonly storage: Storage,
     private readonly entitlementsManager: EntitlementsManager,
-    private readonly pageConfig: PageConfig
+    private readonly pageConfig: PageConfig,
+    private readonly eventManager: ClientEventManager
   ) {
     this.doc.getWin().addEventListener('message', this.messageHandlerBound);
     this.communicationIframeEstablishedPromise = new Promise((resolve) => {
@@ -124,6 +128,7 @@ export class GisInteropManager {
       return;
     }
     await this.communicationIframeEstablishedPromise;
+    this.eventManager.logSwgEvent(AnalyticsEvent.EVENT_GIS_INTEROP_YIELD);
     this.state = GisInteropManagerStates.YIELDED;
     this.sendIframe({type: 'RRM_GIS_YIELD'});
   }
@@ -140,10 +145,21 @@ export class GisInteropManager {
       this.state === GisInteropManagerStates.YIELDED
     ) {
       this.handleCommunicationIframeEstablishedState(ev);
+    } else if (
+      this.state === GisInteropManagerStates.TOKEN_UPDATE_IN_PROGRESS
+    ) {
+      this.handleTokenUpdateInProgressState(ev);
     }
   }
 
   private handleWaitingForPingState(e: MessageEvent) {
+    if (isType(e, 'RRM_GIS_ERROR')) {
+      this.eventManager.logSwgEvent(
+        AnalyticsEvent.EVENT_GIS_INTEROP_WAITING_FOR_PING_ERROR
+      );
+      return;
+    }
+
     if (!isType(e, 'RRM_GIS_PING') || !hasSessionId(e) || !hasClientId(e)) {
       return;
     }
@@ -153,6 +169,10 @@ export class GisInteropManager {
     this.gisSource = e.source;
     this.gisOrigin = e.origin;
     this.clientId = e.data.clientId;
+
+    this.eventManager.logSwgEvent(
+      AnalyticsEvent.EVENT_GIS_INTEROP_PING_RECEIVED
+    );
 
     this.sendGis({type: 'RRM_GIS_ACK'});
 
@@ -182,6 +202,13 @@ export class GisInteropManager {
   }
 
   private handleLoadingCommunicationIframeState(e: MessageEvent) {
+    if (isType(e, 'RRM_GIS_ERROR')) {
+      this.eventManager.logSwgEvent(
+        AnalyticsEvent.EVENT_GIS_INTEROP_LOADING_IFRAME_ERROR
+      );
+      return;
+    }
+
     if (this.invalidSessionId(e)) {
       return;
     }
@@ -194,17 +221,31 @@ export class GisInteropManager {
     }
 
     if (this.iframeLoaded && this.gisReady) {
+      this.eventManager.logSwgEvent(
+        AnalyticsEvent.EVENT_GIS_INTEROP_HANDSHAKE_ESTABLISHED
+      );
       this.state = GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED;
       this.communicationIframeEstablishedPromiseResolve();
     }
   }
 
   private async handleCommunicationIframeEstablishedState(e: MessageEvent) {
+    if (isType(e, 'RRM_GIS_ERROR')) {
+      this.eventManager.logSwgEvent(
+        AnalyticsEvent.EVENT_GIS_INTEROP_OPERATION_ERROR
+      );
+      return;
+    }
+
     if (this.invalidSessionId(e) || !this.fromIframe(e)) {
       return;
     }
 
     if (isType(e, 'RRM_GIS_TOKEN_UPDATE_START')) {
+      this.eventManager.logSwgEvent(
+        AnalyticsEvent.EVENT_GIS_INTEROP_TOKEN_UPDATE_START
+      );
+      this.state = GisInteropManagerStates.TOKEN_UPDATE_IN_PROGRESS;
       const swgUserToken = await this.storage.get(StorageKeys.USER_TOKEN, true);
       this.sendIframe({
         type: 'RRM_GIS_SWG_USER_TOKEN',
@@ -212,8 +253,27 @@ export class GisInteropManager {
         clientId: this.clientId,
         publicationId: this.pageConfig.getPublicationId(),
       });
-    } else if (isType(e, 'RRM_GIS_TOKEN_UPDATED') && hasSwgUserToken(e)) {
+    }
+  }
+
+  private async handleTokenUpdateInProgressState(e: MessageEvent) {
+    if (isType(e, 'RRM_GIS_ERROR')) {
+      this.eventManager.logSwgEvent(
+        AnalyticsEvent.EVENT_GIS_INTEROP_TOKEN_UPDATE_ERROR
+      );
+      return;
+    }
+
+    if (this.invalidSessionId(e) || !this.fromIframe(e)) {
+      return;
+    }
+
+    if (isType(e, 'RRM_GIS_TOKEN_UPDATED') && hasSwgUserToken(e)) {
+      this.eventManager.logSwgEvent(
+        AnalyticsEvent.EVENT_GIS_INTEROP_TOKEN_UPDATED
+      );
       await this.entitlementsManager.updateEntitlements(e.data.swgUserToken);
+      this.state = GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED;
       this.sendIframe({type: 'RRM_GIS_REDIRECT_OK'});
     }
   }

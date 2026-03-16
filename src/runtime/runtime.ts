@@ -771,7 +771,8 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
             this.doc_,
             this.storage_,
             this.entitlementsManager_,
-            this.pageConfig_
+            this.pageConfig_,
+            this.eventManager_
           )
         : undefined;
 

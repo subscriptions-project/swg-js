@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {AnalyticsEvent} from '../../proto/api_messages';
 import {
   GisInteropManager,
   GisInteropManagerStates,
@@ -29,6 +30,7 @@ describes.realWin('GisInteropManager', (env) => {
   let storageMock;
   let entitlementsManagerMock;
   let pageConfigMock;
+  let eventManagerMock;
 
   beforeEach(() => {
     win = env.win;
@@ -43,11 +45,16 @@ describes.realWin('GisInteropManager', (env) => {
     pageConfigMock = {
       getPublicationId: sandbox.stub().returns('test-pub-id'),
     };
+    eventManagerMock = {
+      logEvent: sandbox.stub(),
+      logSwgEvent: sandbox.stub(),
+    };
     manager = new GisInteropManager(
       doc,
       storageMock,
       entitlementsManagerMock,
-      pageConfigMock
+      pageConfigMock,
+      eventManagerMock
     );
     mockGisFrame = doc.getRootNode().createElement('iframe');
     doc.getBody().appendChild(mockGisFrame);
@@ -101,6 +108,20 @@ describes.realWin('GisInteropManager', (env) => {
       );
     });
 
+    it('should log error when RRM_GIS_ERROR received in WAITING_FOR_PING', () => {
+      win.dispatchEvent(
+        new MessageEvent('message', {
+          data: {type: 'RRM_GIS_ERROR'},
+          source: win,
+          origin: 'https://example.com',
+        })
+      );
+
+      expect(eventManagerMock.logSwgEvent).to.have.been.calledWith(
+        AnalyticsEvent.EVENT_GIS_INTEROP_WAITING_FOR_PING_ERROR
+      );
+    });
+
     it('should transition to LOADING_COMMUNICATION_IFRAME on valid PING', () => {
       const gisSource = mockGisFrame.contentWindow;
       const postMessageSpy = sandbox.spy(gisSource, 'postMessage');
@@ -131,6 +152,10 @@ describes.realWin('GisInteropManager', (env) => {
         (f) => f !== mockGisFrame
       );
       expect(communicationIframe).to.exist;
+
+      expect(eventManagerMock.logSwgEvent).to.have.been.calledWith(
+        AnalyticsEvent.EVENT_GIS_INTEROP_PING_RECEIVED
+      );
       expect(communicationIframe.getAttribute('src')).to.contain(
         '/rrmgisinterop'
       );
@@ -166,6 +191,23 @@ describes.realWin('GisInteropManager', (env) => {
 
       expect(manager.getState()).to.equal(
         GisInteropManagerStates.LOADING_COMMUNICATION_IFRAME
+      );
+    });
+
+    it('should log error when RRM_GIS_ERROR received', () => {
+      win.dispatchEvent(
+        new MessageEvent('message', {
+          data: {
+            type: 'RRM_GIS_ERROR',
+            sessionId: 'test-session-id',
+          },
+          source: gisSource,
+          origin: 'https://example.com',
+        })
+      );
+
+      expect(eventManagerMock.logSwgEvent).to.have.been.calledWith(
+        AnalyticsEvent.EVENT_GIS_INTEROP_LOADING_IFRAME_ERROR
       );
     });
 
@@ -337,6 +379,23 @@ describes.realWin('GisInteropManager', (env) => {
       );
     });
 
+    it('should log error when RRM_GIS_ERROR received', () => {
+      win.dispatchEvent(
+        new MessageEvent('message', {
+          data: {
+            type: 'RRM_GIS_ERROR',
+            sessionId: 'test-session-id',
+          },
+          source: communicationIframe.contentWindow,
+          origin: 'https://example.com',
+        })
+      );
+
+      expect(eventManagerMock.logSwgEvent).to.have.been.calledWith(
+        AnalyticsEvent.EVENT_GIS_INTEROP_OPERATION_ERROR
+      );
+    });
+
     it('should ignore messages with wrong sessionId', () => {
       const iframeSpy = sandbox.spy(
         communicationIframe.contentWindow,
@@ -410,6 +469,17 @@ describes.realWin('GisInteropManager', (env) => {
 
       it('should handle messages', async () => {
         entitlementsManagerMock.updateEntitlements.resolves();
+
+        win.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              type: 'RRM_GIS_TOKEN_UPDATE_START',
+              sessionId: 'test-session-id',
+            },
+            source: communicationIframe.contentWindow,
+            origin: 'https://example.com',
+          })
+        );
 
         win.dispatchEvent(
           new MessageEvent('message', {
@@ -508,6 +578,14 @@ describes.realWin('GisInteropManager', (env) => {
 
       await Promise.resolve();
 
+      expect(manager.getState()).to.equal(
+        GisInteropManagerStates.TOKEN_UPDATE_IN_PROGRESS
+      );
+
+      expect(eventManagerMock.logSwgEvent).to.have.been.calledWith(
+        AnalyticsEvent.EVENT_GIS_INTEROP_TOKEN_UPDATE_START
+      );
+
       expect(iframeSpy).to.have.been.calledWith(
         {
           type: 'RRM_GIS_SWG_USER_TOKEN',
@@ -533,6 +611,17 @@ describes.realWin('GisInteropManager', (env) => {
       win.dispatchEvent(
         new MessageEvent('message', {
           data: {
+            type: 'RRM_GIS_TOKEN_UPDATE_START',
+            sessionId: 'test-session-id',
+          },
+          source: communicationIframe.contentWindow,
+          origin: 'https://example.com',
+        })
+      );
+
+      win.dispatchEvent(
+        new MessageEvent('message', {
+          data: {
             type: 'RRM_GIS_TOKEN_UPDATED',
             swgUserToken: 'new-user-token',
             sessionId: 'test-session-id',
@@ -543,6 +632,10 @@ describes.realWin('GisInteropManager', (env) => {
       );
 
       await Promise.resolve();
+
+      expect(eventManagerMock.logSwgEvent).to.have.been.calledWith(
+        AnalyticsEvent.EVENT_GIS_INTEROP_TOKEN_UPDATED
+      );
 
       expect(
         entitlementsManagerMock.updateEntitlements
