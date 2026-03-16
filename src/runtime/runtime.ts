@@ -40,7 +40,7 @@ import {
   Subscriptions,
 } from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
-import {ArticleExperimentFlags} from './experiment-flags';
+import {ArticleExperimentFlags, ExperimentFlags} from './experiment-flags';
 import {AvailableIntervention} from '../api/available-intervention';
 import {ButtonApi} from './button-api';
 import {Callbacks} from './callbacks';
@@ -106,9 +106,9 @@ import {debugLog} from '../utils/log';
 import {getLanguageCodeFromElement} from '../utils/i18n';
 import {injectStyleSheet} from '../utils/dom';
 import {isBoolean} from '../utils/types';
+import {isExperimentOn, setExperiment} from './experiments';
 import {isSecure} from '../utils/url';
 import {queryStringHasFreshGaaParams} from './extended-access';
-import {setExperiment} from './experiments';
 import {showcaseEventToAnalyticsEvents} from './event-type-mapping';
 import {warn} from '../utils/log';
 
@@ -764,14 +764,16 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
       this.jserror_.error('Redirect error', error);
     });
 
-    this.gisInteropManager_ = !!this.config_.gisInterop
-      ? new GisInteropManager(
-          this.doc_,
-          this.storage_,
-          this.entitlementsManager_,
-          this.pageConfig_
-        )
-      : undefined;
+    this.gisInteropManager_ =
+      !!this.config_.gisInterop ||
+      isExperimentOn(this.win_, ExperimentFlags.ENABLE_GIS_INTEROP)
+        ? new GisInteropManager(
+            this.doc_,
+            this.storage_,
+            this.entitlementsManager_,
+            this.pageConfig_
+          )
+        : undefined;
 
     if (!integr?.isBasic) {
       this.gisInteropManager_?.yield();
