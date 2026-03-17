@@ -25,6 +25,11 @@ export enum ExperimentFlags {
    * Experiment flag for enabling publication_id suffix to browser storage key.
    */
   ENABLE_PUBLICATION_ID_SUFFIX_FOR_STORAGE_KEY = 'enable-pub-id-suffix-for-storage-key',
+
+  /**
+   * Experiment flag to enable gisInterop via experiment.
+   */
+  ENABLE_GIS_INTEROP = 'enable-gis-interop',
 }
 
 /**

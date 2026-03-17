@@ -25,7 +25,6 @@ import {ClientOptions} from '../api/basic-subscriptions';
 import {ClientTheme} from '../api/subscriptions';
 import {Deps} from './deps';
 import {Fetcher} from './fetcher';
-import {InterventionResult} from '../api/available-intervention';
 import {serviceUrl} from './services';
 
 /**
@@ -108,9 +107,7 @@ export class ClientConfigManager {
   /**
    * Gets the callback function to be called when the user logs in.
    */
-  getOnGisOptIn():
-    | ((result: InterventionResult) => Promise<boolean> | boolean)
-    | undefined {
+  getOnGisOptIn(): ((token: string | null) => void) | undefined {
     return this.clientOptions_.onGisOptIn;
   }
 

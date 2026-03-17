@@ -44,7 +44,7 @@ import {Doc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {Intervention, PromptPreference} from './intervention';
-import {InterventionResult} from '../api/available-intervention';
+import {InterventionResult, OptInResult} from '../api/available-intervention';
 import {InterventionType} from '../api/intervention-type';
 import {MiniPromptApi} from './mini-prompt-api';
 import {OffersRequest} from '../api/subscriptions';
@@ -606,7 +606,14 @@ export class AutoPromptManager {
     action: AudienceActionType
   ): ((result: InterventionResult) => Promise<boolean> | boolean) | undefined {
     if (action === InterventionType.TYPE_REGISTRATION_WALL) {
-      return this.clientConfigManager_.getOnGisOptIn();
+      const onGisOptIn = this.clientConfigManager_.getOnGisOptIn();
+      if (onGisOptIn) {
+        return (result: InterventionResult) => {
+          const data = result.data as OptInResult;
+          onGisOptIn(data.idToken);
+          return true;
+        };
+      }
     }
     return undefined;
   }

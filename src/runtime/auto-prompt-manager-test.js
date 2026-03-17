@@ -2144,7 +2144,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('should pass getOnGisOptIn to onResult for TYPE_REGISTRATION_WALL', async () => {
-      const mockCallback = () => {};
+      const mockCallback = sandbox.spy();
       clientConfigManagerMock
         .expects('getOnGisOptIn')
         .returns(mockCallback)
@@ -2176,10 +2176,14 @@ describes.realWin('AutoPromptManager', (env) => {
         deps,
         sinon.match({
           action: 'TYPE_REGISTRATION_WALL',
-          onResult: mockCallback,
+          onResult: sinon.match.func,
           clientId: undefined,
         })
       );
+
+      const wrappedOnResult = actionFlowSpy.getCall(0).args[1].onResult;
+      wrappedOnResult({data: {idToken: 'test-token'}});
+      expect(mockCallback).to.have.been.calledWith('test-token');
     });
 
     it('should show the first CTA and log an error if the FrequencyCapConfig is invalid', async () => {

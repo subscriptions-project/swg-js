@@ -1005,6 +1005,10 @@ describes.realWin('ConfiguredRuntime', (env) => {
     config = new PageConfig('pub1:label1', true);
   });
 
+  afterEach(() => {
+    setExperimentsStringForTesting('');
+  });
+
   it('should allow experiments to be set in config', () => {
     expect(
       () =>
@@ -1091,6 +1095,17 @@ describes.realWin('ConfiguredRuntime', (env) => {
     new ConfiguredRuntime(win, config, null, {
       gisInterop: true,
     });
+
+    expect(win.addEventListener).to.have.been.calledWith(
+      'message',
+      sandbox.match.func
+    );
+  });
+
+  it('should instantiate GisInteropManager when experiment is on', () => {
+    sandbox.spy(win, 'addEventListener');
+    setExperimentsStringForTesting(ExperimentFlags.ENABLE_GIS_INTEROP);
+    new ConfiguredRuntime(win, config);
 
     expect(win.addEventListener).to.have.been.calledWith(
       'message',

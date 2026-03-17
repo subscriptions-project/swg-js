@@ -214,7 +214,9 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
         this.deps_.doc(),
         this.params_.clientId,
         this.activityIframeView_,
-        gisMode
+        gisMode,
+        this.deps_.eventManager(),
+        this.params_.configurationId
       );
     }
   }
