@@ -61,7 +61,7 @@ export class GisLoginFlow {
     private readonly activityIframeView: ActivityIframeView,
     private readonly gisMode: GisMode,
     private readonly eventManager: ClientEventManager,
-    private readonly configurationId: string
+    private readonly configurationId?: string
   ) {
     if (this.gisMode === GisMode.GisModeOverlay) {
       this.activityIframeView.on(
