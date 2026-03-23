@@ -25,7 +25,6 @@ import {ClientOptions} from '../api/basic-subscriptions';
 import {ClientTheme} from '../api/subscriptions';
 import {Deps} from './deps';
 import {Fetcher} from './fetcher';
-import {InterventionResult} from '../api/available-intervention';
 import {serviceUrl} from './services';
 
 /**
@@ -108,17 +107,15 @@ export class ClientConfigManager {
   /**
    * Gets the callback function to be called when the user logs in.
    */
-  getGisCallback():
-    | ((result: InterventionResult) => Promise<boolean> | boolean)
-    | undefined {
-    return this.clientOptions_.onGisIdToken;
+  getOnGisOptIn(): ((token: string | null) => void) | undefined {
+    return this.clientOptions_.onGisOptIn;
   }
 
   /**
-   * Gets the client ID.
+   * Gets the GIS client ID.
    */
-  getGisClientId(): string | undefined {
-    return this.clientOptions_.gisClientId;
+  getClientId(): string | undefined {
+    return this.clientOptions_.clientId;
   }
 
   /**

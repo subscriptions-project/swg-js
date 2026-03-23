@@ -15,24 +15,23 @@
  */
 
 module.exports = {
-  '@tags': ['basic'],
+  '@tags': ['enterprise'],
 
-  'Show button': (browser) => {
-    const basic = browser.page.basicNewsletter();
-    basic
+  'Enterprise Newsletter': (browser) => {
+    const enterprise = browser.page.enterpriseNewsletter();
+    enterprise
       .navigate()
-      .waitForElementPresent('@swgDialog', 'Found SwG dialog')
-      .waitForElementVisible('@swgDialog')
       .pause(3000)
-      .assert.screenshotIdenticalToBaseline('html', 'basic-newsletter')
+      .assert.screenshotIdenticalToBaseline('html', 'enterprise-newsletter')
       .viewNewsletter()
       .assert.textContains(
-        '@consentMessage',
-        'Please sign up for my newsletter!'
+        '@newsletterHeader',
+        'Enterprise Contribution E2E Test Pub'
       )
+      .assert.textContains('@consentMessage', 'I consent to this newsletter.')
       .consentToNewsletter()
-      .optInWithGoogleAction()
-      .checkSignIn()
+      .optInWithEmailAction()
+      .checkEmailOptIn()
       .end();
   },
 };

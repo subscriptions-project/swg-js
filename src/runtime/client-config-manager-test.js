@@ -321,19 +321,19 @@ describes.realWin('ClientConfigManager', (env) => {
     expect(clientConfigManager.getLanguage()).to.equal('en');
   });
 
-  it('should return the gis client id set in the constructor', () => {
+  it('should return the client id set in the constructor', () => {
     clientConfigManager = new ClientConfigManager(deps, 'pubId', fetcher, {
-      gisClientId: 'testId',
+      clientId: 'testId',
     });
-    expect(clientConfigManager.getGisClientId()).to.equal('testId');
+    expect(clientConfigManager.getClientId()).to.equal('testId');
   });
 
-  it('should return the gis callback set in the constructor', () => {
+  it('should return the onGisOptIn set in the constructor', () => {
     const callback = () => {};
     clientConfigManager = new ClientConfigManager(deps, 'pubId', fetcher, {
-      onGisIdToken: callback,
+      onGisOptIn: callback,
     });
-    expect(clientConfigManager.getGisCallback()).to.equal(callback);
+    expect(clientConfigManager.getOnGisOptIn()).to.equal(callback);
   });
 
   describe('shouldAllowScroll', () => {

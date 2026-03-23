@@ -17,6 +17,7 @@
 module.exports = {
   google: {
     accountsDomain: 'accounts.google.com',
+    newsDomain: 'news.google.com',
     domain: 'google.com',
   },
   setup: {

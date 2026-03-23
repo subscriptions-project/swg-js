@@ -24,6 +24,7 @@ import {
   BasicSubscriptions,
   ClientOptions,
   ContentType,
+  LoginRequest,
 } from '../api/basic-subscriptions';
 import {ButtonApi, ButtonAttributeValues} from './button-api';
 import {Callbacks} from './callbacks';
@@ -116,6 +117,7 @@ export function installBasicRuntime(win: Window): void {
   // they'll be queued up to receive the SwG Basic runtime when it's ready.
   (win[BASIC_RUNTIME_PROP] as {}) = {
     push: callWhenRuntimeIsReady,
+    getDiagnostics: () => publicBasicRuntime.getDiagnostics(),
   };
 
   // Set variable for testing.
@@ -140,6 +142,7 @@ export class BasicRuntime implements BasicSubscriptions {
   private enableDefaultMeteringHandler_ = true;
   private publisherProvidedId_?: string;
   private gisInterop?: boolean;
+  private hasCustomLoginRequestCallback_ = false;
 
   private readonly creationTimestamp_: number;
   private readonly doc_: Doc;
@@ -158,6 +161,7 @@ export class BasicRuntime implements BasicSubscriptions {
 
   private configured_(commit: boolean): Promise<ConfiguredBasicRuntime> {
     this.config_.publisherProvidedId = this.publisherProvidedId_;
+    this.config_.gisInterop = this.gisInterop;
     if (!this.committed_ && commit && !this.pageConfigWriter_) {
       this.committed_ = true;
 
@@ -173,7 +177,7 @@ export class BasicRuntime implements BasicSubscriptions {
                 configPromise: this.configuredPromise_.then(),
                 enableDefaultMeteringHandler:
                   this.enableDefaultMeteringHandler_,
-                gisInterop: this.gisInterop,
+                isBasic: true,
               },
               this.config_,
               this.clientOptions_,
@@ -257,7 +261,12 @@ export class BasicRuntime implements BasicSubscriptions {
       isClosable,
       contentType: this.getContentType_(isAccessibleForFree ?? isOpenAccess),
     });
-    this.setOnLoginRequest();
+
+    // Register a callback for login request if a custom callback has not yet been set.
+    if (!this.hasCustomLoginRequestCallback_) {
+      this.setOnLoginRequest();
+    }
+
     this.processEntitlements();
   }
 
@@ -275,9 +284,14 @@ export class BasicRuntime implements BasicSubscriptions {
     runtime.setOnPaymentResponse(callback);
   }
 
-  async setOnLoginRequest(): Promise<void> {
+  async setOnLoginRequest(
+    callback?: (loginRequest: LoginRequest) => void
+  ): Promise<void> {
+    if (callback) {
+      this.hasCustomLoginRequestCallback_ = true;
+    }
     const runtime = await this.configured_(false);
-    runtime.setOnLoginRequest();
+    runtime.setOnLoginRequest(callback);
   }
 
   async setupAndShowAutoPrompt(options: {
@@ -293,6 +307,15 @@ export class BasicRuntime implements BasicSubscriptions {
   async dismissSwgUI(): Promise<void> {
     const runtime = await this.configured_(false);
     runtime.dismissSwgUI();
+  }
+
+  getDiagnostics(): {isGisReady: boolean} {
+    return {
+      isGisReady:
+        !!this.gisInterop &&
+        !!this.clientOptions_?.clientId &&
+        !!this.clientOptions_?.onGisOptIn,
+    };
   }
 
   /**
@@ -344,9 +367,6 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
   private readonly autoPromptManager_: AutoPromptManager;
   private readonly buttonApi_: ButtonApi;
   private readonly inlineCtaApi_: InlineCtaApi;
-  // TODO: Use this variable.
-  // @ts-ignore: Unused variable
-  private readonly gisInteropManager_?: GisInteropManager;
 
   constructor(
     winOrDoc: Window | Document | Doc,
@@ -356,7 +376,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       configPromise?: Promise<void>;
       enableDefaultMeteringHandler?: boolean;
       enableGoogleAnalytics?: boolean;
-      gisInterop?: boolean;
+      isBasic?: boolean;
     } = {},
     config?: Config,
     clientOptions?: ClientOptions,
@@ -380,15 +400,6 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       clientOptions,
       creationTimestamp_
     );
-
-    this.gisInteropManager_ = !!integr.gisInterop
-      ? new GisInteropManager(
-          this.doc_,
-          this.storage(),
-          this.entitlementsManager(),
-          pageConfig
-        )
-      : undefined;
 
     // Do not show toast in swgz.
     this.entitlementsManager().blockNextToast();
@@ -443,6 +454,10 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
 
   creationTimestamp(): number {
     return this.creationTimestamp_;
+  }
+
+  gisInteropManager(): GisInteropManager | undefined {
+    return this.configuredClassicRuntime_.gisInteropManager();
   }
 
   doc(): Doc {
@@ -517,7 +532,22 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     this.configuredClassicRuntime_.setOnPaymentResponse(callback);
   }
 
-  setOnLoginRequest(): void {
+  setOnLoginRequest(callback?: (loginRequest: LoginRequest) => void): void {
+    if (callback) {
+      this.configuredClassicRuntime_.setOnLoginRequest(callback);
+      return;
+    }
+
+    this.setupDefaultLoginRequestCallback_();
+  }
+
+  /**
+   * Sets up the default login request behavior, which triggers the RRM
+   * entitlement check flow on "Already a subscriber?" button click.
+   * This default callback is used as a fallback if a custom callback
+   * has not already been provided via setOnLoginRequest(callback).
+   */
+  private setupDefaultLoginRequestCallback_(): void {
     this.configuredClassicRuntime_.setOnLoginRequest(() => {
       const publicationId = this.pageConfig().getPublicationId();
       const args = feArgs({
@@ -631,6 +661,15 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     this.dialogManager().completeAll();
   }
 
+  getDiagnostics(): {isGisReady: boolean} {
+    return {
+      isGisReady:
+        !!this.config().gisInterop &&
+        !!this.clientConfigManager().getClientId() &&
+        !!this.clientConfigManager().getOnGisOptIn(),
+    };
+  }
+
   /**
    * Sets up all the buttons on the page with attribute
    * 'swg-standard-button:subscription' or 'swg-standard-button:contribution'.
@@ -700,5 +739,6 @@ function createPublicBasicRuntime(
     setupAndShowAutoPrompt:
       basicRuntime.setupAndShowAutoPrompt.bind(basicRuntime),
     dismissSwgUI: basicRuntime.dismissSwgUI.bind(basicRuntime),
+    getDiagnostics: basicRuntime.getDiagnostics.bind(basicRuntime),
   };
 }

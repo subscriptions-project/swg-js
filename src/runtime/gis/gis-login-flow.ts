@@ -15,12 +15,17 @@
  */
 
 import {ActivityIframeView} from '../../ui/activity-iframe-view';
-import {Doc} from '../../model/doc';
 import {
+  AnalyticsEvent,
   ElementCoordinates,
+  EventParams,
+  GisMode as GisModeProto,
   GisSignIn,
   LoginButtonCoordinates,
+  StartGisSignIn,
 } from '../../proto/api_messages';
+import {ClientEventManager} from '../client-event-manager';
+import {Doc} from '../../model/doc';
 import {GisMode} from './gis-utils';
 import {createElement} from '../../utils/dom';
 import {setImportantStyles} from '../../utils/style';
@@ -34,6 +39,12 @@ interface ValidatedCoordinates {
   height: number;
 }
 
+const GIS_MODE_TO_EVENT_PARAMS_MAP = {
+  [GisMode.GisModeDisabled]: GisModeProto.GIS_MODE_DISABLED,
+  [GisMode.GisModeOverlay]: GisModeProto.GIS_MODE_OVERLAY,
+  [GisMode.GisModeNormal]: GisModeProto.GIS_MODE_NORMAL,
+};
+
 /**
  * Manages the login flow for GIS.
  */
@@ -42,12 +53,15 @@ export class GisLoginFlow {
   private readonly positions = new Map<string, ValidatedCoordinates>();
   private rafId: number | null = null;
   private readonly resizeHandler = this.scheduleUpdate.bind(this);
+  private gisScriptPromise: Promise<void>;
 
   constructor(
     private readonly doc: Doc,
     private readonly clientId: string,
     private readonly activityIframeView: ActivityIframeView,
-    private readonly gisMode: GisMode
+    private readonly gisMode: GisMode,
+    private readonly eventManager: ClientEventManager,
+    private readonly configurationId?: string
   ) {
     if (this.gisMode === GisMode.GisModeOverlay) {
       this.activityIframeView.on(
@@ -55,7 +69,28 @@ export class GisLoginFlow {
         this.handleLoginButtonCoordinates.bind(this)
       );
       this.doc.getWin().addEventListener('resize', this.resizeHandler);
+      this.activityIframeView.onResize(this.resizeHandler);
+    } else if (this.gisMode === GisMode.GisModeNormal) {
+      this.activityIframeView.on(StartGisSignIn, this.login.bind(this));
     }
+
+    this.gisScriptPromise = new Promise((resolve) => {
+      const hasGis = this.doc
+        .getRootNode()
+        .querySelector('script[src="https://accounts.google.com/gsi/client"]');
+      if (!hasGis) {
+        const gisScript = createElement(this.doc.getRootNode(), 'script', {
+          'src': 'https://accounts.google.com/gsi/client',
+          'async': 'true',
+        });
+        gisScript.onload = () => {
+          resolve();
+        };
+        this.doc.getHead()?.appendChild(gisScript);
+      } else {
+        resolve();
+      }
+    });
   }
 
   /**
@@ -68,7 +103,7 @@ export class GisLoginFlow {
       }
       this.overlays.clear();
       if (this.rafId) {
-        cancelAnimationFrame(this.rafId);
+        this.doc.getWin().cancelAnimationFrame(this.rafId);
       }
       this.doc.getWin().removeEventListener('resize', this.resizeHandler);
     }
@@ -98,10 +133,10 @@ export class GisLoginFlow {
 
   private scheduleUpdate() {
     if (this.rafId) {
-      cancelAnimationFrame(this.rafId);
+      this.doc.getWin().cancelAnimationFrame(this.rafId);
       this.rafId = null;
     }
-    this.rafId = requestAnimationFrame(() => {
+    this.rafId = this.doc.getWin().requestAnimationFrame(() => {
       this.rafId = null;
       this.updateOverlays();
     });
@@ -146,14 +181,28 @@ export class GisLoginFlow {
     const overlay = createElement(this.doc.getRootNode(), 'div', {});
     setImportantStyles(overlay, {
       'position': 'absolute',
-      'background-color': 'red', // TODO: set 'transparent',
+      'background-color': 'transparent',
       'z-index': '2147483647',
       'pointer-events': 'auto',
+      'cursor': 'pointer',
     });
-    overlay.onclick = this.login.bind(this);
+    overlay.onclick = this.overlayClick.bind(this);
     this.overlays.set(key, overlay);
     this.doc.getBody()?.appendChild(overlay);
     return overlay;
+  }
+
+  private overlayClick() {
+    const eventParams = new EventParams();
+    eventParams.setGisMode(GIS_MODE_TO_EVENT_PARAMS_MAP[this.gisMode]);
+    this.eventManager.logSwgEvent(
+      AnalyticsEvent.ACTION_REGWALL_OPT_IN_BUTTON_CLICK,
+      /* isFromUserAction= */ true,
+      eventParams,
+      /* eventTime= */ undefined,
+      this.configurationId
+    );
+    return this.login();
   }
 
   private async login() {
@@ -165,18 +214,30 @@ export class GisLoginFlow {
   }
 
   private async getIdToken(): Promise<string> {
+    await this.gisScriptPromise;
     // TODO: replace with GIS api call for id toke.
-    return new Promise<string>((resolve) => {
-      // @ts-ignore
-      google.accounts.id.initialize({
-        /* eslint-disable-next-line google-camelcase/google-camelcase */
-        client_id: this.clientId,
-        callback: (idToken: {credential: string}) => {
-          resolve(idToken.credential);
-        },
-      });
-      // @ts-ignore
-      google.accounts.id.prompt();
+    return new Promise<string>((resolve, reject) => {
+      try {
+        // @ts-ignore
+        this.doc.getWin().google.accounts.id.initialize({
+          /* eslint-disable-next-line google-camelcase/google-camelcase */
+          client_id: this.clientId,
+          callback: (idToken: {credential: string}) => {
+            resolve(idToken.credential);
+          },
+        });
+        // @ts-ignore
+        this.doc.getWin().google.accounts.id.prompt();
+      } catch (e) {
+        this.eventManager.logSwgEvent(
+          AnalyticsEvent.EVENT_GIS_LOGIN_ERROR,
+          /* isFromUserAction= */ false,
+          /* eventParams= */ null,
+          /* eventTime= */ undefined,
+          this.configurationId
+        );
+        reject(e);
+      }
     });
   }
 }

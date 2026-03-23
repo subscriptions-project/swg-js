@@ -506,17 +506,19 @@ export class Dialog {
           }
           setImportantStyles(this.getElement(), immediateStyles);
 
-          requestAnimationFrame(() => {
-            transition(
-              this.getElement(),
-              {
-                'transform': this.getDefaultTranslateY_(),
-              },
-              300,
-              'ease-out'
-            );
+          return new Promise<void>((resolve) => {
+            requestAnimationFrame(async () => {
+              await transition(
+                this.getElement(),
+                {
+                  'transform': this.getDefaultTranslateY_(),
+                },
+                300,
+                'ease-out'
+              );
+              resolve();
+            });
           });
-          return Promise.resolve();
         });
       } else {
         // Collapse.

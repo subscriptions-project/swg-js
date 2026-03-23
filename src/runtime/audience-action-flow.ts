@@ -101,6 +101,7 @@ export interface AudienceActionIframeParams {
   suppressToast?: boolean;
   onAlternateAction?: () => void;
   onSignIn?: () => void;
+  clientId?: string;
 }
 
 const autopromptTypeToProductTypeMapping: {
@@ -162,11 +163,9 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     this.rewardedSlotClosedHandler = this.rewardedSlotClosed.bind(this);
     this.rewardedSlotGrantedHandler = this.rewardedSlotGranted.bind(this);
     this.slotRenderEndedHandler = this.slotRenderEnded.bind(this);
-
-    const clientId = this.clientConfigManager_.getGisClientId();
     const gisMode = getGisMode(
       this.deps_.win(),
-      clientId,
+      this.params_.clientId,
       this.params_.action,
       this.params_.onResult
     );
@@ -210,12 +209,14 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       });
     }
 
-    if (gisMode !== GisMode.GisModeDisabled) {
+    if (gisMode !== GisMode.GisModeDisabled && this.params_.clientId) {
       this.gisLoginFlow = new GisLoginFlow(
         this.deps_.doc(),
-        clientId!,
+        this.params_.clientId,
         this.activityIframeView_,
-        gisMode
+        gisMode,
+        this.deps_.eventManager(),
+        this.params_.configurationId
       );
     }
   }

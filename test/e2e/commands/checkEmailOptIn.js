@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 The Subscribe with Google Authors. All Rights Reserved.
+ * Copyright 2019 The Subscribe with Google Authors. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,14 @@
  */
 
 /**
- * This mock exists for unit tests.
+ * @fileoverview Switch to Google account sign in window and check that it prompts
+ * the user to sign in.
  */
-export class MockDeps {
-  doc() {}
-  win() {}
-  config() {}
-  pageConfig() {}
-  activities() {}
-  payClient() {}
-  dialogManager() {}
-  entitlementsManager() {}
-  callbacks() {}
-  storage() {}
-  analytics() {}
-  jserror() {}
-  eventManager() {}
-  clientConfigManager() {}
-  creationTimestamp() {}
-  gisInteropManager() {}
-}
+
+const constants = require('../constants');
+
+module.exports.command = function () {
+  return this.pause(2000)
+    .switchToTab('Email opt in')
+    .assert.urlContains(constants.google.newsDomain);
+};
