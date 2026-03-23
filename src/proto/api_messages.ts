@@ -33,7 +33,7 @@ export interface Message {
 
 /** Constructor for a message that carries information relating to RRM. */
 interface MessageConstructor {
-  new (data?: unknown[], includesLabel?: boolean): Message;
+  new(data?: unknown[], includesLabel?: boolean): Message;
 }
 
 /** */
@@ -104,6 +104,8 @@ export enum AnalyticsEvent {
   IMPRESSION_BYO_CTA = 56,
   IMPRESSION_BYO_CTA_ERROR = 57,
   IMPRESSION_CONTRIBUTION_OFFERS_PURCHASE_UNAVAILABLE = 58,
+  IMPRESSION_BYOE_POP_UP_OPT_IN = 59,
+  IMPRESSION_BYOE_POP_UP_OPT_IN_ERROR = 60,
   ACTION_SUBSCRIBE = 1000,
   ACTION_PAYMENT_COMPLETE = 1001,
   ACTION_ACCOUNT_CREATED = 1002,
@@ -196,6 +198,7 @@ export enum AnalyticsEvent {
   ACTION_BYO_CTA_CLOSE = 1087,
   ACTION_BYO_CTA_BUTTON_CLICK = 1088,
   ACTION_BYO_CTA_PAGE_REFRESH = 1089,
+  ACTION_BYOE_POP_UP_OPT_IN = 1092,
   EVENT_PAYMENT_FAILED = 2000,
   EVENT_REGWALL_OPT_IN_FAILED = 2001,
   EVENT_NEWSLETTER_OPT_IN_FAILED = 2002,
@@ -268,6 +271,19 @@ export enum AnalyticsEvent {
   EVENT_HOSTED_PAGE_SUBSCRIPTION_PAYMENT_COMPLETE = 3054,
   EVENT_HOSTED_PAGE_CONTRIBUTION_PAYMENT_COMPLETE = 3055,
   EVENT_COMPLETION_COUNT_FOR_REPEATABLE_ACTION_MISSING_ERROR = 3056,
+  EVENT_BYOE_POP_UP_EMAIL_VALIDATION_ERROR = 3062,
+  EVENT_BYOE_POP_UP_NAME_VALIDATION_ERROR = 3063,
+  EVENT_TIME_BOUND_PASS_PAYMENT_COMPLETE = 3064,
+  EVENT_GIS_INTEROP_YIELD = 3065,
+  EVENT_GIS_INTEROP_PING_RECEIVED = 3066,
+  EVENT_GIS_INTEROP_WAITING_FOR_PING_ERROR = 3067,
+  EVENT_GIS_INTEROP_LOADING_IFRAME_ERROR = 3068,
+  EVENT_GIS_INTEROP_HANDSHAKE_ESTABLISHED = 3069,
+  EVENT_GIS_INTEROP_OPERATION_ERROR = 3070,
+  EVENT_GIS_INTEROP_TOKEN_UPDATE_START = 3071,
+  EVENT_GIS_INTEROP_TOKEN_UPDATE_ERROR = 3072,
+  EVENT_GIS_INTEROP_TOKEN_UPDATED = 3073,
+  EVENT_GIS_LOGIN_ERROR = 3074,
   EVENT_SUBSCRIPTION_STATE = 4000,
   FREE_ACCESS_EVENT_LANDING = 5000,
   FREE_ACCESS_EVENT_FREE_ACCESS_PROGRAM = 5001,
@@ -285,6 +301,13 @@ export enum CtaMode {
   CTA_MODE_UNSPECIFIED = 0,
   CTA_MODE_POPUP = 1,
   CTA_MODE_INLINE = 2,
+}
+
+/** */
+export enum EmailValidationStatus {
+  EMAIL_VALIDATION_STATUS_UNSPECIFIED = 0,
+  EMAIL_VALIDATION_STATUS_EMAIL_EMPTY = 1,
+  EMAIL_VALIDATION_STATUS_EMAIL_MALFORMED = 2,
 }
 
 /** */
@@ -316,6 +339,14 @@ export enum EventOriginator {
   SWG_SERVER = 4,
   PUBLISHER_CLIENT = 5,
   SHOWCASE_CLIENT = 6,
+}
+
+/** */
+export enum GisMode {
+  GIS_MODE_UNSPECIFIED = 0,
+  GIS_MODE_DISABLED = 1,
+  GIS_MODE_NORMAL = 2,
+  GIS_MODE_OVERLAY = 3,
 }
 
 /** */
@@ -916,6 +947,7 @@ export class CompleteAudienceActionResponse implements Message {
   private givenName_: string | null;
   private familyName_: string | null;
   private termsAndConditionsConsent_: boolean | null;
+  private idToken_: string | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
@@ -935,6 +967,8 @@ export class CompleteAudienceActionResponse implements Message {
     this.familyName_ = data[6 + base] == null ? null : (data[6 + base] as string);
 
     this.termsAndConditionsConsent_ = data[7 + base] == null ? null : (data[7 + base] as boolean);
+
+    this.idToken_ = data[8 + base] == null ? null : (data[8 + base] as string);
   }
 
   getSwgUserToken(): string | null {
@@ -1001,6 +1035,14 @@ export class CompleteAudienceActionResponse implements Message {
     this.termsAndConditionsConsent_ = value;
   }
 
+  getIdToken(): string | null {
+    return this.idToken_;
+  }
+
+  setIdToken(value: string): void {
+    this.idToken_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.swgUserToken_, // field 1 - swg_user_token
@@ -1011,6 +1053,7 @@ export class CompleteAudienceActionResponse implements Message {
       this.givenName_, // field 6 - given_name
       this.familyName_, // field 7 - family_name
       this.termsAndConditionsConsent_, // field 8 - terms_and_conditions_consent
+      this.idToken_, // field 9 - id_token
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1065,6 +1108,87 @@ export class Duration implements Message {
 
   label(): string {
     return 'Duration';
+  }
+}
+
+/** */
+export class ElementCoordinates implements Message {
+  private id_: string | null;
+  private left_: number | null;
+  private top_: number | null;
+  private width_: number | null;
+  private height_: number | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.id_ = data[base] == null ? null : (data[base] as string);
+
+    this.left_ = data[1 + base] == null ? null : (data[1 + base] as number);
+
+    this.top_ = data[2 + base] == null ? null : (data[2 + base] as number);
+
+    this.width_ = data[3 + base] == null ? null : (data[3 + base] as number);
+
+    this.height_ = data[4 + base] == null ? null : (data[4 + base] as number);
+  }
+
+  getId(): string | null {
+    return this.id_;
+  }
+
+  setId(value: string): void {
+    this.id_ = value;
+  }
+
+  getLeft(): number | null {
+    return this.left_;
+  }
+
+  setLeft(value: number): void {
+    this.left_ = value;
+  }
+
+  getTop(): number | null {
+    return this.top_;
+  }
+
+  setTop(value: number): void {
+    this.top_ = value;
+  }
+
+  getWidth(): number | null {
+    return this.width_;
+  }
+
+  setWidth(value: number): void {
+    this.width_ = value;
+  }
+
+  getHeight(): number | null {
+    return this.height_;
+  }
+
+  setHeight(value: number): void {
+    this.height_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.id_, // field 1 - id
+      this.left_, // field 2 - left
+      this.top_, // field 3 - top
+      this.width_, // field 4 - width
+      this.height_, // field 5 - height
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'ElementCoordinates';
   }
 }
 
@@ -1286,6 +1410,8 @@ export class EventParams implements Message {
   private linkedPublicationsCount_: number | null;
   private ctaMode_: CtaMode | null;
   private optInType_: OptInType | null;
+  private emailValidationStatus_: EmailValidationStatus | null;
+  private gisMode_: GisMode | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
@@ -1316,6 +1442,10 @@ export class EventParams implements Message {
     this.ctaMode_ = data[10 + base] == null ? null : (data[10 + base] as CtaMode);
 
     this.optInType_ = data[11 + base] == null ? null : (data[11 + base] as OptInType);
+
+    this.emailValidationStatus_ = data[12 + base] == null ? null : (data[12 + base] as EmailValidationStatus);
+
+    this.gisMode_ = data[13 + base] == null ? null : (data[13 + base] as GisMode);
   }
 
   getSmartboxMessage(): string | null {
@@ -1414,6 +1544,22 @@ export class EventParams implements Message {
     this.optInType_ = value;
   }
 
+  getEmailValidationStatus(): EmailValidationStatus | null {
+    return this.emailValidationStatus_;
+  }
+
+  setEmailValidationStatus(value: EmailValidationStatus): void {
+    this.emailValidationStatus_ = value;
+  }
+
+  getGisMode(): GisMode | null {
+    return this.gisMode_;
+  }
+
+  setGisMode(value: GisMode): void {
+    this.gisMode_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.smartboxMessage_, // field 1 - smartbox_message
@@ -1428,6 +1574,8 @@ export class EventParams implements Message {
       this.linkedPublicationsCount_, // field 10 - linked_publications_count
       this.ctaMode_, // field 11 - cta_mode
       this.optInType_, // field 12 - opt_in_type
+      this.emailValidationStatus_, // field 13 - email_validation_status
+      this.gisMode_, // field 14 - gis_mode
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1482,6 +1630,51 @@ export class FinishedLoggingResponse implements Message {
 
   label(): string {
     return 'FinishedLoggingResponse';
+  }
+}
+
+/** */
+export class GisSignIn implements Message {
+  private idToken_: string | null;
+  private gisClientId_: string | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.idToken_ = data[base] == null ? null : (data[base] as string);
+
+    this.gisClientId_ = data[1 + base] == null ? null : (data[1 + base] as string);
+  }
+
+  getIdToken(): string | null {
+    return this.idToken_;
+  }
+
+  setIdToken(value: string): void {
+    this.idToken_ = value;
+  }
+
+  getGisClientId(): string | null {
+    return this.gisClientId_;
+  }
+
+  setGisClientId(value: string): void {
+    this.gisClientId_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.idToken_, // field 1 - id_token
+      this.gisClientId_, // field 2 - gis_client_id
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'GisSignIn';
   }
 }
 
@@ -1560,6 +1753,39 @@ export class LinkingInfoResponse implements Message {
 
   label(): string {
     return 'LinkingInfoResponse';
+  }
+}
+
+/** */
+export class LoginButtonCoordinates implements Message {
+  private loginButtonCoordinates_: ElementCoordinates[] | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.loginButtonCoordinates_ = (data[base] as unknown[][] || []).map(item => new ElementCoordinates(item, includesLabel));
+  }
+
+  getLoginButtonCoordinatesList(): ElementCoordinates[] | null {
+    return this.loginButtonCoordinates_;
+  }
+
+  setLoginButtonCoordinatesList(value: ElementCoordinates[]): void {
+    this.loginButtonCoordinates_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.loginButtonCoordinates_ ? this.loginButtonCoordinates_.map(item => item.toArray(includeLabel)) : [], // field 1 - login_button_coordinates
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'LoginButtonCoordinates';
   }
 }
 
@@ -1875,6 +2101,39 @@ export class SmartBoxMessage implements Message {
 
   label(): string {
     return 'SmartBoxMessage';
+  }
+}
+
+/** */
+export class StartGisSignIn implements Message {
+  private unused_: boolean | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.unused_ = data[base] == null ? null : (data[base] as boolean);
+  }
+
+  getUnused(): boolean | null {
+    return this.unused_;
+  }
+
+  setUnused(value: boolean): void {
+    this.unused_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.unused_, // field 1 - unused
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'StartGisSignIn';
   }
 }
 
@@ -2385,7 +2644,7 @@ export class ViewSubscriptionsResponse implements Message {
   }
 }
 
-const PROTO_MAP: {[key: string]: MessageConstructor} = {
+const PROTO_MAP: { [key: string]: MessageConstructor } = {
   'AccountCreationRequest': AccountCreationRequest,
   'ActionRequest': ActionRequest,
   'AlreadySubscribedResponse': AlreadySubscribedResponse,
@@ -2396,13 +2655,16 @@ const PROTO_MAP: {[key: string]: MessageConstructor} = {
   'CloseWindowRequest': CloseWindowRequest,
   'CompleteAudienceActionResponse': CompleteAudienceActionResponse,
   'Duration': Duration,
+  'ElementCoordinates': ElementCoordinates,
   'EntitlementJwt': EntitlementJwt,
   'EntitlementsRequest': EntitlementsRequest,
   'EntitlementsResponse': EntitlementsResponse,
   'EventParams': EventParams,
   'FinishedLoggingResponse': FinishedLoggingResponse,
+  'GisSignIn': GisSignIn,
   'LinkSaveTokenRequest': LinkSaveTokenRequest,
   'LinkingInfoResponse': LinkingInfoResponse,
+  'LoginButtonCoordinates': LoginButtonCoordinates,
   'OpenDialogRequest': OpenDialogRequest,
   'RewardedAdAlternateActionRequest': RewardedAdAlternateActionRequest,
   'RewardedAdLoadAdRequest': RewardedAdLoadAdRequest,
@@ -2410,6 +2672,7 @@ const PROTO_MAP: {[key: string]: MessageConstructor} = {
   'RewardedAdViewAdRequest': RewardedAdViewAdRequest,
   'SkuSelectedResponse': SkuSelectedResponse,
   'SmartBoxMessage': SmartBoxMessage,
+  'StartGisSignIn': StartGisSignIn,
   'SubscribeResponse': SubscribeResponse,
   'SubscriptionLinkingCompleteResponse': SubscriptionLinkingCompleteResponse,
   'SubscriptionLinkingLinkResult': SubscriptionLinkingLinkResult,

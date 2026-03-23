@@ -105,6 +105,20 @@ export class ClientConfigManager {
   }
 
   /**
+   * Gets the callback function to be called when the user logs in.
+   */
+  getOnGisOptIn(): ((token: string | null) => void) | undefined {
+    return this.clientOptions_.onGisOptIn;
+  }
+
+  /**
+   * Gets the GIS client ID.
+   */
+  getClientId(): string | undefined {
+    return this.clientOptions_.clientId;
+  }
+
+  /**
    * Returns whether scrolling on main page should be allowed when
    * subscription or contribution dialog is displayed.
    */

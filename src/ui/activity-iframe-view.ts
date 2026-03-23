@@ -37,6 +37,7 @@ export class ActivityIframeView extends View {
     port: ActivityIframePort | Promise<ActivityIframePort>
   ) => void;
   private readonly portPromise_: Promise<ActivityIframePort>;
+  private readonly onResizeCallbacks_: (() => void)[] = [];
 
   constructor(
     private readonly win_: Window,
@@ -180,6 +181,11 @@ export class ActivityIframeView extends View {
     if (this.port_) {
       this.port_.resized();
     }
+    this.onResizeCallbacks_.forEach((cb) => cb());
+  }
+
+  onResize(callback: () => void) {
+    this.onResizeCallbacks_.push(callback);
   }
 
   shouldAnimateFade(): boolean {

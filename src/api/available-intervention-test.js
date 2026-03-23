@@ -49,6 +49,7 @@ describes.realWin('AvailableIntervention', (env) => {
       onResult: resultHandler,
       onAlternateAction: alternateActionHandler,
       onSignIn: signInHandler,
+      clientId: 'TEST_CLIENT_ID',
     });
 
     expect(actionFlowStub).to.have.been.calledWith(deps, {
@@ -60,7 +61,8 @@ describes.realWin('AvailableIntervention', (env) => {
       suppressToast: true,
       onAlternateAction: alternateActionHandler,
       onSignIn: signInHandler,
-      preference: 'TEST_PREFERENCE'
+      preference: 'TEST_PREFERENCE',
+      clientId: 'TEST_CLIENT_ID',
     });
     expect(startStub).to.have.been.calledOnce;
   });
