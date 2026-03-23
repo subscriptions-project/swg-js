@@ -44,7 +44,7 @@ import {Doc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {Intervention, PromptPreference} from './intervention';
-import {InterventionResult} from '../api/available-intervention';
+import {InterventionResult, OptInResult} from '../api/available-intervention';
 import {InterventionType} from '../api/intervention-type';
 import {MiniPromptApi} from './mini-prompt-api';
 import {OffersRequest} from '../api/subscriptions';
@@ -337,15 +337,18 @@ export class AutoPromptManager {
   ): Promise<void> {
     this.isInDevMode_ = false;
     if (!article) {
+      this.yeildControlToGis_();
       return;
     }
 
     if (!clientConfig.uiPredicates?.canDisplayAutoPrompt) {
+      this.yeildControlToGis_();
       return;
     }
 
     const hasValidEntitlements = entitlements.enablesThis();
     if (hasValidEntitlements) {
+      this.yeildControlToGis_();
       return;
     }
 
@@ -407,6 +410,7 @@ export class AutoPromptManager {
       : undefined;
 
     if (!promptFn) {
+      this.yeildControlToGis_();
       return;
     }
 
@@ -591,6 +595,7 @@ export class AutoPromptManager {
           /* shouldAnimateFade */ false
         ),
         onResult: this.getOnResultCallback(action),
+        clientId: this.clientConfigManager_.getClientId(),
       });
       this.setLastAudienceActionFlow(audienceActionFlow);
       audienceActionFlow.start();
@@ -601,7 +606,14 @@ export class AutoPromptManager {
     action: AudienceActionType
   ): ((result: InterventionResult) => Promise<boolean> | boolean) | undefined {
     if (action === InterventionType.TYPE_REGISTRATION_WALL) {
-      return this.clientConfigManager_.getGisCallback();
+      const onGisOptIn = this.clientConfigManager_.getOnGisOptIn();
+      if (onGisOptIn) {
+        return (result: InterventionResult) => {
+          const data = result.data as OptInResult;
+          onGisOptIn(data.idToken);
+          return true;
+        };
+      }
     }
     return undefined;
   }
@@ -1028,5 +1040,9 @@ export class AutoPromptManager {
     const articleExpFlags =
       this.entitlementsManager_.parseArticleExperimentConfigFlags(article);
     return articleExpFlags.includes(experimentFlag);
+  }
+
+  private yeildControlToGis_() {
+    this.deps_.gisInteropManager()?.yield();
   }
 }

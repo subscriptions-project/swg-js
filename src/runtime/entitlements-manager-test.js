@@ -3142,6 +3142,7 @@ describes.realWin('EntitlementsManager', (env) => {
         onAlternateAction: undefined,
         onSignIn: undefined,
         preference: 'TEST_PREFERENCE',
+        clientId: undefined,
       });
       expect(startSpy).to.have.been.calledOnce;
     });
