@@ -25,6 +25,11 @@ export enum ExperimentFlags {
    * Experiment flag for enabling publication_id suffix to browser storage key.
    */
   ENABLE_PUBLICATION_ID_SUFFIX_FOR_STORAGE_KEY = 'enable-pub-id-suffix-for-storage-key',
+
+  /**
+   * Experiment flag to enable gisInterop via experiment.
+   */
+  ENABLE_GIS_INTEROP = 'enable-gis-interop',
 }
 
 /**
@@ -37,11 +42,6 @@ export enum ArticleExperimentFlags {
    * closable popups.
    */
   BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT = 'background_click_behavior_experiment',
-
-  /**
-   * Experiment flag to enable the rendering of the CTAs inline.
-   */
-  INLINE_CTA_EXPERIMENT = 'inline_cta_experiment',
 
   /**
    * Experiment flag to enable multiple instances of CTAs (FCA Phase 1).

@@ -31,8 +31,8 @@ module.exports = {
         'Please sign up for my newsletter!'
       )
       .consentToNewsletter()
-      .optInWithGoogleAction()
-      .checkSignIn()
+      .optInWithEmailAction()
+      .checkEmailOptIn()
       .end();
   },
 };

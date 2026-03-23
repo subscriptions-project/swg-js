@@ -40,7 +40,7 @@ import {
   Subscriptions,
 } from '../api/subscriptions';
 import {AnalyticsService} from './analytics-service';
-import {ArticleExperimentFlags} from './experiment-flags';
+import {ArticleExperimentFlags, ExperimentFlags} from './experiment-flags';
 import {AvailableIntervention} from '../api/available-intervention';
 import {ButtonApi} from './button-api';
 import {Callbacks} from './callbacks';
@@ -63,6 +63,7 @@ import {Fetcher as FetcherInterface, XhrFetcher} from './fetcher';
 import {FreeAccess} from './free-access';
 import {FreeAccessApi} from '../api/free-access-api';
 import {GetEntitlementsParamsExternalDef} from '../api/subscriptions';
+import {GisInteropManager} from './gis/gis-interop-manager';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {JsError} from './jserror';
 import {
@@ -105,9 +106,9 @@ import {debugLog} from '../utils/log';
 import {getLanguageCodeFromElement} from '../utils/i18n';
 import {injectStyleSheet} from '../utils/dom';
 import {isBoolean} from '../utils/types';
+import {isExperimentOn, setExperiment} from './experiments';
 import {isSecure} from '../utils/url';
 import {queryStringHasFreshGaaParams} from './extended-access';
-import {setExperiment} from './experiments';
 import {showcaseEventToAnalyticsEvents} from './event-type-mapping';
 import {warn} from '../utils/log';
 
@@ -412,6 +413,11 @@ export class Runtime implements SubscriptionsInterface {
     return runtime.subscribe(sku);
   }
 
+  async conferTimeBoundPass(sku: string): Promise<void> {
+    const runtime = await this.configured_(true);
+    return runtime.conferTimeBoundPass(sku);
+  }
+
   async updateSubscription(
     subscriptionRequest: SubscriptionRequest
   ): Promise<void> {
@@ -638,6 +644,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
   private readonly propensityModule_: Propensity;
   private readonly offersApi_: OffersApi;
   private readonly buttonApi_: ButtonApi;
+  private readonly gisInteropManager_?: GisInteropManager;
 
   constructor(
     winOrDoc: Window | Document | DocInterface,
@@ -648,6 +655,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
           configPromise?: Promise<void>;
           enableGoogleAnalytics?: boolean;
           enableDefaultMeteringHandler?: boolean;
+          isBasic?: boolean;
         }
       | undefined,
     config?: Config,
@@ -755,10 +763,30 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
       );
       this.jserror_.error('Redirect error', error);
     });
+
+    this.gisInteropManager_ =
+      !!this.config_.gisInterop ||
+      isExperimentOn(this.win_, ExperimentFlags.ENABLE_GIS_INTEROP)
+        ? new GisInteropManager(
+            this.doc_,
+            this.storage_,
+            this.entitlementsManager_,
+            this.pageConfig_,
+            this.eventManager_
+          )
+        : undefined;
+
+    if (!integr?.isBasic) {
+      this.gisInteropManager_?.yield();
+    }
   }
 
   creationTimestamp(): number {
     return this.creationTimestamp_;
+  }
+
+  gisInteropManager(): GisInteropManager | undefined {
+    return this.gisInteropManager_;
   }
 
   doc(): DocInterface {
@@ -880,6 +908,11 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
           if (typeof value !== 'string') {
             error = 'paySwgVersion must be a string, type: ' + typeof value;
             break;
+          }
+          break;
+        case 'gisInterop':
+          if (value !== undefined && !isBoolean(value)) {
+            error = 'gisInterop must be a boolean, type: ' + typeof value;
           }
           break;
         default:
@@ -1089,6 +1122,15 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     return new PayStartFlow(this, {'skuId': sku}).start();
   }
 
+  async conferTimeBoundPass(sku: string): Promise<void> {
+    await this.documentParsed_;
+    return new PayStartFlow(
+      this,
+      {'skuId': sku, 'oneTime': true},
+      ProductType.TIME_BOUND_PASS
+    ).start();
+  }
+
   async updateSubscription(
     subscriptionRequest: SubscriptionRequest
   ): Promise<void> {
@@ -1295,6 +1337,7 @@ function createPublicRuntime(runtime: Runtime): SubscriptionsInterface {
     showContributionOptions: runtime.showContributionOptions.bind(runtime),
     waitForSubscriptionLookup: runtime.waitForSubscriptionLookup.bind(runtime),
     subscribe: runtime.subscribe.bind(runtime),
+    conferTimeBoundPass: runtime.conferTimeBoundPass.bind(runtime),
     updateSubscription: runtime.updateSubscription.bind(runtime),
     contribute: runtime.contribute.bind(runtime),
     completeDeferredAccountCreation:

@@ -44,6 +44,7 @@ import {DialogManager} from '../components/dialog-manager';
 import {Entitlement, Entitlements} from '../api/entitlements';
 import {Event} from '../api/logger-api';
 import {ExperimentFlags} from './experiment-flags';
+import {GisInteropManager} from './gis/gis-interop-manager';
 import {GlobalDoc} from '../model/doc';
 import {JsError} from './jserror';
 import {
@@ -368,6 +369,12 @@ describes.realWin('Runtime', (env) => {
       expect(analytics.readyForLogging_).to.be.true;
     });
 
+    it('should return undefined for gisInteropManager', async () => {
+      runtime.init('pub2');
+      const configuredRuntime = await runtime.configured_(true);
+      expect(configuredRuntime.gisInteropManager()).to.be.undefined;
+    });
+
     it('sets paySwgVersion from config', async () => {
       runtime.configure({paySwgVersion: '123'});
       runtime.init('pub2');
@@ -575,6 +582,16 @@ describes.realWin('Runtime', (env) => {
       configuredRuntimeMock.expects('subscribe').withExactArgs('sku1').once();
 
       await runtime.subscribe('sku1');
+      expect(configureStub).to.be.calledOnce.calledWith(true);
+    });
+
+    it('should delegate "conferTimeBoundPass"', async () => {
+      configuredRuntimeMock
+        .expects('conferTimeBoundPass')
+        .withExactArgs('sku1')
+        .once();
+
+      await runtime.conferTimeBoundPass('sku1');
       expect(configureStub).to.be.calledOnce.calledWith(true);
     });
 
@@ -988,6 +1005,10 @@ describes.realWin('ConfiguredRuntime', (env) => {
     config = new PageConfig('pub1:label1', true);
   });
 
+  afterEach(() => {
+    setExperimentsStringForTesting('');
+  });
+
   it('should allow experiments to be set in config', () => {
     expect(
       () =>
@@ -1049,6 +1070,73 @@ describes.realWin('ConfiguredRuntime', (env) => {
           enableSwgAnalytics: 1,
         })
     ).to.throw();
+  });
+
+  it('should allow gisInterop to be set in config', () => {
+    expect(
+      () =>
+        new ConfiguredRuntime(win, config, null, {
+          gisInterop: true,
+        })
+    ).to.not.throw();
+  });
+
+  it('should throw if gisInterop set but not boolean', () => {
+    expect(
+      () =>
+        new ConfiguredRuntime(win, config, null, {
+          gisInterop: 'true',
+        })
+    ).to.throw();
+  });
+
+  it('should instantiate GisInteropManager when enabled', () => {
+    sandbox.spy(win, 'addEventListener');
+    new ConfiguredRuntime(win, config, null, {
+      gisInterop: true,
+    });
+
+    expect(win.addEventListener).to.have.been.calledWith(
+      'message',
+      sandbox.match.func
+    );
+  });
+
+  it('should instantiate GisInteropManager when experiment is on', () => {
+    sandbox.spy(win, 'addEventListener');
+    setExperimentsStringForTesting(ExperimentFlags.ENABLE_GIS_INTEROP);
+    new ConfiguredRuntime(win, config);
+
+    expect(win.addEventListener).to.have.been.calledWith(
+      'message',
+      sandbox.match.func
+    );
+  });
+
+  it('should NOT instantiate GisInteropManager when disabled', () => {
+    sandbox.spy(win, 'addEventListener');
+    new ConfiguredRuntime(win, config, null, {
+      gisInterop: false,
+    });
+
+    expect(win.addEventListener).to.not.have.been.calledWith(
+      'message',
+      sandbox.match.func
+    );
+  });
+
+  it('should NOT call yield on GisInteropManager when isBasic is true', () => {
+    const yieldSpy = sandbox.spy(GisInteropManager.prototype, 'yield');
+    new ConfiguredRuntime(
+      win,
+      config,
+      {isBasic: true},
+      {
+        gisInterop: true,
+      }
+    );
+
+    expect(yieldSpy).to.not.have.been.called;
   });
 
   it('should pass enableDefaultMeteringHandler into EntitlementsManager during constuction and default to false', () => {
@@ -1856,6 +1944,21 @@ new subscribers. Use the showOffers() method instead.'
       expect(startStub).to.be.calledOnce;
       expect(flowInstance.subscriptionRequest_.skuId).to.equal('sku1');
       expect(flowInstance.productType_).to.equal(ProductType.SUBSCRIPTION);
+    });
+
+    it('should start PayStartFlow for time bound pass', async () => {
+      let flowInstance;
+      const startStub = sandbox
+        .stub(PayStartFlow.prototype, 'start')
+        .callsFake(function () {
+          flowInstance = this;
+          return Promise.resolve();
+        });
+
+      await runtime.conferTimeBoundPass('sku1');
+      expect(startStub).to.be.calledOnce;
+      expect(flowInstance.subscriptionRequest_.skuId).to.equal('sku1');
+      expect(flowInstance.productType_).to.equal(ProductType.TIME_BOUND_PASS);
     });
 
     it('throws if subscribe() is used to replace a subscription', async () => {
