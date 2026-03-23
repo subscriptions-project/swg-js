@@ -44,11 +44,6 @@ export enum ArticleExperimentFlags {
   BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT = 'background_click_behavior_experiment',
 
   /**
-   * Experiment flag to enable the rendering of the CTAs inline.
-   */
-  INLINE_CTA_EXPERIMENT = 'inline_cta_experiment',
-
-  /**
    * Experiment flag to enable multiple instances of CTAs (FCA Phase 1).
    */
   MULTI_INSTANCE_CTA_EXPERIMENT = 'multi_instance_cta_experiment',
