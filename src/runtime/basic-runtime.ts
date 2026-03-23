@@ -16,7 +16,6 @@
 
 import {ActivityPortDef, ActivityPorts} from '../components/activities';
 import {AnalyticsService} from './analytics-service';
-import {ArticleExperimentFlags} from './experiment-flags';
 import {AudienceActivityEventListener} from './audience-activity-listener';
 import {AutoPromptManager} from './auto-prompt-manager';
 import {

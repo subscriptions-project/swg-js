@@ -19,7 +19,6 @@ import {
   ActivityResultCode,
 } from 'web-activities/activity-ports';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
-import {ArticleExperimentFlags} from './experiment-flags';
 import {AudienceActionIframeFlow} from './audience-action-flow';
 import {AudienceActivityEventListener} from './audience-activity-listener';
 import {AutoPromptType} from '../api/basic-subscriptions';
