@@ -274,6 +274,16 @@ export enum AnalyticsEvent {
   EVENT_BYOE_POP_UP_EMAIL_VALIDATION_ERROR = 3062,
   EVENT_BYOE_POP_UP_NAME_VALIDATION_ERROR = 3063,
   EVENT_TIME_BOUND_PASS_PAYMENT_COMPLETE = 3064,
+  EVENT_GIS_INTEROP_YIELD = 3065,
+  EVENT_GIS_INTEROP_PING_RECEIVED = 3066,
+  EVENT_GIS_INTEROP_WAITING_FOR_PING_ERROR = 3067,
+  EVENT_GIS_INTEROP_LOADING_IFRAME_ERROR = 3068,
+  EVENT_GIS_INTEROP_HANDSHAKE_ESTABLISHED = 3069,
+  EVENT_GIS_INTEROP_OPERATION_ERROR = 3070,
+  EVENT_GIS_INTEROP_TOKEN_UPDATE_START = 3071,
+  EVENT_GIS_INTEROP_TOKEN_UPDATE_ERROR = 3072,
+  EVENT_GIS_INTEROP_TOKEN_UPDATED = 3073,
+  EVENT_GIS_LOGIN_ERROR = 3074,
   EVENT_SUBSCRIPTION_STATE = 4000,
   FREE_ACCESS_EVENT_LANDING = 5000,
   FREE_ACCESS_EVENT_FREE_ACCESS_PROGRAM = 5001,
@@ -329,6 +339,14 @@ export enum EventOriginator {
   SWG_SERVER = 4,
   PUBLISHER_CLIENT = 5,
   SHOWCASE_CLIENT = 6,
+}
+
+/** */
+export enum GisMode {
+  GIS_MODE_UNSPECIFIED = 0,
+  GIS_MODE_DISABLED = 1,
+  GIS_MODE_NORMAL = 2,
+  GIS_MODE_OVERLAY = 3,
 }
 
 /** */
@@ -1393,6 +1411,7 @@ export class EventParams implements Message {
   private ctaMode_: CtaMode | null;
   private optInType_: OptInType | null;
   private emailValidationStatus_: EmailValidationStatus | null;
+  private gisMode_: GisMode | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
@@ -1425,6 +1444,8 @@ export class EventParams implements Message {
     this.optInType_ = data[11 + base] == null ? null : (data[11 + base] as OptInType);
 
     this.emailValidationStatus_ = data[12 + base] == null ? null : (data[12 + base] as EmailValidationStatus);
+
+    this.gisMode_ = data[13 + base] == null ? null : (data[13 + base] as GisMode);
   }
 
   getSmartboxMessage(): string | null {
@@ -1531,6 +1552,14 @@ export class EventParams implements Message {
     this.emailValidationStatus_ = value;
   }
 
+  getGisMode(): GisMode | null {
+    return this.gisMode_;
+  }
+
+  setGisMode(value: GisMode): void {
+    this.gisMode_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.smartboxMessage_, // field 1 - smartbox_message
@@ -1546,6 +1575,7 @@ export class EventParams implements Message {
       this.ctaMode_, // field 11 - cta_mode
       this.optInType_, // field 12 - opt_in_type
       this.emailValidationStatus_, // field 13 - email_validation_status
+      this.gisMode_, // field 14 - gis_mode
     ];
     if (includeLabel) {
       arr.unshift(this.label());

@@ -17,7 +17,9 @@
 import {ActivityIframeView} from '../../ui/activity-iframe-view';
 import {ActivityPorts} from '../../components/activities';
 import {
+  AnalyticsEvent,
   ElementCoordinates,
+  GisMode as GisModeProto,
   GisSignIn,
   LoginButtonCoordinates,
   StartGisSignIn,
@@ -35,6 +37,13 @@ describes.realWin('GisLoginFlow', (env) => {
   let message;
   let cancelAnimationFrameSpy;
   let onResizeCallback;
+  let eventManagerMock;
+
+  function getScripts() {
+    return win.document.head.querySelectorAll(
+      'script[src="https://accounts.google.com/gsi/client"]'
+    );
+  }
 
   beforeEach(() => {
     const coordinates = new ElementCoordinates();
@@ -73,6 +82,7 @@ describes.realWin('GisLoginFlow', (env) => {
       getWin: () => win,
       getRootNode: () => win.document,
       getBody: () => win.document.body,
+      getHead: () => win.document.head,
     };
 
     const el = win.document.createElement('iframe');
@@ -104,11 +114,55 @@ describes.realWin('GisLoginFlow', (env) => {
     sandbox.stub(activityIframeView, 'onResize').callsFake((cb) => {
       onResizeCallback = cb;
     });
+
+    eventManagerMock = {
+      logEvent: sandbox.stub(),
+      logSwgEvent: sandbox.stub(),
+    };
+
+    const gsi = win.document.createElement('script');
+    gsi.src = 'https://accounts.google.com/gsi/client';
+    win.document.head.appendChild(gsi);
   });
 
   afterEach(() => {
-    gisLoginFlow.dispose();
+    gisLoginFlow?.dispose();
     delete self.google;
+    getScripts().forEach((script) => script.remove());
+  });
+
+  describe('if gsi script if not present', async () => {
+    beforeEach(() => {
+      getScripts().forEach((script) => script.remove());
+
+      expect(getScripts().length).to.equal(0);
+
+      new GisLoginFlow(
+        doc,
+        'client-id',
+        activityIframeView,
+        GisMode.GisModeNormal,
+        eventManagerMock
+      );
+    });
+
+    it('creates gsi script if not present', async () => {
+      expect(getScripts().length).to.equal(1);
+    });
+
+    it('starts gis sign in', async () => {
+      getScripts()[0].onload();
+
+      const startGisSignInMessage = new StartGisSignIn();
+      const startGisSignInCallback = messageMap[startGisSignInMessage.label()];
+
+      await startGisSignInCallback(startGisSignInMessage);
+
+      const gisSignIn = new GisSignIn();
+      gisSignIn.setIdToken('fakeIdToken');
+      gisSignIn.setGisClientId('client-id');
+      expect(activityIframeView.execute).to.have.been.calledWith(gisSignIn);
+    });
   });
 
   describe('GisModeOverlay', () => {
@@ -117,7 +171,8 @@ describes.realWin('GisLoginFlow', (env) => {
         doc,
         'client-id',
         activityIframeView,
-        GisMode.GisModeOverlay
+        GisMode.GisModeOverlay,
+        eventManagerMock
       );
     });
 
@@ -169,6 +224,41 @@ describes.realWin('GisLoginFlow', (env) => {
       gisSignIn.setIdToken('fakeIdToken');
       gisSignIn.setGisClientId('client-id');
       expect(activityIframeView.execute).to.have.been.calledWith(gisSignIn);
+
+      expect(eventManagerMock.logSwgEvent).to.have.been.calledWith(
+        AnalyticsEvent.ACTION_REGWALL_OPT_IN_BUTTON_CLICK,
+        true,
+        sandbox.match((eventParams) => {
+          return eventParams.getGisMode() === GisModeProto.GIS_MODE_OVERLAY;
+        }),
+        undefined,
+        undefined
+      );
+    });
+
+    it('logs error and rejects when initialize throws', () => {
+      win.google.accounts.id.initialize = () => {
+        throw new Error('initialize failed');
+      };
+
+      messageMap[message.label()](message);
+      const overlay = win.document.body.querySelector('div');
+
+      return overlay
+        .onclick()
+        .then(() => {
+          expect.fail('Promise should have rejected');
+        })
+        .catch((e) => {
+          expect(e.message).to.equal('initialize failed');
+          expect(eventManagerMock.logSwgEvent).to.have.been.calledWith(
+            AnalyticsEvent.EVENT_GIS_LOGIN_ERROR,
+            false,
+            null,
+            undefined,
+            undefined
+          );
+        });
     });
 
     it('cancels existing requestAnimationFrame on scheduleUpdate', () => {
@@ -186,7 +276,8 @@ describes.realWin('GisLoginFlow', (env) => {
         doc,
         'client-id',
         activityIframeView,
-        GisMode.GisModeNormal
+        GisMode.GisModeNormal,
+        eventManagerMock
       );
     });
 
