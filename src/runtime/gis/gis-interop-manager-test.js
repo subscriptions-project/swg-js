@@ -32,6 +32,7 @@ describes.realWin('GisInteropManager', (env) => {
   let pageConfigMock;
   let eventManagerMock;
   let postMessageSpy;
+  let signInSpy;
 
   beforeEach(() => {
     win = env.win;
@@ -60,6 +61,14 @@ describes.realWin('GisInteropManager', (env) => {
     mockGisFrame = doc.getRootNode().createElement('iframe');
     doc.getBody().appendChild(mockGisFrame);
     postMessageSpy = sandbox.spy(mockGisFrame.contentWindow, 'postMessage');
+    signInSpy = sandbox.spy();
+    win.google = {
+      accounts: {
+        id: {
+          signIn: signInSpy,
+        },
+      },
+    };
   });
 
   afterEach(() => {
@@ -457,6 +466,42 @@ describes.realWin('GisInteropManager', (env) => {
           GisInteropManagerStates.TOKEN_UPDATE_IN_PROGRESS
         );
       });
+    });
+
+    it('should send RRM_GIS_REDIRECT_OK', () => {
+      manager.redirectOk();
+
+      expect(manager.getState()).to.equal(
+        GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED
+      );
+      expect(communicationIframePostMessageSpy).to.have.been.calledWith(
+        {
+          type: 'RRM_GIS_REDIRECT_OK',
+          sessionId: 'test-session-id',
+        },
+        {
+          targetOrigin: 'https://news.google.com',
+        }
+      );
+    });
+
+    it('should call google.accounts.id.signIn and return promise', async () => {
+      const tokenPromise = manager.signIn();
+      await Promise.resolve(); // trigger microtasks
+
+      expect(win.google.accounts.id.signIn).to.have.been.called;
+
+      await dispatchFromCommunicationIframe({
+        type: 'RRM_GIS_TOKEN_UPDATE_START',
+      });
+
+      await dispatchFromCommunicationIframe({
+        type: 'RRM_GIS_TOKEN_UPDATED',
+        swgUserToken: 'new-user-token',
+      });
+
+      const token = await tokenPromise;
+      expect(token).to.equal('new-user-token');
     });
   });
 });
