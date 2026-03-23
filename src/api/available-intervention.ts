@@ -119,6 +119,9 @@ export interface ShowInterventionParams {
 
   // Callback for signing in. Closes the prompt when called.
   onSignIn?: () => void;
+
+  // Google Sign In client ID.
+  clientId?: string;
 }
 
 export class AvailableIntervention {
@@ -142,7 +145,8 @@ export class AvailableIntervention {
       this.intervention.type === InterventionType.TYPE_NEWSLETTER_SIGNUP ||
       this.intervention.type === InterventionType.TYPE_REWARDED_SURVEY ||
       this.intervention.type === InterventionType.TYPE_BYO_CTA ||
-      this.intervention.type === InterventionType.TYPE_REWARDED_AD
+      this.intervention.type === InterventionType.TYPE_REWARDED_AD ||
+      this.intervention.type === InterventionType.TYPE_REGISTRATION_WALL
     ) {
       return new AudienceActionIframeFlow(this.deps_, {
         action: this.intervention.type,
@@ -154,6 +158,7 @@ export class AvailableIntervention {
         onAlternateAction: params.onAlternateAction,
         onSignIn: params.onSignIn,
         preference: this.intervention.preference,
+        clientId: params.clientId,
       }).start();
     }
     throw Error(`Can't show ${this.type}`);
