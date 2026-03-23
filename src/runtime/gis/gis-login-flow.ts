@@ -26,6 +26,7 @@ import {
 } from '../../proto/api_messages';
 import {ClientEventManager} from '../client-event-manager';
 import {Doc} from '../../model/doc';
+import {GisInteropManager} from './gis-interop-manager';
 import {GisMode} from './gis-utils';
 import {createElement} from '../../utils/dom';
 import {setImportantStyles} from '../../utils/style';
@@ -53,14 +54,13 @@ export class GisLoginFlow {
   private readonly positions = new Map<string, ValidatedCoordinates>();
   private rafId: number | null = null;
   private readonly resizeHandler = this.scheduleUpdate.bind(this);
-  private gisScriptPromise: Promise<void>;
 
   constructor(
     private readonly doc: Doc,
-    private readonly clientId: string,
     private readonly activityIframeView: ActivityIframeView,
-    private readonly gisMode: GisMode,
+    private readonly gisMode: GisMode.GisModeOverlay | GisMode.GisModeNormal,
     private readonly eventManager: ClientEventManager,
+    private readonly gisInteropManager: GisInteropManager,
     private readonly configurationId?: string
   ) {
     if (this.gisMode === GisMode.GisModeOverlay) {
@@ -73,24 +73,6 @@ export class GisLoginFlow {
     } else if (this.gisMode === GisMode.GisModeNormal) {
       this.activityIframeView.on(StartGisSignIn, this.login.bind(this));
     }
-
-    this.gisScriptPromise = new Promise((resolve) => {
-      const hasGis = this.doc
-        .getRootNode()
-        .querySelector('script[src="https://accounts.google.com/gsi/client"]');
-      if (!hasGis) {
-        const gisScript = createElement(this.doc.getRootNode(), 'script', {
-          'src': 'https://accounts.google.com/gsi/client',
-          'async': 'true',
-        });
-        gisScript.onload = () => {
-          resolve();
-        };
-        this.doc.getHead()?.appendChild(gisScript);
-      } else {
-        resolve();
-      }
-    });
   }
 
   /**
@@ -206,38 +188,19 @@ export class GisLoginFlow {
   }
 
   private async login() {
-    const idToken = await this.getIdToken();
-    const gisSignIn = new GisSignIn();
-    gisSignIn.setIdToken(idToken);
-    gisSignIn.setGisClientId(this.clientId);
-    this.activityIframeView.execute(gisSignIn);
-  }
-
-  private async getIdToken(): Promise<string> {
-    await this.gisScriptPromise;
-    // TODO: replace with GIS api call for id toke.
-    return new Promise<string>((resolve, reject) => {
-      try {
-        // @ts-ignore
-        this.doc.getWin().google.accounts.id.initialize({
-          /* eslint-disable-next-line google-camelcase/google-camelcase */
-          client_id: this.clientId,
-          callback: (idToken: {credential: string}) => {
-            resolve(idToken.credential);
-          },
-        });
-        // @ts-ignore
-        this.doc.getWin().google.accounts.id.prompt();
-      } catch (e) {
-        this.eventManager.logSwgEvent(
-          AnalyticsEvent.EVENT_GIS_LOGIN_ERROR,
-          /* isFromUserAction= */ false,
-          /* eventParams= */ null,
-          /* eventTime= */ undefined,
-          this.configurationId
-        );
-        reject(e);
-      }
-    });
+    try {
+      const swgUserToken = await this.gisInteropManager.signIn();
+      const gisSignIn = new GisSignIn();
+      gisSignIn.setSwgUserToken(swgUserToken);
+      this.activityIframeView.execute(gisSignIn);
+    } catch {
+      this.eventManager.logSwgEvent(
+        AnalyticsEvent.EVENT_GIS_LOGIN_ERROR,
+        /* isFromUserAction= */ false,
+        /* eventParams= */ null,
+        /* eventTime= */ undefined,
+        this.configurationId
+      );
+    }
   }
 }

@@ -140,7 +140,6 @@ describes.realWin('GisInteropManager', (env) => {
     it('should transition to LOADING_COMMUNICATION_IFRAME on valid PING', async () => {
       await dispatchFromGisIframe({
         type: 'RRM_GIS_PING',
-        clientId: 'test-client-id',
       });
 
       expect(manager.getState()).to.equal(
@@ -171,7 +170,6 @@ describes.realWin('GisInteropManager', (env) => {
     beforeEach(async () => {
       await dispatchFromGisIframe({
         type: 'RRM_GIS_PING',
-        clientId: 'test-client-id',
       });
 
       const communicationIframe = getCommunicationIframe();
@@ -281,7 +279,6 @@ describes.realWin('GisInteropManager', (env) => {
     beforeEach(async () => {
       await dispatchFromGisIframe({
         type: 'RRM_GIS_PING',
-        clientId: 'test-client-id',
       });
 
       await dispatchFromCommunicationIframe({
@@ -402,7 +399,7 @@ describes.realWin('GisInteropManager', (env) => {
             type: 'RRM_GIS_SWG_USER_TOKEN',
             swgUserToken: 'test-user-token',
             sessionId: 'test-session-id',
-            clientId: 'test-client-id',
+            gisOrigin: 'https://example.com',
             publicationId: 'test-pub-id',
           },
           {

@@ -82,11 +82,6 @@ export interface BasicSubscriptions {
    * purposes.
    */
   dismissSwgUI(): void;
-
-  /**
-   * Returns diagnostic information about the setup.
-   */
-  getDiagnostics(): {isGisReady: boolean};
 }
 
 /**
@@ -128,10 +123,6 @@ export interface ClientOptions {
   allowScroll?: boolean;
   /** Skip account creation screen if requested. */
   skipAccountCreationScreen?: boolean;
-  /** Experimental: Callback returning the GIS ID Token */
-  onGisOptIn?: (token: string | null) => void;
-  /** Experimental: GIS Client ID */
-  clientId?: string;
 }
 
 export interface LoginRequest {
