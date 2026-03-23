@@ -275,6 +275,13 @@ describes.realWin('ClientConfigManager', (env) => {
   });
 
   it('should return default client options if unspecified', () => {
+    sandbox
+      .mock(self, 'matchMedia')
+      .expects('matchMedia')
+      .withExactArgs('(prefers-color-scheme: dark)')
+      .returns({matches: false})
+      .atMost(1);
+
     expect(clientConfigManager.getLanguage()).to.equal('en');
     expect(clientConfigManager.getTheme()).to.equal(ClientTheme.LIGHT);
   });
@@ -292,6 +299,13 @@ describes.realWin('ClientConfigManager', (env) => {
   });
 
   it('should return the language set in the constructor', () => {
+    sandbox
+      .mock(self, 'matchMedia')
+      .expects('matchMedia')
+      .withExactArgs('(prefers-color-scheme: dark)')
+      .returns({matches: false})
+      .atMost(1);
+
     clientConfigManager = new ClientConfigManager(deps, 'pubId', fetcher, {
       lang: 'fr',
     });
@@ -305,6 +319,21 @@ describes.realWin('ClientConfigManager', (env) => {
     });
     expect(clientConfigManager.getTheme()).to.equal(ClientTheme.DARK);
     expect(clientConfigManager.getLanguage()).to.equal('en');
+  });
+
+  it('should return the client id set in the constructor', () => {
+    clientConfigManager = new ClientConfigManager(deps, 'pubId', fetcher, {
+      clientId: 'testId',
+    });
+    expect(clientConfigManager.getClientId()).to.equal('testId');
+  });
+
+  it('should return the onGisOptIn set in the constructor', () => {
+    const callback = () => {};
+    clientConfigManager = new ClientConfigManager(deps, 'pubId', fetcher, {
+      onGisOptIn: callback,
+    });
+    expect(clientConfigManager.getOnGisOptIn()).to.equal(callback);
   });
 
   describe('shouldAllowScroll', () => {

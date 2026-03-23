@@ -28,7 +28,6 @@ module.exports = {
         '@contributionHeader',
         'Enterprise Contribution E2E Test Pub'
       )
-      .assert.textContains('@priceChip', '$10')
       .contribute()
       .checkPayment()
       .end();

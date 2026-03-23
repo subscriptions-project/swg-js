@@ -30,7 +30,7 @@ module.exports = {
       )
       .assert.textContains('@consentMessage', 'I consent to this newsletter.')
       .consentToNewsletter()
-      .optInAction()
+      .optInWithGoogleAction()
       .checkSignIn()
       .end();
   },

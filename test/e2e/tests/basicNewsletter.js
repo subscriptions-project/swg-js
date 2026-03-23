@@ -31,7 +31,7 @@ module.exports = {
         'Please sign up for my newsletter!'
       )
       .consentToNewsletter()
-      .optInAction()
+      .optInWithGoogleAction()
       .checkSignIn()
       .end();
   },

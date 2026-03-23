@@ -26,7 +26,12 @@ import {
 import {Constants, StorageKeysWithoutPublicationIdSuffix} from './constants';
 import {Deps} from '../runtime/deps';
 import {GoogleAnalyticsEventListener} from '../runtime/google-analytics-event-listener';
-import {InterventionResult} from '../api/available-intervention';
+import {
+  InterventionResult,
+  ObsfucatedSurveyAnswers,
+  SurveyAnswers,
+  SurveyResult,
+} from '../api/available-intervention';
 import {warn} from '../utils/log';
 
 /* Supports survey data tansfer, log survey events and store PPS values.*/
@@ -82,20 +87,87 @@ async function attemptSurveyDataTransfer(
   ctaMode: CtaMode,
   onResult?: (result: InterventionResult) => Promise<boolean> | boolean
 ): Promise<boolean> {
+  const gaLogggingSuccess = logSurveyDataToGoogleAnalytics(
+    request,
+    deps,
+    ctaMode
+  );
+  const onResultSuccess = await callOnResult(
+    request,
+    configurationId,
+    onResult
+  );
+  return onResultSuccess || gaLogggingSuccess;
+}
+
+async function callOnResult(
+  request: SurveyDataTransferRequest,
+  configurationId: string,
+  onResult?: (result: InterventionResult) => Promise<boolean> | boolean
+) {
+  if (!onResult) {
+    return false;
+  }
   // @TODO(justinchou): execute callback with setOnInterventionComplete
   // then check for success
-  if (onResult) {
-    try {
-      return await onResult({
-        configurationId,
-        data: request,
-      });
-    } catch (e) {
-      warn(`[swg.js] Exception in publisher provided logging callback: ${e}`);
-      return false;
-    }
+  try {
+    const data: SurveyResult = {
+      ...makeObsfucatedSurveyAnswers(request),
+      ...makeSurveyAnswers(request),
+    };
+    const result = await onResult({
+      configurationId,
+      data,
+    });
+    return result;
+  } catch (e) {
+    warn(`[swg.js] Exception in publisher provided logging callback: ${e}`);
+    return false;
   }
-  return logSurveyDataToGoogleAnalytics(request, deps, ctaMode);
+}
+
+function makeObsfucatedSurveyAnswers(
+  request: SurveyDataTransferRequest
+): ObsfucatedSurveyAnswers {
+  return {
+    'he': request.getStorePpsInLocalStorage(),
+    'ae':
+      request.getSurveyQuestionsList()?.map((question) => {
+        return {
+          'le': question.getQuestionId(),
+          'ue': question.getQuestionText(),
+          'ce': question.getQuestionCategory(),
+          'ge':
+            question.getSurveyAnswersList()?.map((answer) => {
+              return {
+                'ie': answer.getAnswerId(),
+                'ne': answer.getAnswerText(),
+                're': answer.getAnswerCategory(),
+                'oe': answer.getPpsValue(),
+              };
+            }) || [],
+        };
+      }) || [],
+  };
+}
+
+function makeSurveyAnswers(request: SurveyDataTransferRequest): SurveyAnswers {
+  return {
+    answers:
+      request.getSurveyQuestionsList()?.map((question) => {
+        return {
+          questionText: question.getQuestionText(),
+          questionCategory: question.getQuestionCategory(),
+          surveyAnswers:
+            question.getSurveyAnswersList()?.map((answer) => {
+              return {
+                answerText: answer.getAnswerText(),
+                answerCategory: answer.getAnswerCategory(),
+              };
+            }) || [],
+        };
+      }) || [],
+  };
 }
 
 /*

@@ -19,7 +19,6 @@ import {
   ActivityResultCode,
 } from 'web-activities/activity-ports';
 import {AnalyticsEvent, EventOriginator} from '../proto/api_messages';
-import {ArticleExperimentFlags} from './experiment-flags';
 import {AudienceActionIframeFlow} from './audience-action-flow';
 import {AudienceActivityEventListener} from './audience-activity-listener';
 import {AutoPromptType} from '../api/basic-subscriptions';
@@ -48,6 +47,13 @@ import {acceptPortResultData} from './../utils/activity-utils';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {createElement} from '../utils/dom';
 import {tick} from '../../test/tick';
+
+const DEFAULT_INIT_PARAMS = {
+  type: 'NewsArticle',
+  isAccessibleForFree: true,
+  isPartOfType: ['Product'],
+  isPartOfProductId: 'herald-foo-times.com:basic',
+};
 
 describes.realWin('installBasicRuntime', (env) => {
   let win;
@@ -100,6 +106,13 @@ describes.realWin('installBasicRuntime', (env) => {
     const runtime1 = getBasicRuntime();
     installBasicRuntime(win);
     expect(getBasicRuntime()).to.equal(runtime1);
+  });
+
+  it('should expose getDiagnostics on global SWG_BASIC', () => {
+    installBasicRuntime(win);
+    expect(win.SWG_BASIC.getDiagnostics).to.be.a('function');
+    const diagnostics = win.SWG_BASIC.getDiagnostics();
+    expect(diagnostics).to.have.property('isGisReady');
   });
 
   it('handles recursive calls after installation', async () => {
@@ -165,10 +178,7 @@ describes.realWin('BasicRuntime', (env) => {
 
     it('should initialize and generate markup as specified', async () => {
       basicRuntime.init({
-        type: 'NewsArticle',
-        isAccessibleForFree: true,
-        isPartOfType: ['Product'],
-        isPartOfProductId: 'herald-foo-times.com:basic',
+        ...DEFAULT_INIT_PARAMS,
       });
 
       await basicRuntime.configured_(true);
@@ -210,10 +220,7 @@ describes.realWin('BasicRuntime', (env) => {
 
     it('should initialize and save client options', async () => {
       basicRuntime.init({
-        type: 'NewsArticle',
-        isAccessibleForFree: true,
-        isPartOfType: ['Product'],
-        isPartOfProductId: 'herald-foo-times.com:basic',
+        ...DEFAULT_INIT_PARAMS,
         clientOptions: {
           disableButton: false,
           forceLangInIframes: true,
@@ -233,10 +240,7 @@ describes.realWin('BasicRuntime', (env) => {
       win.document.documentElement.lang = '';
 
       basicRuntime.init({
-        type: 'NewsArticle',
-        isAccessibleForFree: true,
-        isPartOfType: ['Product'],
-        isPartOfProductId: 'herald-foo-times.com:basic',
+        ...DEFAULT_INIT_PARAMS,
         clientOptions: {
           disableButton: false,
           theme: ClientTheme.DARK,
@@ -255,10 +259,7 @@ describes.realWin('BasicRuntime', (env) => {
       win.document.documentElement.lang = 'pt-br';
 
       basicRuntime.init({
-        type: 'NewsArticle',
-        isAccessibleForFree: true,
-        isPartOfType: ['Product'],
-        isPartOfProductId: 'herald-foo-times.com:basic',
+        ...DEFAULT_INIT_PARAMS,
         clientOptions: {
           disableButton: false,
           theme: ClientTheme.DARK,
@@ -277,10 +278,7 @@ describes.realWin('BasicRuntime', (env) => {
       win.document.documentElement.lang = '';
 
       basicRuntime.init({
-        type: 'NewsArticle',
-        isAccessibleForFree: true,
-        isPartOfType: ['Product'],
-        isPartOfProductId: 'herald-foo-times.com:basic',
+        ...DEFAULT_INIT_PARAMS,
         clientOptions: {
           lang: 'pt-br',
           disableButton: false,
@@ -300,10 +298,7 @@ describes.realWin('BasicRuntime', (env) => {
       win.document.documentElement.lang = 'pt-br';
 
       basicRuntime.init({
-        type: 'NewsArticle',
-        isAccessibleForFree: true,
-        isPartOfType: ['Product'],
-        isPartOfProductId: 'herald-foo-times.com:basic',
+        ...DEFAULT_INIT_PARAMS,
         clientOptions: {
           lang: 'fr',
           disableButton: false,
@@ -321,10 +316,7 @@ describes.realWin('BasicRuntime', (env) => {
 
     it('should allow caller to disable default metering handler', async () => {
       basicRuntime.init({
-        type: 'NewsArticle',
-        isAccessibleForFree: true,
-        isPartOfType: ['Product'],
-        isPartOfProductId: 'herald-foo-times.com:basic',
+        ...DEFAULT_INIT_PARAMS,
         disableDefaultMeteringHandler: true,
       });
 
@@ -467,6 +459,84 @@ describes.realWin('BasicRuntime', (env) => {
         });
       }
     );
+
+    it('should set gisInterop config flag', async () => {
+      basicRuntime.init({
+        ...DEFAULT_INIT_PARAMS,
+        gisInterop: true,
+      });
+
+      await basicRuntime.configured_(true);
+
+      expect(configuredRuntimeSpy.getCall(0).args[3].gisInterop).to.be.true;
+    });
+
+    it('should create GisInteropManager when gisInterop is true', async () => {
+      basicRuntime.init({
+        ...DEFAULT_INIT_PARAMS,
+        gisInterop: true,
+      });
+
+      const configuredRuntime = await basicRuntime.configured_(true);
+
+      expect(configuredRuntime.gisInteropManager()).to.exist;
+    });
+
+    it('should NOT create GisInteropManager when gisInterop is false', async () => {
+      basicRuntime.init({
+        ...DEFAULT_INIT_PARAMS,
+        gisInterop: false,
+      });
+
+      const configuredRuntime = await basicRuntime.configured_(true);
+      expect(configuredRuntime.gisInteropManager()).to.not.exist;
+    });
+
+    it('should return getDiagnostics().isGisReady true when all params are present', () => {
+      basicRuntime.init({
+        ...DEFAULT_INIT_PARAMS,
+        gisInterop: true,
+        clientOptions: {
+          clientId: 'test-client-id',
+          onGisOptIn: () => {},
+        },
+      });
+      expect(basicRuntime.getDiagnostics().isGisReady).to.be.true;
+    });
+
+    it('should return getDiagnostics().isGisReady false when gisInterop is false', () => {
+      basicRuntime.init({
+        ...DEFAULT_INIT_PARAMS,
+        gisInterop: false,
+        clientOptions: {
+          clientId: 'test-client-id',
+          onGisOptIn: () => {},
+        },
+      });
+      expect(basicRuntime.getDiagnostics().isGisReady).to.be.false;
+    });
+
+    it('should return getDiagnostics().isGisReady false when clientId is missing', () => {
+      basicRuntime.init({
+        ...DEFAULT_INIT_PARAMS,
+        gisInterop: true,
+        clientOptions: {
+          onGisOptIn: () => {},
+        },
+      });
+      expect(basicRuntime.getDiagnostics().isGisReady).to.be.false;
+    });
+
+    it('should return getDiagnostics().isGisReady false when onGisOptIn is missing', () => {
+      basicRuntime.init({
+        ...DEFAULT_INIT_PARAMS,
+        gisInterop: true,
+        clientOptions: {
+          clientId: 'test-client-id',
+        },
+      });
+      expect(basicRuntime.getDiagnostics().isGisReady).to.be.false;
+    });
   });
 
   describe('configured', () => {
@@ -542,22 +612,57 @@ describes.realWin('BasicRuntime', (env) => {
       await basicRuntime.setOnPaymentResponse(callback);
     });
 
-    it('should delegate "setOnLoginRequest" to ConfiguredBasicRuntime', async () => {
+    it('should delegate "setOnLoginRequest" to ConfiguredBasicRuntime without callback', async () => {
       configuredBasicRuntimeMock
         .expects('setOnLoginRequest')
-        .withExactArgs()
+        .withExactArgs(undefined)
         .once();
 
       await basicRuntime.setOnLoginRequest();
     });
 
-    it('should delegate "setOnLoginRequest" to ConfiguredClassicRuntime', async () => {
-      configuredClassicRuntimeMock.expects('setOnLoginRequest').once();
+    it('should delegate "setOnLoginRequest" to ConfiguredBasicRuntime with callback', async () => {
+      const callback = () => {};
+      configuredBasicRuntimeMock
+        .expects('setOnLoginRequest')
+        .withExactArgs(callback)
+        .once();
 
+      await basicRuntime.setOnLoginRequest(callback);
+    });
+
+    it('should not overwrite custom login request callback with default', async () => {
+      sandbox.stub(configuredBasicRuntime, 'setupDefaultLoginRequestCallback_');
+
+      const callback = () => {};
+      configuredClassicRuntimeMock
+        .expects('setOnLoginRequest')
+        .withExactArgs(callback)
+        .once();
+
+      await basicRuntime.setOnLoginRequest(callback);
+
+      // This should be ignored because a custom callback has already been set.
       await basicRuntime.setOnLoginRequest();
     });
 
-    it('should trigger login request', async () => {
+    it('should overwrite default login request callback with custom callback', async () => {
+      sandbox.stub(configuredBasicRuntime, 'setupDefaultLoginRequestCallback_');
+
+      // First, simulate init() which registers the default callback
+      await basicRuntime.setOnLoginRequest();
+
+      const callback = () => {};
+      configuredClassicRuntimeMock
+        .expects('setOnLoginRequest')
+        .withExactArgs(callback)
+        .once();
+
+      // Second, register custom callback which should overwrite the default
+      await basicRuntime.setOnLoginRequest(callback);
+    });
+
+    it('should trigger login request using default behavior', async () => {
       configuredBasicRuntime.setOnLoginRequest();
 
       const openStub = sandbox.stub(
@@ -575,6 +680,17 @@ describes.realWin('BasicRuntime', (env) => {
         {publicationId: 'pub1', _client: 'SwG 0.0.0'},
         {'width': 600, 'height': 600}
       );
+    });
+
+    it('should trigger login request using custom callback', async () => {
+      const callback = sandbox.spy();
+      configuredBasicRuntime.setOnLoginRequest(callback);
+
+      await configuredBasicRuntime
+        .callbacks()
+        .triggerLoginRequest({linkRequested: true});
+
+      expect(callback).to.be.calledOnceWithExactly({linkRequested: true});
     });
 
     it('should delegate "processEntitlements"', async () => {
@@ -749,6 +865,51 @@ describes.realWin('BasicRuntime', (env) => {
       configuredBasicRuntimeMock.expects('setupInlineCta').once();
 
       await basicRuntime.setupInlineCta();
+    });
+
+    it('should return getDiagnostics().isGisReady true when all params are present in ConfiguredBasicRuntime', () => {
+      sandbox
+        .stub(configuredBasicRuntime, 'config')
+        .returns({gisInterop: true});
+      clientConfigManagerMock
+        .expects('getClientId')
+        .returns('test-client-id')
+        .once();
+      clientConfigManagerMock
+        .expects('getOnGisOptIn')
+        .returns(() => {})
+        .once();
+      expect(configuredBasicRuntime.getDiagnostics().isGisReady).to.be.true;
+    });
+
+    it('should return getDiagnostics().isGisReady false when gisInterop is false in ConfiguredBasicRuntime', () => {
+      sandbox
+        .stub(configuredBasicRuntime, 'config')
+        .returns({gisInterop: false});
+      expect(configuredBasicRuntime.getDiagnostics().isGisReady).to.be.false;
+    });
+
+    it('should return getDiagnostics().isGisReady false when clientId is missing in ConfiguredBasicRuntime', () => {
+      sandbox
+        .stub(configuredBasicRuntime, 'config')
+        .returns({gisInterop: true});
+      clientConfigManagerMock.expects('getClientId').returns(undefined).once();
+      expect(configuredBasicRuntime.getDiagnostics().isGisReady).to.be.false;
+    });
+
+    it('should return getDiagnostics().isGisReady false when onGisOptIn is missing in ConfiguredBasicRuntime', () => {
+      sandbox
+        .stub(configuredBasicRuntime, 'config')
+        .returns({gisInterop: true});
+      clientConfigManagerMock
+        .expects('getClientId')
+        .returns('test-client-id')
+        .once();
+      clientConfigManagerMock
+        .expects('getOnGisOptIn')
+        .returns(undefined)
+        .once();
+      expect(configuredBasicRuntime.getDiagnostics().isGisReady).to.be.false;
     });
   });
 });
@@ -1452,26 +1613,38 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       expect(offersOptions.isClosable).to.equal(true);
     });
 
-    it('should configure inline CTA when experiment enabled', async () => {
-      entitlementsManagerMock
-        .expects('getExperimentConfigFlags')
-        .resolves([ArticleExperimentFlags.INLINE_CTA_EXPERIMENT])
-        .atLeast(1);
-
+    it('should configure inline CTA', async () => {
       inlineCtaMock.expects('attachInlineCtasWithAttribute').once();
 
       await configuredBasicRuntime.setupInlineCta();
     });
+  });
 
-    it('should not configure inline CTA when experiment disabled', async () => {
-      entitlementsManagerMock
-        .expects('getExperimentConfigFlags')
-        .resolves([])
-        .atLeast(1);
+  describe('GisInteropManager integration', () => {
+    beforeEach(() => {
+      win.addEventListener = sandbox.spy();
+    });
 
-      inlineCtaMock.expects('attachInlineCtasWithAttribute').never();
+    it('should instantiate GisInteropManager when enabled', () => {
+      new ConfiguredBasicRuntime(win, pageConfig, /* integr */ undefined, {
+        gisInterop: true,
+      });
 
-      await configuredBasicRuntime.setupInlineCta();
+      expect(win.addEventListener).to.have.been.calledWith(
+        'message',
+        sandbox.match.func
+      );
+    });
+
+    it('should NOT instantiate GisInteropManager when disabled', () => {
+      new ConfiguredBasicRuntime(win, pageConfig, /* integr */ undefined, {
+        gisInterop: false,
+      });
+
+      expect(win.addEventListener).to.not.have.been.calledWith(
+        'message',
+        sandbox.match.func
+      );
     });
   });
 });

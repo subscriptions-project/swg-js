@@ -43,6 +43,8 @@ import {ClientConfigManager} from './client-config-manager';
 import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
 import {EntitlementsManager} from './entitlements-manager';
+import {GisLoginFlow} from './gis/gis-login-flow';
+import {GisMode, getGisMode} from './gis/gis-utils';
 import {I18N_STRINGS} from '../i18n/strings';
 import {InterventionResult} from '../api/available-intervention';
 import {InterventionType} from '../api/intervention-type';
@@ -99,6 +101,7 @@ export interface AudienceActionIframeParams {
   suppressToast?: boolean;
   onAlternateAction?: () => void;
   onSignIn?: () => void;
+  clientId?: string;
 }
 
 const autopromptTypeToProductTypeMapping: {
@@ -138,6 +141,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   private readonly rewardedSlotClosedHandler;
   private readonly rewardedSlotGrantedHandler;
   private readonly slotRenderEndedHandler;
+  private readonly gisLoginFlow?: GisLoginFlow;
 
   constructor(
     private readonly deps_: Deps,
@@ -159,6 +163,12 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     this.rewardedSlotClosedHandler = this.rewardedSlotClosed.bind(this);
     this.rewardedSlotGrantedHandler = this.rewardedSlotGranted.bind(this);
     this.slotRenderEndedHandler = this.slotRenderEnded.bind(this);
+    const gisMode = getGisMode(
+      this.deps_.win(),
+      this.params_.clientId,
+      this.params_.action,
+      this.params_.onResult
+    );
 
     const iframeParams: {[key: string]: string} = {
       'origin': parseUrl(deps_.win().location.href).origin,
@@ -166,6 +176,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       'isClosable': (!!params_.isClosable).toString(),
       'calledManually': params_.calledManually.toString(),
       'previewEnabled': (!!params_.shouldRenderPreview).toString(),
+      'gisMode': gisMode,
     };
     if (this.clientConfigManager_.shouldForceLangInIframes()) {
       iframeParams['hl'] = this.clientConfigManager_.getLanguage();
@@ -196,6 +207,17 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       setImportantStyles(this.activityIframeView_.getElement(), {
         'pointer-events': 'none',
       });
+    }
+
+    if (gisMode !== GisMode.GisModeDisabled && this.params_.clientId) {
+      this.gisLoginFlow = new GisLoginFlow(
+        this.deps_.doc(),
+        this.params_.clientId,
+        this.activityIframeView_,
+        gisMode,
+        this.deps_.eventManager(),
+        this.params_.configurationId
+      );
     }
   }
 
@@ -266,8 +288,9 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
   ) {
     const {onResult, configurationId} = this.params_;
     this.dialogManager_.completeView(this.activityIframeView_);
+    this.gisLoginFlow?.dispose();
     const userToken = response.getSwgUserToken();
-    await this.updateEntitlements(userToken);
+    await this.entitlementsManager_.updateEntitlements(userToken);
     if (this.isOptIn(this.params_.action) && onResult) {
       onResult({
         configurationId,
@@ -277,6 +300,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
           givenName: response.getGivenName(),
           familyName: response.getFamilyName(),
           termsAndConditionsConsent: response.getTermsAndConditionsConsent(),
+          idToken: response.getIdToken(),
         },
       });
     }
@@ -610,23 +634,9 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
       emptyMessage
     )) as unknown as DirectCompleteAudienceActionResponse;
     if (response.updated) {
-      await this.updateEntitlements(response.swgUserToken);
+      await this.entitlementsManager_.updateEntitlements(response.swgUserToken);
     }
     // TODO: mhkawano - else log error
-  }
-
-  private async updateEntitlements(swgUserToken?: string | null) {
-    this.entitlementsManager_.clear();
-    if (swgUserToken) {
-      await this.deps_
-        .storage()
-        .set(StorageKeys.USER_TOKEN, swgUserToken, true);
-    }
-    const now = Date.now().toString();
-    await this.deps_
-      .storage()
-      .set(StorageKeys.READ_TIME, now, /*useLocalStorage=*/ false);
-    await this.entitlementsManager_.getEntitlements();
   }
 
   /**

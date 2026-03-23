@@ -115,10 +115,8 @@ export default defineConfig({
 
   build: {
     emptyOutDir: false,
-    commonjsOptions: {
-      sourceMap: true,
-    },
     target: 'ios12',
+    sourcemap: true,
 
     minify: 'terser',
     terserOptions: {
@@ -143,7 +141,6 @@ export default defineConfig({
         {
           format: 'iife',
           entryFileNames: output,
-          sourcemap: true,
         },
       ],
     },

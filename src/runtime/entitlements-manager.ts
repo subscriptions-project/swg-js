@@ -70,6 +70,7 @@ const ENABLED_INTERVENTIONS = new Set([
   InterventionType.TYPE_REWARDED_SURVEY,
   InterventionType.TYPE_REWARDED_AD,
   InterventionType.TYPE_BYO_CTA,
+  InterventionType.TYPE_REGISTRATION_WALL,
 ]);
 
 /**
@@ -148,6 +149,25 @@ export class EntitlementsManager {
       this.storage_.remove(StorageKeys.ENTITLEMENTS);
       this.storage_.remove(StorageKeys.IS_READY_TO_PAY);
     }
+  }
+
+  /**
+   * Updates the entitlements in the cache.
+   */
+  async updateEntitlements(
+    swgUserToken?: string | null
+  ): Promise<Entitlements> {
+    this.clear();
+    if (swgUserToken) {
+      await this.storage_.set(StorageKeys.USER_TOKEN, swgUserToken, true);
+    }
+    const now = Date.now().toString();
+    await this.storage_.set(
+      StorageKeys.READ_TIME,
+      now,
+      /*useLocalStorage=*/ false
+    );
+    return await this.getEntitlements();
   }
 
   /**

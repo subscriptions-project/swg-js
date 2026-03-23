@@ -78,7 +78,69 @@ TEST_SURVEYDATATRANSFERREQUEST.setSurveyQuestionsList([
 ]);
 const TEST_SURVEYONRESULTRESPONSE = {
   configurationId: TEST_SURVEYONRESULTCONFIGID,
-  data: TEST_SURVEYDATATRANSFERREQUEST,
+  data: {
+    he: null,
+    ae: [
+      {
+        le: null,
+        ue: 'Test Question 1',
+        ce: 'Test Question Category 1',
+        ge: [
+          {
+            ie: null,
+            ne: 'Test Answer 1',
+            re: 'Test Answer Category 1',
+            oe: '1',
+          },
+          {
+            ie: null,
+            ne: 'Test Answer 2',
+            re: 'Test Answer Category 2',
+            oe: '2',
+          },
+        ],
+      },
+      {
+        le: null,
+        ue: 'Test Question 2',
+        ce: 'Test Question Category 2',
+        ge: [
+          {
+            ie: null,
+            ne: 'Test Answer 2',
+            re: 'Test Answer Category 2',
+            oe: '2',
+          },
+        ],
+      },
+    ],
+    answers: [
+      {
+        questionText: 'Test Question 1',
+        questionCategory: 'Test Question Category 1',
+        surveyAnswers: [
+          {
+            answerText: 'Test Answer 1',
+            answerCategory: 'Test Answer Category 1',
+          },
+          {
+            answerText: 'Test Answer 2',
+            answerCategory: 'Test Answer Category 2',
+          },
+        ],
+      },
+      {
+        questionText: 'Test Question 2',
+        questionCategory: 'Test Question Category 2',
+        surveyAnswers: [
+          {
+            answerText: 'Test Answer 2',
+            answerCategory: 'Test Answer Category 2',
+          },
+        ],
+      },
+    ],
+  },
 };
 const TEST_SURVEYANSWER_EMPTY = new SurveyAnswer();
 const TEST_SURVEYQUESTION_EMPTY = new SurveyQuestion();
@@ -556,192 +618,275 @@ describes.realWin('Survey utils', (env) => {
       activityIframeViewMock.verify();
     });
 
-    it(`with successful onResult logging`, async () => {
-      const successSurveyDataTransferResponse =
-        new SurveyDataTransferResponse();
-      successSurveyDataTransferResponse.setSuccess(true);
-      activityIframeViewMock
-        .expects('execute')
-        .withExactArgs(successSurveyDataTransferResponse)
-        .once();
-      const onResultMock = sandbox
-        .mock()
-        .withExactArgs(TEST_SURVEYONRESULTRESPONSE)
-        .resolves(true)
-        .once();
-      eventManagerMock.expects('logEvent').withExactArgs(
-        {
-          eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
-          eventOriginator: EventOriginator.SWG_CLIENT,
-          isFromUserAction: true,
-          // Called through logSwgEvent(), therefore need to create new EventParams
-          additionalParameters: createCtaModeEventParams(
-            CtaMode.CTA_MODE_UNSPECIFIED
-          ),
-          configurationId: null,
-        },
-        undefined,
-        undefined
-      );
+    describe('onResult', () => {
+      let onResultMock;
 
-      handleSurveyDataTransferRequest(
-        TEST_SURVEYDATATRANSFERREQUEST,
-        deps,
-        activityIframeView,
-        TEST_SURVEYONRESULTCONFIGID,
-        CtaMode.CTA_MODE_UNSPECIFIED,
-        onResultMock
-      );
-      await tick(10);
+      beforeEach(() => {
+        const winWithNoGtag = Object.assign({}, win);
+        delete winWithNoGtag.gtag;
+        deps.win.restore();
+        sandbox.stub(deps, 'win').returns(winWithNoGtag);
+      });
 
-      activityIframeViewMock.verify();
-      onResultMock.verify();
-    });
+      afterEach(async () => {
+        await tick(10);
 
-    it(`with failed onResult logging`, async () => {
-      const onResultMock = sandbox
-        .mock()
-        .withExactArgs(TEST_SURVEYONRESULTRESPONSE)
-        .resolves(false)
-        .once();
+        activityIframeViewMock.verify();
+        onResultMock.verify();
+      });
 
-      eventManagerMock
-        .expects('logEvent')
-        .withExactArgs(
-          {
-            eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
-            eventOriginator: EventOriginator.SWG_CLIENT,
-            isFromUserAction: false,
-            // Called through logSwgEvent(), therefore need to create new EventParams
-            additionalParameters: createCtaModeEventParams(
-              CtaMode.CTA_MODE_UNSPECIFIED
-            ),
-            configurationId: null,
-          },
-          undefined,
-          undefined
-        )
-        .once();
+      describe('successful', () => {
+        beforeEach(() => {
+          const successSurveyDataTransferResponse =
+            new SurveyDataTransferResponse();
+          successSurveyDataTransferResponse.setSuccess(true);
+          activityIframeViewMock
+            .expects('execute')
+            .withExactArgs(successSurveyDataTransferResponse)
+            .once();
+          eventManagerMock.expects('logEvent').withExactArgs(
+            {
+              eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_COMPLETE,
+              eventOriginator: EventOriginator.SWG_CLIENT,
+              isFromUserAction: true,
+              // Called through logSwgEvent(), therefore need to create new EventParams
+              additionalParameters: createCtaModeEventParams(
+                CtaMode.CTA_MODE_UNSPECIFIED
+              ),
+              configurationId: null,
+            },
+            undefined,
+            undefined
+          );
+        });
 
-      const failSurveyDataTransferResponse = new SurveyDataTransferResponse();
-      failSurveyDataTransferResponse.setSuccess(false);
-      activityIframeViewMock
-        .expects('execute')
-        .withExactArgs(failSurveyDataTransferResponse)
-        .once();
+        it(`with result`, async () => {
+          onResultMock = sandbox
+            .mock()
+            .withExactArgs(TEST_SURVEYONRESULTRESPONSE)
+            .resolves(true)
+            .once();
 
-      handleSurveyDataTransferRequest(
-        TEST_SURVEYDATATRANSFERREQUEST,
-        deps,
-        activityIframeView,
-        TEST_SURVEYONRESULTCONFIGID,
-        CtaMode.CTA_MODE_UNSPECIFIED,
-        onResultMock
-      );
+          handleSurveyDataTransferRequest(
+            TEST_SURVEYDATATRANSFERREQUEST,
+            deps,
+            activityIframeView,
+            TEST_SURVEYONRESULTCONFIGID,
+            CtaMode.CTA_MODE_UNSPECIFIED,
+            onResultMock
+          );
+        });
 
-      await tick(10);
+        it(`with empty questions`, async () => {
+          onResultMock = sandbox
+            .mock()
+            .withExactArgs({
+              configurationId: TEST_SURVEYONRESULTCONFIGID,
+              data: {
+                he: null,
+                ae: [],
+                answers: [],
+              },
+            })
+            .resolves(true)
+            .once();
 
-      activityIframeViewMock.verify();
-      onResultMock.verify();
-    });
+          const request = new SurveyDataTransferRequest();
+          request.setSurveyQuestionsList(null);
 
-    it(`with onResult logging exception`, async () => {
-      const onResultMock = sandbox
-        .mock()
-        .withExactArgs(TEST_SURVEYONRESULTRESPONSE)
-        .throws(new Error('Test Callback Exception'))
-        .once();
-      eventManagerMock
-        .expects('logEvent')
-        .withExactArgs(
-          {
-            eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
-            eventOriginator: EventOriginator.SWG_CLIENT,
-            isFromUserAction: false,
-            // Called through logSwgEvent(), therefore need to create new EventParams
-            additionalParameters: createCtaModeEventParams(
-              CtaMode.CTA_MODE_POPUP
-            ),
-            configurationId: null,
-          },
-          undefined,
-          undefined
-        )
-        .once();
+          handleSurveyDataTransferRequest(
+            request,
+            deps,
+            activityIframeView,
+            TEST_SURVEYONRESULTCONFIGID,
+            CtaMode.CTA_MODE_UNSPECIFIED,
+            onResultMock
+          );
+        });
 
-      const failSurveyDataTransferResponse = new SurveyDataTransferResponse();
-      failSurveyDataTransferResponse.setSuccess(false);
-      activityIframeViewMock
-        .expects('execute')
-        .withExactArgs(failSurveyDataTransferResponse)
-        .once();
+        it(`with empty answers`, async () => {
+          onResultMock = sandbox
+            .mock()
+            .withExactArgs({
+              configurationId: TEST_SURVEYONRESULTCONFIGID,
+              data: {
+                he: null,
+                ae: [
+                  {
+                    le: 1,
+                    ue: 'Question Text',
+                    ce: 'Question Category',
+                    ge: [],
+                  },
+                ],
+                answers: [
+                  {
+                    questionText: 'Question Text',
+                    questionCategory: 'Question Category',
+                    surveyAnswers: [],
+                  },
+                ],
+              },
+            })
+            .resolves(true)
+            .once();
 
-      handleSurveyDataTransferRequest(
-        TEST_SURVEYDATATRANSFERREQUEST,
-        deps,
-        activityIframeView,
-        TEST_SURVEYONRESULTCONFIGID,
-        CtaMode.CTA_MODE_POPUP,
-        onResultMock
-      );
+          const question = new SurveyQuestion();
+          question.setQuestionId(1);
+          question.setQuestionText('Question Text');
+          question.setQuestionCategory('Question Category');
+          question.setSurveyAnswersList(null);
 
-      await tick(10);
+          const request = new SurveyDataTransferRequest();
+          request.setSurveyQuestionsList([question]);
 
-      expect(self.console.warn).to.have.been.calledWithExactly(
-        '[swg.js] Exception in publisher provided logging callback: Error: Test Callback Exception'
-      );
-      activityIframeViewMock.verify();
-      onResultMock.verify();
-    });
+          handleSurveyDataTransferRequest(
+            request,
+            deps,
+            activityIframeView,
+            TEST_SURVEYONRESULTCONFIGID,
+            CtaMode.CTA_MODE_UNSPECIFIED,
+            onResultMock
+          );
+        });
+      });
 
-    it(`with onResult logging rejection`, async () => {
-      const onResultMock = sandbox
-        .mock()
-        .withExactArgs(TEST_SURVEYONRESULTRESPONSE)
-        .rejects(new Error('Test Callback Exception'))
-        .once();
+      it(`with failed logging`, async () => {
+        onResultMock = sandbox
+          .mock()
+          .withExactArgs(TEST_SURVEYONRESULTRESPONSE)
+          .resolves(false)
+          .once();
 
-      eventManagerMock
-        .expects('logEvent')
-        .withExactArgs(
-          {
-            eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
-            eventOriginator: EventOriginator.SWG_CLIENT,
-            isFromUserAction: false,
-            // Called through logSwgEvent(), therefore need to create new EventParams
-            additionalParameters: createCtaModeEventParams(
-              CtaMode.CTA_MODE_POPUP
-            ),
-            configurationId: null,
-          },
-          undefined,
-          undefined
-        )
-        .once();
+        eventManagerMock
+          .expects('logEvent')
+          .withExactArgs(
+            {
+              eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
+              eventOriginator: EventOriginator.SWG_CLIENT,
+              isFromUserAction: false,
+              // Called through logSwgEvent(), therefore need to create new EventParams
+              additionalParameters: createCtaModeEventParams(
+                CtaMode.CTA_MODE_UNSPECIFIED
+              ),
+              configurationId: null,
+            },
+            undefined,
+            undefined
+          )
+          .once();
 
-      const failSurveyDataTransferResponse = new SurveyDataTransferResponse();
-      failSurveyDataTransferResponse.setSuccess(false);
-      activityIframeViewMock
-        .expects('execute')
-        .withExactArgs(failSurveyDataTransferResponse)
-        .once();
+        const failSurveyDataTransferResponse = new SurveyDataTransferResponse();
+        failSurveyDataTransferResponse.setSuccess(false);
+        activityIframeViewMock
+          .expects('execute')
+          .withExactArgs(failSurveyDataTransferResponse)
+          .once();
 
-      handleSurveyDataTransferRequest(
-        TEST_SURVEYDATATRANSFERREQUEST,
-        deps,
-        activityIframeView,
-        TEST_SURVEYONRESULTCONFIGID,
-        CtaMode.CTA_MODE_POPUP,
-        onResultMock
-      );
+        handleSurveyDataTransferRequest(
+          TEST_SURVEYDATATRANSFERREQUEST,
+          deps,
+          activityIframeView,
+          TEST_SURVEYONRESULTCONFIGID,
+          CtaMode.CTA_MODE_UNSPECIFIED,
+          onResultMock
+        );
+      });
 
-      await tick(10);
+      it(`with logging exception`, async () => {
+        onResultMock = sandbox
+          .mock()
+          .withExactArgs(TEST_SURVEYONRESULTRESPONSE)
+          .throws(new Error('Test Callback Exception'))
+          .once();
+        eventManagerMock
+          .expects('logEvent')
+          .withExactArgs(
+            {
+              eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
+              eventOriginator: EventOriginator.SWG_CLIENT,
+              isFromUserAction: false,
+              // Called through logSwgEvent(), therefore need to create new EventParams
+              additionalParameters: createCtaModeEventParams(
+                CtaMode.CTA_MODE_POPUP
+              ),
+              configurationId: null,
+            },
+            undefined,
+            undefined
+          )
+          .once();
 
-      expect(self.console.warn).to.have.been.calledWithExactly(
-        '[swg.js] Exception in publisher provided logging callback: Error: Test Callback Exception'
-      );
-      activityIframeViewMock.verify();
-      onResultMock.verify();
+        const failSurveyDataTransferResponse = new SurveyDataTransferResponse();
+        failSurveyDataTransferResponse.setSuccess(false);
+        activityIframeViewMock
+          .expects('execute')
+          .withExactArgs(failSurveyDataTransferResponse)
+          .once();
+
+        handleSurveyDataTransferRequest(
+          TEST_SURVEYDATATRANSFERREQUEST,
+          deps,
+          activityIframeView,
+          TEST_SURVEYONRESULTCONFIGID,
+          CtaMode.CTA_MODE_POPUP,
+          onResultMock
+        );
+
+        await tick(10);
+
+        expect(self.console.warn).to.have.been.calledWithExactly(
+          '[swg.js] Exception in publisher provided logging callback: Error: Test Callback Exception'
+        );
+      });
+
+      it(`with logging rejection`, async () => {
+        onResultMock = sandbox
+          .mock()
+          .withExactArgs(TEST_SURVEYONRESULTRESPONSE)
+          .rejects(new Error('Test Callback Exception'))
+          .once();
+
+        eventManagerMock
+          .expects('logEvent')
+          .withExactArgs(
+            {
+              eventType: AnalyticsEvent.EVENT_SURVEY_DATA_TRANSFER_FAILED,
+              eventOriginator: EventOriginator.SWG_CLIENT,
+              isFromUserAction: false,
+              // Called through logSwgEvent(), therefore need to create new EventParams
+              additionalParameters: createCtaModeEventParams(
+                CtaMode.CTA_MODE_POPUP
+              ),
+              configurationId: null,
+            },
+            undefined,
+            undefined
+          )
+          .once();
+
+        const failSurveyDataTransferResponse = new SurveyDataTransferResponse();
+        failSurveyDataTransferResponse.setSuccess(false);
+        activityIframeViewMock
+          .expects('execute')
+          .withExactArgs(failSurveyDataTransferResponse)
+          .once();
+
+        handleSurveyDataTransferRequest(
+          TEST_SURVEYDATATRANSFERREQUEST,
+          deps,
+          activityIframeView,
+          TEST_SURVEYONRESULTCONFIGID,
+          CtaMode.CTA_MODE_POPUP,
+          onResultMock
+        );
+
+        await tick(10);
+
+        expect(self.console.warn).to.have.been.calledWithExactly(
+          '[swg.js] Exception in publisher provided logging callback: Error: Test Callback Exception'
+        );
+      });
     });
 
     it(`empty SurveyDataTransferRequest without onResult logging`, async () => {

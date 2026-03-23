@@ -16,7 +16,6 @@
 
 import {ActivityPortDef, ActivityPorts} from '../components/activities';
 import {AnalyticsService} from './analytics-service';
-import {ArticleExperimentFlags} from './experiment-flags';
 import {AudienceActivityEventListener} from './audience-activity-listener';
 import {AutoPromptManager} from './auto-prompt-manager';
 import {
@@ -24,6 +23,7 @@ import {
   BasicSubscriptions,
   ClientOptions,
   ContentType,
+  LoginRequest,
 } from '../api/basic-subscriptions';
 import {ButtonApi, ButtonAttributeValues} from './button-api';
 import {Callbacks} from './callbacks';
@@ -37,6 +37,7 @@ import {Doc, resolveDoc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {Fetcher, XhrFetcher} from './fetcher';
+import {GisInteropManager} from './gis/gis-interop-manager';
 import {I18N_STRINGS} from '../i18n/strings';
 import {InlineCtaApi} from './inline-cta-api';
 import {JsError} from './jserror';
@@ -115,6 +116,7 @@ export function installBasicRuntime(win: Window): void {
   // they'll be queued up to receive the SwG Basic runtime when it's ready.
   (win[BASIC_RUNTIME_PROP] as {}) = {
     push: callWhenRuntimeIsReady,
+    getDiagnostics: () => publicBasicRuntime.getDiagnostics(),
   };
 
   // Set variable for testing.
@@ -138,6 +140,8 @@ export class BasicRuntime implements BasicSubscriptions {
   private pageConfigResolver_: PageConfigResolver | null = null;
   private enableDefaultMeteringHandler_ = true;
   private publisherProvidedId_?: string;
+  private gisInterop?: boolean;
+  private hasCustomLoginRequestCallback_ = false;
 
   private readonly creationTimestamp_: number;
   private readonly doc_: Doc;
@@ -156,6 +160,7 @@ export class BasicRuntime implements BasicSubscriptions {
 
   private configured_(commit: boolean): Promise<ConfiguredBasicRuntime> {
     this.config_.publisherProvidedId = this.publisherProvidedId_;
+    this.config_.gisInterop = this.gisInterop;
     if (!this.committed_ && commit && !this.pageConfigWriter_) {
       this.committed_ = true;
 
@@ -171,6 +176,7 @@ export class BasicRuntime implements BasicSubscriptions {
                 configPromise: this.configuredPromise_.then(),
                 enableDefaultMeteringHandler:
                   this.enableDefaultMeteringHandler_,
+                isBasic: true,
               },
               this.config_,
               this.clientOptions_,
@@ -212,6 +218,8 @@ export class BasicRuntime implements BasicSubscriptions {
     alwaysShow = false,
     disableDefaultMeteringHandler = false,
     publisherProvidedId,
+    // GIS interop is WIP / experimental. Do not use.
+    gisInterop,
   }: {
     type: string | string[];
     isAccessibleForFree?: boolean;
@@ -222,9 +230,11 @@ export class BasicRuntime implements BasicSubscriptions {
     alwaysShow?: boolean;
     disableDefaultMeteringHandler?: boolean;
     publisherProvidedId?: string;
+    gisInterop?: boolean;
   }): void {
     this.enableDefaultMeteringHandler_ = !disableDefaultMeteringHandler;
     this.publisherProvidedId_ = publisherProvidedId;
+    this.gisInterop = gisInterop;
     const isOpenAccess = this.isOpenAccessProductId_(isPartOfProductId);
 
     this.writePageConfig_({
@@ -250,7 +260,12 @@ export class BasicRuntime implements BasicSubscriptions {
       isClosable,
       contentType: this.getContentType_(isAccessibleForFree ?? isOpenAccess),
     });
-    this.setOnLoginRequest();
+
+    // Register a callback for login request if a custom callback has not yet been set.
+    if (!this.hasCustomLoginRequestCallback_) {
+      this.setOnLoginRequest();
+    }
+
     this.processEntitlements();
   }
 
@@ -268,9 +283,14 @@ export class BasicRuntime implements BasicSubscriptions {
     runtime.setOnPaymentResponse(callback);
   }
 
-  async setOnLoginRequest(): Promise<void> {
+  async setOnLoginRequest(
+    callback?: (loginRequest: LoginRequest) => void
+  ): Promise<void> {
+    if (callback) {
+      this.hasCustomLoginRequestCallback_ = true;
+    }
     const runtime = await this.configured_(false);
-    runtime.setOnLoginRequest();
+    runtime.setOnLoginRequest(callback);
   }
 
   async setupAndShowAutoPrompt(options: {
@@ -286,6 +306,15 @@ export class BasicRuntime implements BasicSubscriptions {
   async dismissSwgUI(): Promise<void> {
     const runtime = await this.configured_(false);
     runtime.dismissSwgUI();
+  }
+
+  getDiagnostics(): {isGisReady: boolean} {
+    return {
+      isGisReady:
+        !!this.gisInterop &&
+        !!this.clientOptions_?.clientId &&
+        !!this.clientOptions_?.onGisOptIn,
+    };
   }
 
   /**
@@ -346,6 +375,7 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       configPromise?: Promise<void>;
       enableDefaultMeteringHandler?: boolean;
       enableGoogleAnalytics?: boolean;
+      isBasic?: boolean;
     } = {},
     config?: Config,
     clientOptions?: ClientOptions,
@@ -425,6 +455,10 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     return this.creationTimestamp_;
   }
 
+  gisInteropManager(): GisInteropManager | undefined {
+    return this.configuredClassicRuntime_.gisInteropManager();
+  }
+
   doc(): Doc {
     return this.doc_;
   }
@@ -497,7 +531,22 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     this.configuredClassicRuntime_.setOnPaymentResponse(callback);
   }
 
-  setOnLoginRequest(): void {
+  setOnLoginRequest(callback?: (loginRequest: LoginRequest) => void): void {
+    if (callback) {
+      this.configuredClassicRuntime_.setOnLoginRequest(callback);
+      return;
+    }
+
+    this.setupDefaultLoginRequestCallback_();
+  }
+
+  /**
+   * Sets up the default login request behavior, which triggers the RRM
+   * entitlement check flow on "Already a subscriber?" button click.
+   * This default callback is used as a fallback if a custom callback
+   * has not already been provided via setOnLoginRequest(callback).
+   */
+  private setupDefaultLoginRequestCallback_(): void {
     this.configuredClassicRuntime_.setOnLoginRequest(() => {
       const publicationId = this.pageConfig().getPublicationId();
       const args = feArgs({
@@ -611,6 +660,15 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     this.dialogManager().completeAll();
   }
 
+  getDiagnostics(): {isGisReady: boolean} {
+    return {
+      isGisReady:
+        !!this.config().gisInterop &&
+        !!this.clientConfigManager().getClientId() &&
+        !!this.clientConfigManager().getOnGisOptIn(),
+    };
+  }
+
   /**
    * Sets up all the buttons on the page with attribute
    * 'swg-standard-button:subscription' or 'swg-standard-button:contribution'.
@@ -643,18 +701,13 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
 
   /**
    * Renders all the inline CTAs on the page with attribute
-   * 'rrm-inline-cta' when experiment is enabled.
+   * 'rrm-inline-cta'. Needs a timeout to make sure the page
+   * is loaded with the right inline elements.
    */
   async setupInlineCta(): Promise<void> {
-    await this.entitlementsManager()
-      .getExperimentConfigFlags()
-      .then((flags) => {
-        if (flags.includes(ArticleExperimentFlags.INLINE_CTA_EXPERIMENT)) {
-          this.win().setTimeout(() => {
-            this.inlineCtaApi_.attachInlineCtasWithAttribute();
-          }, 2000);
-        }
-      });
+    this.win().setTimeout(() => {
+      this.inlineCtaApi_.attachInlineCtasWithAttribute();
+    }, 2000);
   }
 
   /**
@@ -680,5 +733,6 @@ function createPublicBasicRuntime(
     setupAndShowAutoPrompt:
       basicRuntime.setupAndShowAutoPrompt.bind(basicRuntime),
     dismissSwgUI: basicRuntime.dismissSwgUI.bind(basicRuntime),
+    getDiagnostics: basicRuntime.getDiagnostics.bind(basicRuntime),
   };
 }

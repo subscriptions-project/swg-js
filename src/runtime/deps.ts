@@ -23,6 +23,7 @@ import {Config} from '../api/subscriptions';
 import {DialogManager} from '../components/dialog-manager';
 import {Doc} from '../model/doc';
 import {EntitlementsManager} from './entitlements-manager';
+import {GisInteropManager} from './gis/gis-interop-manager';
 import {JsError} from './jserror';
 import {PageConfig} from '../model/page-config';
 import {PayClient} from './pay-client';
@@ -58,4 +59,6 @@ export interface Deps {
   clientConfigManager(): ClientConfigManager;
 
   creationTimestamp(): number;
+
+  gisInteropManager(): GisInteropManager | undefined;
 }

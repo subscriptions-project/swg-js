@@ -29,7 +29,7 @@ const commands = {
   },
   contribute: function () {
     return this.log('Clicking contribute button')
-      .assert.textContains('@contributeBtn', 'Contribute $10 / month')
+      .assert.textContains('@contributeBtn', 'Contribute $10.00 / month')
       .click('@contributeBtn');
   },
 };
