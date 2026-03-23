@@ -702,18 +702,13 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
 
   /**
    * Renders all the inline CTAs on the page with attribute
-   * 'rrm-inline-cta' when experiment is enabled.
+   * 'rrm-inline-cta'. Needs a timeout to make sure the page
+   * is loaded with the right inline elements.
    */
   async setupInlineCta(): Promise<void> {
-    await this.entitlementsManager()
-      .getExperimentConfigFlags()
-      .then((flags) => {
-        if (flags.includes(ArticleExperimentFlags.INLINE_CTA_EXPERIMENT)) {
-          this.win().setTimeout(() => {
-            this.inlineCtaApi_.attachInlineCtasWithAttribute();
-          }, 2000);
-        }
-      });
+    this.win().setTimeout(() => {
+      this.inlineCtaApi_.attachInlineCtasWithAttribute();
+    }, 2000);
   }
 
   /**

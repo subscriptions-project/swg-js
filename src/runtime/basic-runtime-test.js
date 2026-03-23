@@ -1614,24 +1614,8 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
       expect(offersOptions.isClosable).to.equal(true);
     });
 
-    it('should configure inline CTA when experiment enabled', async () => {
-      entitlementsManagerMock
-        .expects('getExperimentConfigFlags')
-        .resolves([ArticleExperimentFlags.INLINE_CTA_EXPERIMENT])
-        .atLeast(1);
-
+    it('should configure inline CTA', async () => {
       inlineCtaMock.expects('attachInlineCtasWithAttribute').once();
-
-      await configuredBasicRuntime.setupInlineCta();
-    });
-
-    it('should not configure inline CTA when experiment disabled', async () => {
-      entitlementsManagerMock
-        .expects('getExperimentConfigFlags')
-        .resolves([])
-        .atLeast(1);
-
-      inlineCtaMock.expects('attachInlineCtasWithAttribute').never();
 
       await configuredBasicRuntime.setupInlineCta();
     });
