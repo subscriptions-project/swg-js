@@ -101,7 +101,6 @@ export interface AudienceActionIframeParams {
   suppressToast?: boolean;
   onAlternateAction?: () => void;
   onSignIn?: () => void;
-  clientId?: string;
 }
 
 const autopromptTypeToProductTypeMapping: {
@@ -165,9 +164,8 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     this.slotRenderEndedHandler = this.slotRenderEnded.bind(this);
     const gisMode = getGisMode(
       this.deps_.win(),
-      this.params_.clientId,
       this.params_.action,
-      this.params_.onResult
+      this.deps_.gisInteropManager()
     );
 
     const iframeParams: {[key: string]: string} = {
@@ -208,14 +206,13 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
         'pointer-events': 'none',
       });
     }
-
-    if (gisMode !== GisMode.GisModeDisabled && this.params_.clientId) {
+    if (gisMode !== GisMode.GisModeDisabled) {
       this.gisLoginFlow = new GisLoginFlow(
         this.deps_.doc(),
-        this.params_.clientId,
         this.activityIframeView_,
         gisMode,
         this.deps_.eventManager(),
+        this.deps_.gisInteropManager()!,
         this.params_.configurationId
       );
     }
@@ -291,6 +288,7 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     this.gisLoginFlow?.dispose();
     const userToken = response.getSwgUserToken();
     await this.entitlementsManager_.updateEntitlements(userToken);
+    this.deps_.gisInteropManager()?.redirectOk();
     if (this.isOptIn(this.params_.action) && onResult) {
       onResult({
         configurationId,
@@ -300,7 +298,6 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
           givenName: response.getGivenName(),
           familyName: response.getFamilyName(),
           termsAndConditionsConsent: response.getTermsAndConditionsConsent(),
-          idToken: response.getIdToken(),
         },
       });
     }

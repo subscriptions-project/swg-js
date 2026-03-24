@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {GisInteropManagerStates} from './gis-interop-manager';
 import {GisMode, getGisMode} from './gis-utils';
 import {InterventionType} from '../../api/intervention-type';
 
@@ -24,20 +25,26 @@ describes.realWin('gis-utils', (env) => {
   });
 
   describe('getGisMode', () => {
-    it('returns GisModeDisabled whenclientId is not provided', () => {
+    let gisInteropManagerReady;
+    let gisInteropManagerNotReady;
+
+    beforeEach(() => {
+      gisInteropManagerReady = {
+        getState: () =>
+          GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED,
+      };
+      gisInteropManagerNotReady = {
+        getState: () => GisInteropManagerStates.WAITING_FOR_PING,
+      };
+    });
+
+    it('returns GisModeDisabled when gisInteropManager is not ready', () => {
       expect(
         getGisMode(
           win,
-          undefined,
           InterventionType.TYPE_REGISTRATION_WALL,
-          () => true
+          gisInteropManagerNotReady
         )
-      ).to.equal(GisMode.GisModeDisabled);
-    });
-
-    it('returns GisModeDisabled when onResult is not provided', () => {
-      expect(
-        getGisMode(win, 'client-id', InterventionType.TYPE_REGISTRATION_WALL)
       ).to.equal(GisMode.GisModeDisabled);
     });
 
@@ -45,9 +52,8 @@ describes.realWin('gis-utils', (env) => {
       expect(
         getGisMode(
           win,
-          'client-id',
           InterventionType.TYPE_NEWSLETTER_SIGNUP,
-          () => true
+          gisInteropManagerReady
         )
       ).to.equal(GisMode.GisModeDisabled);
     });
@@ -62,9 +68,8 @@ describes.realWin('gis-utils', (env) => {
       expect(
         getGisMode(
           fakeWin,
-          'client-id',
           InterventionType.TYPE_REGISTRATION_WALL,
-          () => true
+          gisInteropManagerReady
         )
       ).to.equal(GisMode.GisModeOverlay);
     });
@@ -79,9 +84,8 @@ describes.realWin('gis-utils', (env) => {
       expect(
         getGisMode(
           fakeWin,
-          'client-id',
           InterventionType.TYPE_REGISTRATION_WALL,
-          () => true
+          gisInteropManagerReady
         )
       ).to.equal(GisMode.GisModeNormal);
     });

@@ -7,16 +7,22 @@
   <title>GIS Test - Swgjs Demos</title>
   <link rel="shortcut icon" href="../../images/favicon.png" type="image/x-icon" />
   <script async type="application/javascript" src="/examples/sample-pub/redirect-to/swg-basic.js"></script>
-  <script src="https://accounts.google.com/gsi/client" async></script>
+  <script src="https://accounts.sandbox.google.com/gsi/client" async></script>
   <script src="gis-test.js"></script>
 </head>
 
 <body onload="init()">
-  <div>
-    <button onclick="sendPing()">Send RRM_GIS_PING</button>
-    <button onclick="sendReady()">Send RRM_GIS_READY</button>
-    <button onclick="showOneTap()">Show One Tap</button>
-  </div>
+  <label>
+    isAccessibleForFree:
+    <input type="checkbox" id="isAccessibleForFree" checked>
+  </label>
+  <br>
+  <button onclick="initRrm()">Init RRM</button>
+  <button onclick="initGis()">Init GIS</button>
+  <button onclick="showOneTap()">Show One Tap</button>
+  <button onclick="addIframe()">Add Iframe</button>
+  <div id="gisButton"></div>
+  <div id="iframeContainer"></div>
   <div id="gisLog"></div>
 
 </body>

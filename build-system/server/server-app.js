@@ -33,7 +33,11 @@ app.use((req, res, next) => {
     req.secure ||
     req.connection.encrypted ||
     req.get('X-Forwarded-Proto') === 'https';
-  if (secure || host.indexOf('localhost') != -1) {
+  if (
+    secure ||
+    host.indexOf('localhost') != -1 ||
+    host.indexOf('127.0.0.1') != -1
+  ) {
     // Skip localhost or if already secure.
     next();
     return;
@@ -57,6 +61,11 @@ app.use((req, res, next) => {
       'Content-Security-Policy': req.query['--CSP'],
     });
   }
+  // Allow COOP overrides but default to same-origin-allow-popups
+  res.set({
+    'Cross-Origin-Opener-Policy':
+      req.query['--COOP'] || 'same-origin-allow-popups',
+  });
   next();
 });
 

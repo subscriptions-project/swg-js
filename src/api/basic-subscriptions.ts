@@ -128,10 +128,6 @@ export interface ClientOptions {
   allowScroll?: boolean;
   /** Skip account creation screen if requested. */
   skipAccountCreationScreen?: boolean;
-  /** Experimental: Callback returning the GIS ID Token */
-  onGisOptIn?: (token: string | null) => void;
-  /** Experimental: GIS Client ID */
-  clientId?: string;
 }
 
 export interface LoginRequest {

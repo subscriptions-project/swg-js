@@ -14,23 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-const clientId =
-  '365425805315-ulc9hop6lvq3blgc7ubvtcu5322t3fcn.apps.googleusercontent.com';
-const sessionId = 'test-session-123';
-
-
-let iframe = null;
-let logDiv = null;
 
 function init() {
-  initLog();
-  initGis();
-  initSwg();
-  initIframe();
-}
-
-function initLog() {
-  logDiv = document.getElementById('gisLog');
   window.addEventListener('message', messageHandler);
 }
 
@@ -42,82 +27,70 @@ function messageHandler(e) {
 
 function initGis() {
   google.accounts.id.initialize({
-    client_id: clientId,
+    client_id: '365425805315-ulc9hop6lvq3blgc7ubvtcu5322t3fcn.apps.googleusercontent.com',
     callback: gisCallback,
+    rrm_interop: true,
+    rrm_iframe_path: 'https://subscribe-qual.sandbox.google.com/swg/ui/v1/rrmgisinterop'
   });
+  google.accounts.id.renderButton(document.getElementById('gisButton'), {
+    type: 'standard',
+    theme: 'light',
+    size: 'large',
+  });
+  log(`Called initGis`);
 }
 
 function gisCallback(response) {
-  sendIdToken(response.credential);
+  log(`gisCallback ${JSON.stringify(response)}`);
 }
 
-function initSwg() {
+function initRrm() {
+  const isAccessibleForFree = document.getElementById('isAccessibleForFree').checked;
   (self.SWG_BASIC = self.SWG_BASIC || []).push((basicSubscriptions) => {
+    basicSubscriptions.setOnEntitlementsResponse((response) => {
+      log(`Entitlements response: ${JSON.stringify(response)}`);
+    });
     basicSubscriptions.init({
       type: "NewsArticle",
       isPartOfType: ["Product"],
       isPartOfProductId: "CAowwoSCAQ:basic",
-      isAccessibleForFree: true,
+      isAccessibleForFree: isAccessibleForFree,
       clientOptions: {
         theme: "light",
         lang: "en",
-        clientId: clientId,
-        onGisOptIn: (idToken) => {
-          log('onGisOptIn', idToken);
-        }
       },
       gisInterop: true,
     });
   });
-}
-
-function initIframe() {
-  iframe = document.createElement('iframe');
-  iframe.style.width = '0';
-  iframe.style.height = '0';
-  iframe.style.display = 'none';
-
-  const url = new URL(
-    'https://subscribe-qual.sandbox.google.com/swg/ui/v1/rrmgisinterop'
-  );
-  url.searchParams.append('sessionId', sessionId);
-  url.searchParams.append('origin', window.location.origin);
-  url.searchParams.append('rrmOrigin', window.location.origin);
-  url.searchParams.append('gisOrigin', window.location.origin);
-  url.searchParams.append('role', 'GIS');
-
-
-  iframe.src = url.toString();
-  document.body.appendChild(iframe);
+  log(`Called initRrm with isAccessibleForFree: ${isAccessibleForFree}`);
 }
 
 function showOneTap() {
   google.accounts.id.prompt();
 }
 
+function addIframe() {
+  const container = document.getElementById('iframeContainer');
+  const iframe = document.createElement('iframe');
+
+  const url = new URL(window.location.href);
+  url.searchParams.set('framed', '1');
+  url.protocol = 'http:';
+  url.port = '8000';
+  url.hostname = url.hostname === 'localhost' ? '127.0.0.1' : 'localhost';
+  iframe.src = url.toString();
+  iframe.style.width = '100%';
+  iframe.style.height = '400px';
+  iframe.style.border = '2px dashed #999';
+  iframe.style.marginTop = '20px';
+  iframe.allow = 'identity-credentials-get';
+  container.appendChild(iframe);
+}
+
 function log(msg) {
+  const logDiv = document.getElementById('gisLog');
   const div = document.createElement('div');
   div.textContent = msg;
   logDiv.appendChild(div);
   logDiv.scrollTop = logDiv.scrollHeight;
-}
-
-function sendPing() {
-  const msg = { type: 'RRM_GIS_PING', sessionId, clientId };
-  window.postMessage(msg, '*');
-}
-
-function sendReady() {
-  const msg = { type: 'RRM_GIS_READY_GIS', sessionId };
-  window.postMessage(msg, '*');
-}
-
-function sendIdToken(idToken) {
-  const msg = {
-    type: 'RRM_GIS_ID_TOKEN',
-    idToken,
-    sessionId,
-  };
-
-  iframe.contentWindow.postMessage(msg, '*');
 }

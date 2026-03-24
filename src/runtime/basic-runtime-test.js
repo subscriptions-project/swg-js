@@ -33,6 +33,7 @@ import {ClientTheme} from '../api/subscriptions';
 import {ContributionsFlow} from './contributions-flow';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
+import {GisInteropManagerStates} from './gis/gis-interop-manager';
 import {GlobalDoc} from '../model/doc';
 import {MeterClientTypes} from '../api/metering';
 import {MeterToastApi} from './meter-toast-api';
@@ -106,13 +107,6 @@ describes.realWin('installBasicRuntime', (env) => {
     const runtime1 = getBasicRuntime();
     installBasicRuntime(win);
     expect(getBasicRuntime()).to.equal(runtime1);
-  });
-
-  it('should expose getDiagnostics on global SWG_BASIC', () => {
-    installBasicRuntime(win);
-    expect(win.SWG_BASIC.getDiagnostics).to.be.a('function');
-    const diagnostics = win.SWG_BASIC.getDiagnostics();
-    expect(diagnostics).to.have.property('isGisReady');
   });
 
   it('handles recursive calls after installation', async () => {
@@ -492,49 +486,15 @@ describes.realWin('BasicRuntime', (env) => {
       expect(configuredRuntime.gisInteropManager()).to.not.exist;
     });
 
-    it('should return getDiagnostics().isGisReady true when all params are present', () => {
-      basicRuntime.init({
-        ...DEFAULT_INIT_PARAMS,
-        gisInterop: true,
-        clientOptions: {
-          clientId: 'test-client-id',
-          onGisOptIn: () => {},
-        },
-      });
-      expect(basicRuntime.getDiagnostics().isGisReady).to.be.true;
-    });
-
-    it('should return getDiagnostics().isGisReady false when gisInterop is false', () => {
-      basicRuntime.init({
-        ...DEFAULT_INIT_PARAMS,
-        gisInterop: false,
-        clientOptions: {
-          clientId: 'test-client-id',
-          onGisOptIn: () => {},
-        },
-      });
+    it('should return getDiagnostics().isGisReady false initially', () => {
       expect(basicRuntime.getDiagnostics().isGisReady).to.be.false;
     });
 
-    it('should return getDiagnostics().isGisReady false when clientId is missing', () => {
+    it('should delegate getDiagnostics to configuredInstance after configuration', async () => {
       basicRuntime.init({
         ...DEFAULT_INIT_PARAMS,
-        gisInterop: true,
-        clientOptions: {
-          onGisOptIn: () => {},
-        },
       });
-      expect(basicRuntime.getDiagnostics().isGisReady).to.be.false;
-    });
-
-    it('should return getDiagnostics().isGisReady false when onGisOptIn is missing', () => {
-      basicRuntime.init({
-        ...DEFAULT_INIT_PARAMS,
-        gisInterop: true,
-        clientOptions: {
-          clientId: 'test-client-id',
-        },
-      });
+      await basicRuntime.configured_(true);
       expect(basicRuntime.getDiagnostics().isGisReady).to.be.false;
     });
   });
@@ -866,51 +826,6 @@ describes.realWin('BasicRuntime', (env) => {
 
       await basicRuntime.setupInlineCta();
     });
-
-    it('should return getDiagnostics().isGisReady true when all params are present in ConfiguredBasicRuntime', () => {
-      sandbox
-        .stub(configuredBasicRuntime, 'config')
-        .returns({gisInterop: true});
-      clientConfigManagerMock
-        .expects('getClientId')
-        .returns('test-client-id')
-        .once();
-      clientConfigManagerMock
-        .expects('getOnGisOptIn')
-        .returns(() => {})
-        .once();
-      expect(configuredBasicRuntime.getDiagnostics().isGisReady).to.be.true;
-    });
-
-    it('should return getDiagnostics().isGisReady false when gisInterop is false in ConfiguredBasicRuntime', () => {
-      sandbox
-        .stub(configuredBasicRuntime, 'config')
-        .returns({gisInterop: false});
-      expect(configuredBasicRuntime.getDiagnostics().isGisReady).to.be.false;
-    });
-
-    it('should return getDiagnostics().isGisReady false when clientId is missing in ConfiguredBasicRuntime', () => {
-      sandbox
-        .stub(configuredBasicRuntime, 'config')
-        .returns({gisInterop: true});
-      clientConfigManagerMock.expects('getClientId').returns(undefined).once();
-      expect(configuredBasicRuntime.getDiagnostics().isGisReady).to.be.false;
-    });
-
-    it('should return getDiagnostics().isGisReady false when onGisOptIn is missing in ConfiguredBasicRuntime', () => {
-      sandbox
-        .stub(configuredBasicRuntime, 'config')
-        .returns({gisInterop: true});
-      clientConfigManagerMock
-        .expects('getClientId')
-        .returns('test-client-id')
-        .once();
-      clientConfigManagerMock
-        .expects('getOnGisOptIn')
-        .returns(undefined)
-        .once();
-      expect(configuredBasicRuntime.getDiagnostics().isGisReady).to.be.false;
-    });
   });
 });
 
@@ -989,6 +904,37 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
     it('should store and doc and win', () => {
       expect(configuredBasicRuntime.win()).to.equal(win);
       expect(configuredBasicRuntime.doc().getWin()).to.equal(win);
+    });
+
+    it('should return getDiagnostics().isGisReady true when gisInteropManager is not WAITING_FOR_PING', () => {
+      const mockManager = {
+        getState: sandbox
+          .stub()
+          .returns(GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED),
+      };
+      sandbox
+        .stub(configuredBasicRuntime, 'gisInteropManager')
+        .returns(mockManager);
+      expect(configuredBasicRuntime.getDiagnostics().isGisReady).to.be.true;
+    });
+
+    it('should return getDiagnostics().isGisReady false when gisInteropManager is WAITING_FOR_PING', () => {
+      const mockManager = {
+        getState: sandbox
+          .stub()
+          .returns(GisInteropManagerStates.WAITING_FOR_PING),
+      };
+      sandbox
+        .stub(configuredBasicRuntime, 'gisInteropManager')
+        .returns(mockManager);
+      expect(configuredBasicRuntime.getDiagnostics().isGisReady).to.be.false;
+    });
+
+    it('should return getDiagnostics().isGisReady false when gisInteropManager is undefined', () => {
+      sandbox
+        .stub(configuredBasicRuntime, 'gisInteropManager')
+        .returns(undefined);
+      expect(configuredBasicRuntime.getDiagnostics().isGisReady).to.be.false;
     });
 
     it('should delegate config to ConfiguredRuntime', () => {
