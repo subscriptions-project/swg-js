@@ -1,4 +1,7 @@
-import {InterventionResult} from '../../api/available-intervention';
+import {
+  GisInteropManager,
+  GisInteropManagerStates,
+} from './gis-interop-manager';
 import {InterventionType} from '../../api/intervention-type';
 
 /**
@@ -15,15 +18,17 @@ export enum GisMode {
  */
 export function getGisMode(
   win: Window,
-  clientId?: string,
   action?: InterventionType,
-  onResult?: (result: InterventionResult) => Promise<boolean> | boolean
+  gisInteropManager?: GisInteropManager
 ): GisMode {
   const isGisAllowed = action === InterventionType.TYPE_REGISTRATION_WALL;
   const isSafari =
     /Safari/i.test(win.navigator.userAgent) &&
     !/Chrome|Chromium|Edg/i.test(win.navigator.userAgent);
-  const useGis = !!clientId && !!onResult && isGisAllowed;
+  const state = gisInteropManager?.getState();
+  const gisConnecting =
+    !!state && state !== GisInteropManagerStates.WAITING_FOR_PING;
+  const useGis = isGisAllowed && gisConnecting;
   if (!useGis) {
     return GisMode.GisModeDisabled;
   }

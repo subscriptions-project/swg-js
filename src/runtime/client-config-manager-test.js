@@ -321,21 +321,6 @@ describes.realWin('ClientConfigManager', (env) => {
     expect(clientConfigManager.getLanguage()).to.equal('en');
   });
 
-  it('should return the client id set in the constructor', () => {
-    clientConfigManager = new ClientConfigManager(deps, 'pubId', fetcher, {
-      clientId: 'testId',
-    });
-    expect(clientConfigManager.getClientId()).to.equal('testId');
-  });
-
-  it('should return the onGisOptIn set in the constructor', () => {
-    const callback = () => {};
-    clientConfigManager = new ClientConfigManager(deps, 'pubId', fetcher, {
-      onGisOptIn: callback,
-    });
-    expect(clientConfigManager.getOnGisOptIn()).to.equal(callback);
-  });
-
   describe('shouldAllowScroll', () => {
     const testCases = [
       {

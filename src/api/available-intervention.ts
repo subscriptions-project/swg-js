@@ -34,8 +34,6 @@ export interface OptInResult {
   familyName: string | null;
   // Whether the user has consented to the terms and conditions. Null is returned if the CTA does not have terms.
   termsAndConditionsConsent: boolean | null;
-  // GIS ID Token.
-  idToken: string | null;
 }
 
 /**
@@ -119,9 +117,6 @@ export interface ShowInterventionParams {
 
   // Callback for signing in. Closes the prompt when called.
   onSignIn?: () => void;
-
-  // Google Sign In client ID.
-  clientId?: string;
 }
 
 export class AvailableIntervention {
@@ -158,7 +153,6 @@ export class AvailableIntervention {
         onAlternateAction: params.onAlternateAction,
         onSignIn: params.onSignIn,
         preference: this.intervention.preference,
-        clientId: params.clientId,
       }).start();
     }
     throw Error(`Can't show ${this.type}`);
