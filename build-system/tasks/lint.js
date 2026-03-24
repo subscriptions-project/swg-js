@@ -77,9 +77,6 @@ function runLinter(filePath, stream, options) {
     log(green('Starting linter...'));
   }
 
-  // Load custom rules.
-  options.rulePaths = ['build-system/eslint-rules'];
-
   const fixedFiles = {};
   return stream
     .pipe(eslint(options))
@@ -178,7 +175,7 @@ function eslintRulesChanged() {
   return (
     gitDiffNameOnlyMain().filter((file) => {
       return (
-        path.basename(file).includes('.eslintrc') ||
+        path.basename(file).includes('.eslint.config.mjs') ||
         path.dirname(file) === 'build-system/eslint-rules'
       );
     }).length > 0

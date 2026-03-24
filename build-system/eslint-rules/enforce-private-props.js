@@ -15,71 +15,73 @@
  */
 'use strict';
 
-module.exports = (context) => {
-  /**
-   * @param {!Array<!Node>|undefined} commentLines
-   * @return {boolean}
-   */
-  function hasPrivateAnnotation(commentLines) {
-    if (!commentLines) {
-      return false;
+module.exports = {
+  create(context) {
+    /**
+     * @param {!Array<!Node>|undefined} commentLines
+     * @return {boolean}
+     */
+    function hasPrivateAnnotation(commentLines) {
+      if (!commentLines) {
+        return false;
+      }
+      return commentLines.some(
+        ({type, value}) => type == 'Block' && /@private/.test(value)
+      );
     }
-    return commentLines.some(
-      ({type, value}) => type == 'Block' && /@private/.test(value)
-    );
-  }
 
-  /**
-   * @param {string}
-   * @return {boolean}
-   */
-  function hasTrailingUnderscore(fnName) {
-    return /_$/.test(fnName);
-  }
+    /**
+     * @param {string}
+     * @return {boolean}
+     */
+    function hasTrailingUnderscore(fnName) {
+      return /_$/.test(fnName);
+    }
 
-  /**
-   * @param {string}
-   * @return {boolean}
-   */
-  function hasExplicitNoInline(fnName) {
-    return /NoInline$/.test(fnName);
-  }
+    /**
+     * @param {string}
+     * @return {boolean}
+     */
+    function hasExplicitNoInline(fnName) {
+      return /NoInline$/.test(fnName);
+    }
 
-  /**
-   * @param {!Node}
-   * @return {boolean}
-   */
-  function isThisMemberExpression(node) {
-    return (
-      node.type == 'MemberExpression' && node.object.type == 'ThisExpression'
-    );
-  }
-  return {
-    MethodDefinition: (node) => {
-      if (
-        hasPrivateAnnotation(node.leadingComments) &&
-        !hasExplicitNoInline(node.key.name) &&
-        !hasTrailingUnderscore(node.key.name)
-      ) {
-        context.report(
-          node,
-          'Method marked as private but has no trailing underscore.'
-        );
-      }
-    },
-    AssignmentExpression: (node) => {
-      if (
-        node.parent.type == 'ExpressionStatement' &&
-        hasPrivateAnnotation(node.parent.leadingComments) &&
-        isThisMemberExpression(node.left) &&
-        !hasExplicitNoInline(node.left.property.name) &&
-        !hasTrailingUnderscore(node.left.property.name)
-      ) {
-        context.report(
-          node,
-          'Property marked as private but has no trailing underscore.'
-        );
-      }
-    },
-  };
+    /**
+     * @param {!Node}
+     * @return {boolean}
+     */
+    function isThisMemberExpression(node) {
+      return (
+        node.type == 'MemberExpression' && node.object.type == 'ThisExpression'
+      );
+    }
+    return {
+      MethodDefinition: (node) => {
+        if (
+          hasPrivateAnnotation(node.leadingComments) &&
+          !hasExplicitNoInline(node.key.name) &&
+          !hasTrailingUnderscore(node.key.name)
+        ) {
+          context.report(
+            node,
+            'Method marked as private but has no trailing underscore.'
+          );
+        }
+      },
+      AssignmentExpression: (node) => {
+        if (
+          node.parent.type == 'ExpressionStatement' &&
+          hasPrivateAnnotation(node.parent.leadingComments) &&
+          isThisMemberExpression(node.left) &&
+          !hasExplicitNoInline(node.left.property.name) &&
+          !hasTrailingUnderscore(node.left.property.name)
+        ) {
+          context.report(
+            node,
+            'Property marked as private but has no trailing underscore.'
+          );
+        }
+      },
+    };
+  },
 };
