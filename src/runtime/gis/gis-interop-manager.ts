@@ -31,11 +31,11 @@ import {setImportantStyles} from '../../utils/style';
  * The states of the GisInteropManager.
  */
 export enum GisInteropManagerStates {
-  WAITING_FOR_PING,
-  LOADING_COMMUNICATION_IFRAME,
-  COMMUNICATION_IFRAME_ESTABLISHED,
-  TOKEN_UPDATE_IN_PROGRESS,
-  YIELDED,
+  WAITING_FOR_PING = 1,
+  LOADING_COMMUNICATION_IFRAME = 2,
+  COMMUNICATION_IFRAME_ESTABLISHED = 3,
+  TOKEN_UPDATE_IN_PROGRESS = 4,
+  YIELDED = 5,
 }
 
 type RrmGisMsgType =

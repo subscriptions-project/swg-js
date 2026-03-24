@@ -25,10 +25,10 @@ export function getGisMode(
   const isSafari =
     /Safari/i.test(win.navigator.userAgent) &&
     !/Chrome|Chromium|Edg/i.test(win.navigator.userAgent);
-  const gisLoaded =
-    gisInteropManager?.getState() ===
-    GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED;
-  const useGis = isGisAllowed && gisLoaded;
+  const state = gisInteropManager?.getState();
+  const gisConnecting =
+    !!state && state !== GisInteropManagerStates.WAITING_FOR_PING;
+  const useGis = isGisAllowed && gisConnecting;
   if (!useGis) {
     return GisMode.GisModeDisabled;
   }
