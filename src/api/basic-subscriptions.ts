@@ -82,6 +82,11 @@ export interface BasicSubscriptions {
    * purposes.
    */
   dismissSwgUI(): void;
+
+  /**
+   * Returns diagnostic information about the setup.
+   */
+  getDiagnostics(): {isGisReady: boolean};
 }
 
 /**

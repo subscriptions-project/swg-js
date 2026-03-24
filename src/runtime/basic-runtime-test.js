@@ -33,6 +33,7 @@ import {ClientTheme} from '../api/subscriptions';
 import {ContributionsFlow} from './contributions-flow';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
+import {GisInteropManagerStates} from './gis/gis-interop-manager';
 import {GlobalDoc} from '../model/doc';
 import {MeterClientTypes} from '../api/metering';
 import {MeterToastApi} from './meter-toast-api';
@@ -484,6 +485,18 @@ describes.realWin('BasicRuntime', (env) => {
       const configuredRuntime = await basicRuntime.configured_(true);
       expect(configuredRuntime.gisInteropManager()).to.not.exist;
     });
+
+    it('should return getDiagnostics().isGisReady false initially', () => {
+      expect(basicRuntime.getDiagnostics().isGisReady).to.be.false;
+    });
+
+    it('should delegate getDiagnostics to configuredInstance after configuration', async () => {
+      basicRuntime.init({
+        ...DEFAULT_INIT_PARAMS,
+      });
+      await basicRuntime.configured_(true);
+      expect(basicRuntime.getDiagnostics().isGisReady).to.be.false;
+    });
   });
 
   describe('configured', () => {
@@ -891,6 +904,37 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
     it('should store and doc and win', () => {
       expect(configuredBasicRuntime.win()).to.equal(win);
       expect(configuredBasicRuntime.doc().getWin()).to.equal(win);
+    });
+
+    it('should return getDiagnostics().isGisReady true when gisInteropManager is not WAITING_FOR_PING', () => {
+      const mockManager = {
+        getState: sandbox
+          .stub()
+          .returns(GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED),
+      };
+      sandbox
+        .stub(configuredBasicRuntime, 'gisInteropManager')
+        .returns(mockManager);
+      expect(configuredBasicRuntime.getDiagnostics().isGisReady).to.be.true;
+    });
+
+    it('should return getDiagnostics().isGisReady false when gisInteropManager is WAITING_FOR_PING', () => {
+      const mockManager = {
+        getState: sandbox
+          .stub()
+          .returns(GisInteropManagerStates.WAITING_FOR_PING),
+      };
+      sandbox
+        .stub(configuredBasicRuntime, 'gisInteropManager')
+        .returns(mockManager);
+      expect(configuredBasicRuntime.getDiagnostics().isGisReady).to.be.false;
+    });
+
+    it('should return getDiagnostics().isGisReady false when gisInteropManager is undefined', () => {
+      sandbox
+        .stub(configuredBasicRuntime, 'gisInteropManager')
+        .returns(undefined);
+      expect(configuredBasicRuntime.getDiagnostics().isGisReady).to.be.false;
     });
 
     it('should delegate config to ConfiguredRuntime', () => {

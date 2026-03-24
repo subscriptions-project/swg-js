@@ -37,7 +37,10 @@ import {Doc, resolveDoc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {Fetcher, XhrFetcher} from './fetcher';
-import {GisInteropManager} from './gis/gis-interop-manager';
+import {
+  GisInteropManager,
+  GisInteropManagerStates,
+} from './gis/gis-interop-manager';
 import {I18N_STRINGS} from '../i18n/strings';
 import {InlineCtaApi} from './inline-cta-api';
 import {JsError} from './jserror';
@@ -116,6 +119,7 @@ export function installBasicRuntime(win: Window): void {
   // they'll be queued up to receive the SwG Basic runtime when it's ready.
   (win[BASIC_RUNTIME_PROP] as {}) = {
     push: callWhenRuntimeIsReady,
+    getDiagnostics: () => publicBasicRuntime.getDiagnostics(),
   };
 
   // Set variable for testing.
@@ -141,6 +145,7 @@ export class BasicRuntime implements BasicSubscriptions {
   private publisherProvidedId_?: string;
   private gisInterop?: boolean;
   private hasCustomLoginRequestCallback_ = false;
+  private configuredInstance_?: ConfiguredBasicRuntime;
 
   private readonly creationTimestamp_: number;
   private readonly doc_: Doc;
@@ -167,21 +172,20 @@ export class BasicRuntime implements BasicSubscriptions {
       this.pageConfigResolver_.resolveConfig().then(
         (pageConfig) => {
           this.pageConfigResolver_ = null;
-          this.configuredResolver_!(
-            new ConfiguredBasicRuntime(
-              this.doc_,
-              pageConfig,
-              /* integr */ {
-                configPromise: this.configuredPromise_.then(),
-                enableDefaultMeteringHandler:
-                  this.enableDefaultMeteringHandler_,
-                isBasic: true,
-              },
-              this.config_,
-              this.clientOptions_,
-              this.creationTimestamp_
-            )
+          const configuredRuntime = new ConfiguredBasicRuntime(
+            this.doc_,
+            pageConfig,
+            /* integr */ {
+              configPromise: this.configuredPromise_.then(),
+              enableDefaultMeteringHandler: this.enableDefaultMeteringHandler_,
+              isBasic: true,
+            },
+            this.config_,
+            this.clientOptions_,
+            this.creationTimestamp_
           );
+          this.configuredInstance_ = configuredRuntime;
+          this.configuredResolver_!(configuredRuntime);
           this.configuredResolver_ = null;
         },
         (reason: Error) => {
@@ -305,6 +309,15 @@ export class BasicRuntime implements BasicSubscriptions {
   async dismissSwgUI(): Promise<void> {
     const runtime = await this.configured_(false);
     runtime.dismissSwgUI();
+  }
+
+  getDiagnostics(): {isGisReady: boolean} {
+    if (this.configuredInstance_) {
+      return this.configuredInstance_.getDiagnostics();
+    }
+    return {
+      isGisReady: false,
+    };
   }
 
   /**
@@ -650,6 +663,15 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     this.dialogManager().completeAll();
   }
 
+  getDiagnostics(): {isGisReady: boolean} {
+    const manager = this.gisInteropManager();
+    return {
+      isGisReady:
+        !!manager &&
+        manager.getState() !== GisInteropManagerStates.WAITING_FOR_PING,
+    };
+  }
+
   /**
    * Sets up all the buttons on the page with attribute
    * 'swg-standard-button:subscription' or 'swg-standard-button:contribution'.
@@ -714,5 +736,6 @@ function createPublicBasicRuntime(
     setupAndShowAutoPrompt:
       basicRuntime.setupAndShowAutoPrompt.bind(basicRuntime),
     dismissSwgUI: basicRuntime.dismissSwgUI.bind(basicRuntime),
+    getDiagnostics: basicRuntime.getDiagnostics.bind(basicRuntime),
   };
 }
