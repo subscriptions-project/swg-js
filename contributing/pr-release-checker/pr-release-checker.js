@@ -16,7 +16,6 @@
 
 const $ = document.querySelector.bind(document);
 
-// eslint-disable-next-line no-undef
 const ampVersion = AMP[0].f.toString().match(/"SwG (0\.1\..+?)"/)[1];
 
 const prInput = $('input');

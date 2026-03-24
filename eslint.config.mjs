@@ -1,19 +1,26 @@
 import { defineConfig } from "eslint/config";
 import typescriptEslint from "@typescript-eslint/eslint-plugin";
 import googleCamelcase from "eslint-plugin-google-camelcase";
+if (typeof googleCamelcase.rules["google-camelcase"] === "function") {
+    // ESLint 9 requires rules to be objects with a `create` method,
+    // but the plugin currently exports a raw function, so we wrap it here.
+    googleCamelcase.rules["google-camelcase"] = { create: googleCamelcase.rules["google-camelcase"] };
+}
 import prettier from "eslint-plugin-prettier";
 import sortImportsEs6Autofix from "eslint-plugin-sort-imports-es6-autofix";
 import sortRequires from "eslint-plugin-sort-requires";
 import globals from "globals";
 import tsParser from "@typescript-eslint/parser";
-
+import localRules from "./build-system/eslint-rules/index.js";
 export default defineConfig([{
+    files: ["**/*.js", "**/*.ts", "**/*.cjs", "**/*.mjs"],
     plugins: {
         "@typescript-eslint": typescriptEslint,
         "google-camelcase": googleCamelcase,
         prettier,
         "sort-imports-es6-autofix": sortImportsEs6Autofix,
         "sort-requires": sortRequires,
+        "local": localRules,
     },
 
     languageOptions: {
@@ -48,8 +55,8 @@ export default defineConfig([{
     },
 
     rules: {
-        "enforce-private-props": 2,
-        "no-export-side-effect": 2,
+        "local/enforce-private-props": 2,
+        "local/no-export-side-effect": 2,
         curly: 2,
         "google-camelcase/google-camelcase": 2,
         "no-alert": 2,
@@ -159,7 +166,7 @@ export default defineConfig([{
     files: ["src/stories/**/*"],
 
     rules: {
-        "no-export-side-effect": 0,
+        "local/no-export-side-effect": 0,
     },
 }, {
     files: ["src/constants.js"],
@@ -168,5 +175,10 @@ export default defineConfig([{
         globals: {
             goog: false,
         },
+    },
+}, {
+    files: ["build-system/**/*.js", "build-system/*.js"],
+    rules: {
+        "no-console": 0,
     },
 }]);
