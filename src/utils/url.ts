@@ -110,6 +110,7 @@ export function parseQueryString(query: string): {[key: string]: string} {
           params[key] = value;
         }
       } catch {
+        // eslint-disable-next-line no-console
         warn(`SwG could not parse a URL query param: ${item[0]}`);
       }
       return params;
