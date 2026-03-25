@@ -184,7 +184,6 @@ export class AutoPromptManager {
   private autoPromptType_?: AutoPromptType;
   private contentType_?: ContentType;
   private shouldRenderOnsitePreview_: boolean = false;
-  private multiInstanceCtaExperiment: boolean = false;
   private alwaysShowBlockingContributionExperiment: boolean = false;
 
   private readonly doc_: Doc;
@@ -281,10 +280,6 @@ export class AutoPromptManager {
       return;
     }
     // Set experiment flags here.
-    this.multiInstanceCtaExperiment = this.isArticleExperimentEnabled_(
-      article,
-      ArticleExperimentFlags.MULTI_INSTANCE_CTA_EXPERIMENT
-    );
     this.alwaysShowBlockingContributionExperiment =
       this.isArticleExperimentEnabled_(
         article,
@@ -547,7 +542,6 @@ export class AutoPromptManager {
       this.eventManager_,
       interventionOrchestration,
       actionsTimestamps,
-      this.multiInstanceCtaExperiment,
       article.actionOrchestration?.interventionFunnel!,
       clientConfig.autoPromptConfig?.frequencyCapConfig
     );
@@ -913,9 +907,10 @@ export class AutoPromptManager {
       // Client side eligibility is required to handle identity transitions
       // after sign-in flow. TODO(b/332759781): update survey completion check
       // to persist even after 2 weeks.
-      const completions = this.multiInstanceCtaExperiment
-        ? timestamps[action.configurationId!]?.completions
-        : timestamps[InterventionType.TYPE_REWARDED_SURVEY]?.completions;
+      const completions = (
+        timestamps[action.configurationId!] ||
+        timestamps[InterventionType.TYPE_REWARDED_SURVEY]
+      )?.completions;
       return !(completions || []).length;
     }
     // NOTE: passing these checks does not mean the APIs are always available.
