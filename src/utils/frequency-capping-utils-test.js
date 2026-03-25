@@ -118,7 +118,6 @@ describes.realWin('Frequency Capping utils', () => {
         eventManager,
         ORCHESTRATION,
         ACTION_TIMESTAMPS,
-        true,
         INTERVENTION_FUNNEL,
         {}
       );
@@ -148,7 +147,6 @@ describes.realWin('Frequency Capping utils', () => {
         eventManager,
         orchestration,
         ACTION_TIMESTAMPS,
-        true,
         INTERVENTION_FUNNEL,
         VALID_FREQUENCY_CAP_CONFIG
       );
@@ -169,7 +167,6 @@ describes.realWin('Frequency Capping utils', () => {
         eventManager,
         ORCHESTRATION,
         ACTION_TIMESTAMPS,
-        true,
         {
           ...INTERVENTION_FUNNEL,
           globalFrequencyCap: {
@@ -197,7 +194,6 @@ describes.realWin('Frequency Capping utils', () => {
         eventManager,
         ORCHESTRATION,
         ACTION_TIMESTAMPS,
-        true,
         INTERVENTION_FUNNEL,
         VALID_FREQUENCY_CAP_CONFIG
       );
@@ -218,7 +214,6 @@ describes.realWin('Frequency Capping utils', () => {
         eventManager,
         ORCHESTRATION,
         actionTimestamps,
-        true,
         INTERVENTION_FUNNEL,
         VALID_FREQUENCY_CAP_CONFIG
       );

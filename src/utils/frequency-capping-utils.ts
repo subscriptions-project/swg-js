@@ -6,7 +6,6 @@ import {
   InterventionOrchestration,
 } from '../api/action-orchestration';
 import {Duration, FrequencyCapConfig} from '../model/auto-prompt-config';
-import {InterventionType} from '../api/intervention-type';
 
 const SECOND_IN_MILLIS = 1000;
 
@@ -27,7 +26,6 @@ export function getFrequencyCappedOrchestration(
   eventManager: ClientEventManager,
   interventionOrchestration: InterventionOrchestration[],
   actionsTimestamps: ActionsTimestamps,
-  multiInstanceCtaExperiment: boolean,
   interventionFunnel: InterventionFunnel,
   frequencyCapConfig?: FrequencyCapConfig
 ): InterventionOrchestration | undefined {
@@ -54,8 +52,7 @@ export function getFrequencyCappedOrchestration(
     if (isValidFrequencyCapDuration(promptFrequencyCapDuration)) {
       const timestamps = getTimestampsForPromptFrequency(
         actionsTimestamps,
-        orchestration,
-        multiInstanceCtaExperiment
+        orchestration
       );
       if (isFrequencyCapped(promptFrequencyCapDuration!, timestamps)) {
         eventManager.logSwgEvent(AnalyticsEvent.EVENT_PROMPT_FREQUENCY_CAP_MET);
@@ -79,20 +76,10 @@ export function getFrequencyCappedOrchestration(
     const globalTimestamps = Array.prototype.concat.apply(
       [],
       Object.entries(actionsTimestamps!)
-        .filter(([key, _]) =>
-          // During FCA Phase 1, include all events
-          multiInstanceCtaExperiment
-            ? true
-            : // Before FCA Phase 1 rampup, ignore events keyed by configId
-              Object.values<string>(InterventionType).includes(key)
-        )
-        // Completed repeatable actions count towards global frequency
         .map(([key, timestamps]) =>
-          // During FCA Phase 1, only get completions of matching config ID
-          multiInstanceCtaExperiment && key === nextOrchestration!.configId
+          key === nextOrchestration!.configId
             ? timestamps.completions
-            : // For backwards compatability, continue to get completions of matching action type
-              key === nextOrchestration!.type
+            : key === nextOrchestration!.type
               ? timestamps.completions
               : timestamps.impressions
         )
@@ -163,12 +150,9 @@ function nanoToMiliseconds(nanos: number): number {
 /** Visible for testing */
 export function getTimestampsForPromptFrequency(
   timestamps: ActionsTimestamps,
-  orchestration: InterventionOrchestration,
-  multiInstanceCtaExperiment: boolean
+  orchestration: InterventionOrchestration
 ) {
-  const actionTimestamps = multiInstanceCtaExperiment
-    ? timestamps[orchestration.configId]
-    : timestamps[orchestration.type];
+  const actionTimestamps = timestamps[orchestration.configId] || timestamps[orchestration.type];
   return orchestration.closability === Closability.BLOCKING
     ? actionTimestamps?.completions || []
     : [
