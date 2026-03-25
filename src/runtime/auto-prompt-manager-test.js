@@ -3790,7 +3790,7 @@ describes.realWin('AutoPromptManager', (env) => {
       });
     });
 
-    describe('when multi instance CTAs experiment (FCA Phase 1) is enabled', () => {
+    describe('with frequency capping writes ONLY by configId', () => {
       beforeEach(() => {
         getArticleExpectation
           .resolves({
@@ -3854,9 +3854,6 @@ describes.realWin('AutoPromptManager', (env) => {
                 ],
               },
             },
-            experimentConfig: {
-              experimentFlags: ['multi_instance_cta_experiment'],
-            },
           })
           .once();
       });
@@ -3896,15 +3893,9 @@ describes.realWin('AutoPromptManager', (env) => {
                 ],
               },
             },
-            experimentConfig: {
-              experimentFlags: ['multi_instance_cta_experiment'],
-            },
           })
           .once();
         expectFrequencyCappingTimestamps(storageMock, {
-          'TYPE_BYO_CTA': {
-            completions: [CURRENT_TIME - 200],
-          },
           'byocta_config_id': {
             completions: [CURRENT_TIME - 200],
           },
@@ -3918,22 +3909,15 @@ describes.realWin('AutoPromptManager', (env) => {
 
       it('should show the first CTA and log an error if the timestamps parsed from localstorage is invalid', async () => {
         expectFrequencyCappingTimestamps(storageMock, {
-          'TYPE_CONTRIBUTION': {
+          'contribution_config_id': {
             notImpressions: [
               CURRENT_TIME -
                 10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
             ],
             dismissals: [
               CURRENT_TIME -
-                (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+              (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
             ],
-          },
-          'contribution_config_id': {
-            notImpressions: [
-              CURRENT_TIME -
-                10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
-            ],
-            completions: [(CURRENT_TIME - 1) * SECOND_IN_MS],
           },
         });
 
@@ -3953,16 +3937,6 @@ describes.realWin('AutoPromptManager', (env) => {
 
       it('should show the first CTA if the frequency cap is not met', async () => {
         expectFrequencyCappingTimestamps(storageMock, {
-          'TYPE_CONTRIBUTION': {
-            impressions: [
-              CURRENT_TIME -
-                10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
-            ],
-            dismissals: [
-              CURRENT_TIME -
-                10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
-            ],
-          },
           'contribution_config_id': {
             impressions: [
               CURRENT_TIME -
@@ -3982,12 +3956,6 @@ describes.realWin('AutoPromptManager', (env) => {
 
       it('should show the first CTA if the first CTA was abandoned', async () => {
         expectFrequencyCappingTimestamps(storageMock, {
-          'TYPE_CONTRIBUTION': {
-            impressions: [
-              CURRENT_TIME -
-                (funnelGlobalFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-            ],
-          },
           'contribution_config_id': {
             impressions: [
               CURRENT_TIME -
@@ -4003,12 +3971,6 @@ describes.realWin('AutoPromptManager', (env) => {
 
       it('should show the first CTA and log an error if the timestamps parsed from localstorage is invalid', async () => {
         expectFrequencyCappingTimestamps(storageMock, {
-          'TYPE_CONTRIBUTION': {
-            dismissals: [
-              CURRENT_TIME -
-                (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-            ],
-          },
           'contribution_config_id': {
             notImpressions: [
               CURRENT_TIME -
@@ -4037,10 +3999,6 @@ describes.realWin('AutoPromptManager', (env) => {
           CURRENT_TIME -
           (contributionFrequencyCapDurationSeconds + 1) * SECOND_IN_MS;
         expectFrequencyCappingTimestamps(storageMock, {
-          'TYPE_CONTRIBUTION': {
-            impressions: [contributionTimestamps],
-            dismissals: [contributionTimestamps],
-          },
           'contribution_config_id': {
             impressions: [contributionTimestamps],
             completions: [contributionTimestamps],
@@ -4057,10 +4015,6 @@ describes.realWin('AutoPromptManager', (env) => {
           CURRENT_TIME -
           (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS;
         expectFrequencyCappingTimestamps(storageMock, {
-          'TYPE_CONTRIBUTION': {
-            impressions: [contributionTimestamps],
-            dismissals: [contributionTimestamps],
-          },
           'contribution_config_id': {
             impressions: [contributionTimestamps],
             dismissals: [contributionTimestamps],
@@ -4097,10 +4051,6 @@ describes.realWin('AutoPromptManager', (env) => {
           CURRENT_TIME -
           (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS;
         expectFrequencyCappingTimestamps(storageMock, {
-          'TYPE_CONTRIBUTION': {
-            impressions: [contributionTimestamps],
-            completions: [contributionTimestamps],
-          },
           'contribution_config_id': {
             impressions: [contributionTimestamps],
             completions: [contributionTimestamps],
@@ -4188,9 +4138,6 @@ describes.realWin('AutoPromptManager', (env) => {
                 ],
               },
             },
-            experimentConfig: {
-              experimentFlags: ['multi_instance_cta_experiment'],
-            },
           })
           .once();
 
@@ -4198,10 +4145,6 @@ describes.realWin('AutoPromptManager', (env) => {
           CURRENT_TIME -
           (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS;
         expectFrequencyCappingTimestamps(storageMock, {
-          'TYPE_CONTRIBUTION': {
-            impressions: [contributionTimestamps],
-            dismissals: [contributionTimestamps],
-          },
           'contribution_config_id': {
             impressions: [contributionTimestamps],
             dismissals: [contributionTimestamps],
@@ -4236,13 +4179,6 @@ describes.realWin('AutoPromptManager', (env) => {
           CURRENT_TIME -
           (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS;
         expectFrequencyCappingTimestamps(storageMock, {
-          'TYPE_CONTRIBUTION': {
-            impressions: [contributionTimestamps],
-            dismissals: [contributionTimestamps],
-          },
-          'TYPE_REWARDED_SURVEY': {
-            impressions: [CURRENT_TIME - 1],
-          },
           'contribution_config_id': {
             impressions: [contributionTimestamps],
             dismissals: [contributionTimestamps],
@@ -4328,22 +4264,9 @@ describes.realWin('AutoPromptManager', (env) => {
                 ],
               },
             },
-            experimentConfig: {
-              experimentFlags: ['multi_instance_cta_experiment'],
-            },
           })
           .once();
         expectFrequencyCappingTimestamps(storageMock, {
-          'TYPE_CONTRIBUTION': {
-            impressions: [
-              CURRENT_TIME -
-                2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
-            ],
-            dismissals: [
-              CURRENT_TIME -
-                2 * globalFrequencyCapDurationSeconds * SECOND_IN_MS,
-            ],
-          },
           'contribution_config_id': {
             impressions: [
               CURRENT_TIME -
@@ -4389,26 +4312,6 @@ describes.realWin('AutoPromptManager', (env) => {
 
       it('should show the second CTA if the second prompt frequency has passed', async () => {
         expectFrequencyCappingTimestamps(storageMock, {
-          'TYPE_CONTRIBUTION': {
-            impressions: [
-              CURRENT_TIME -
-                2 * funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_MS,
-            ],
-            dismissals: [
-              CURRENT_TIME -
-                2 * funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_MS,
-            ],
-          },
-          'TYPE_REWARDED_SURVEY': {
-            impressions: [
-              CURRENT_TIME -
-                (surveyFrequencyCapDurationSeconds + 1) * SECOND_IN_MS,
-            ],
-            dismissals: [
-              CURRENT_TIME -
-                (surveyFrequencyCapDurationSeconds + 1) * SECOND_IN_MS,
-            ],
-          },
           'contribution_config_id': {
             impressions: [
               CURRENT_TIME -
@@ -4461,16 +4364,6 @@ describes.realWin('AutoPromptManager', (env) => {
           setupGtm: false,
         });
         expectFrequencyCappingTimestamps(storageMock, {
-          'TYPE_CONTRIBUTION': {
-            impressions: [
-              CURRENT_TIME -
-                2 * funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_MS,
-            ],
-            dismissals: [
-              CURRENT_TIME -
-                2 * funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_MS,
-            ],
-          },
           'contribution_config_id': {
             impressions: [
               CURRENT_TIME -
@@ -4508,26 +4401,6 @@ describes.realWin('AutoPromptManager', (env) => {
 
       it('should show the third CTA if the frequency caps for contribution and first survey are met', async () => {
         expectFrequencyCappingTimestamps(storageMock, {
-          'TYPE_CONTRIBUTION': {
-            impressions: [
-              CURRENT_TIME -
-                (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-            ],
-            dismissals: [
-              CURRENT_TIME -
-                (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-            ],
-          },
-          'TYPE_REWARDED_SURVEY': {
-            impressions: [
-              CURRENT_TIME -
-                (surveyFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-            ],
-            dismissals: [
-              CURRENT_TIME -
-                (surveyFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-            ],
-          },
           'contribution_config_id': {
             impressions: [
               CURRENT_TIME -
@@ -4594,26 +4467,6 @@ describes.realWin('AutoPromptManager', (env) => {
         });
         getClientConfigExpectation.resolves(clientConfig).once();
         expectFrequencyCappingTimestamps(storageMock, {
-          'TYPE_CONTRIBUTION': {
-            impressions: [
-              CURRENT_TIME -
-                (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-            ],
-            dismissals: [
-              CURRENT_TIME -
-                (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-            ],
-          },
-          'TYPE_REWARDED_SURVEY': {
-            impressions: [
-              CURRENT_TIME -
-                (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-            ],
-            dismissals: [
-              CURRENT_TIME -
-                (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-            ],
-          },
           'contribution_config_id': {
             impressions: [
               CURRENT_TIME -
@@ -4669,30 +4522,6 @@ describes.realWin('AutoPromptManager', (env) => {
 
       it('should show the third CTA if the third prompt frequency has passed', async () => {
         expectFrequencyCappingTimestamps(storageMock, {
-          'TYPE_CONTRIBUTION': {
-            impressions: [
-              CURRENT_TIME -
-                (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-            ],
-            dismissals: [
-              CURRENT_TIME -
-                (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-            ],
-          },
-          'TYPE_REWARDED_SURVEY': {
-            impressions: [
-              CURRENT_TIME -
-                (surveyFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-              CURRENT_TIME -
-                (surveyFrequencyCapDurationSeconds + 1) * SECOND_IN_MS,
-            ],
-            dismissals: [
-              CURRENT_TIME -
-                (surveyFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-              CURRENT_TIME -
-                (surveyFrequencyCapDurationSeconds + 1) * SECOND_IN_MS,
-            ],
-          },
           'contribution_config_id': {
             impressions: [
               CURRENT_TIME -
@@ -4758,10 +4587,6 @@ describes.realWin('AutoPromptManager', (env) => {
 
       it('should not show any CTA if the global frequency cap is met', async () => {
         expectFrequencyCappingTimestamps(storageMock, {
-          'TYPE_REWARDED_AD': {
-            impressions: [CURRENT_TIME],
-            completions: [CURRENT_TIME],
-          },
           'rewarded_ad_config_id': {
             impressions: [CURRENT_TIME],
             completions: [CURRENT_TIME],
@@ -4847,22 +4672,9 @@ describes.realWin('AutoPromptManager', (env) => {
                 ],
               },
             },
-            experimentConfig: {
-              experimentFlags: ['multi_instance_cta_experiment'],
-            },
           })
           .once();
         expectFrequencyCappingTimestamps(storageMock, {
-          'TYPE_CONTRIBUTION': {
-            impressions: [
-              CURRENT_TIME -
-                0.5 * funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_MS,
-            ],
-            dismissals: [
-              CURRENT_TIME -
-                0.5 * funnelGlobalFrequencyCapDurationSeconds * SECOND_IN_MS,
-            ],
-          },
           'contribution_config_id': {
             impressions: [
               CURRENT_TIME -
@@ -4900,38 +4712,6 @@ describes.realWin('AutoPromptManager', (env) => {
 
       it('should not show any CTA if the frequency cap is met for all CTAs (but global cap is not)', async () => {
         expectFrequencyCappingTimestamps(storageMock, {
-          'TYPE_CONTRIBUTION': {
-            impressions: [
-              CURRENT_TIME -
-                0.5 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
-            ],
-            dismissals: [
-              CURRENT_TIME -
-                0.5 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
-            ],
-          },
-          'TYPE_REWARDED_SURVEY': {
-            impressions: [
-              CURRENT_TIME -
-                0.5 * surveyFrequencyCapDurationSeconds * SECOND_IN_MS,
-              0.5 * surveyFrequencyCapDurationSeconds * SECOND_IN_MS,
-            ],
-            dismissals: [
-              CURRENT_TIME -
-                0.5 * surveyFrequencyCapDurationSeconds * SECOND_IN_MS,
-              0.5 * surveyFrequencyCapDurationSeconds * SECOND_IN_MS,
-            ],
-          },
-          'TYPE_NEWSLETTER_SIGNUP': {
-            impressions: [
-              CURRENT_TIME -
-                0.5 * newsletterFrequencyCapDurationSeconds * SECOND_IN_MS,
-            ],
-            dismissals: [
-              CURRENT_TIME -
-                0.5 * newsletterFrequencyCapDurationSeconds * SECOND_IN_MS,
-            ],
-          },
           'contribution_config_id': {
             impressions: [
               CURRENT_TIME -
@@ -5007,38 +4787,6 @@ describes.realWin('AutoPromptManager', (env) => {
 
       it('should not show any CTA if the frequency cap is met for all CTAs via completions (but global cap is not)', async () => {
         expectFrequencyCappingTimestamps(storageMock, {
-          'TYPE_CONTRIBUTION': {
-            impressions: [
-              CURRENT_TIME -
-                0.5 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
-            ],
-            completions: [
-              CURRENT_TIME -
-                0.5 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
-            ],
-          },
-          'TYPE_REWARDED_SURVEY': {
-            impressions: [
-              CURRENT_TIME -
-                0.5 * surveyFrequencyCapDurationSeconds * SECOND_IN_MS,
-              0.5 * surveyFrequencyCapDurationSeconds * SECOND_IN_MS,
-            ],
-            completions: [
-              CURRENT_TIME -
-                0.5 * surveyFrequencyCapDurationSeconds * SECOND_IN_MS,
-              0.5 * surveyFrequencyCapDurationSeconds * SECOND_IN_MS,
-            ],
-          },
-          'TYPE_NEWSLETTER_SIGNUP': {
-            impressions: [
-              CURRENT_TIME -
-                0.5 * newsletterFrequencyCapDurationSeconds * SECOND_IN_MS,
-            ],
-            completions: [
-              CURRENT_TIME -
-                0.5 * newsletterFrequencyCapDurationSeconds * SECOND_IN_MS,
-            ],
-          },
           'contribution_config_id': {
             impressions: [
               CURRENT_TIME -
@@ -5155,46 +4903,9 @@ describes.realWin('AutoPromptManager', (env) => {
                 ],
               },
             },
-            experimentConfig: {
-              experimentFlags: ['multi_instance_cta_experiment'],
-            },
           })
           .once();
         expectFrequencyCappingTimestamps(storageMock, {
-          'TYPE_CONTRIBUTION': {
-            impressions: [
-              CURRENT_TIME -
-                (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-            ],
-            dismissals: [
-              CURRENT_TIME -
-                (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-            ],
-          },
-          'TYPE_REWARDED_SURVEY': {
-            impressions: [
-              CURRENT_TIME -
-                (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-              CURRENT_TIME -
-                (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-            ],
-            dismissals: [
-              CURRENT_TIME -
-                (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-              CURRENT_TIME -
-                (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-            ],
-          },
-          'TYPE_NEWSLETTER_SIGNUP': {
-            impressions: [
-              CURRENT_TIME -
-                (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-            ],
-            dismissals: [
-              CURRENT_TIME -
-                (anyPromptFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-            ],
-          },
           'contribution_config_id': {
             impressions: [
               CURRENT_TIME -
