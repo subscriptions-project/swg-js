@@ -2171,11 +2171,11 @@ describes.realWin('AutoPromptManager', (env) => {
         'TYPE_CONTRIBUTION': {
           impressions: [
             CURRENT_TIME -
-            10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
+              10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
           dismissals: [
             CURRENT_TIME -
-            10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
+              10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
         },
         'contribution_config_id': {
@@ -2200,7 +2200,7 @@ describes.realWin('AutoPromptManager', (env) => {
         'TYPE_CONTRIBUTION': {
           impressions: [
             CURRENT_TIME -
-            (funnelGlobalFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+              (funnelGlobalFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
           ],
         },
         'contribution_config_id': {
@@ -3956,11 +3956,11 @@ describes.realWin('AutoPromptManager', (env) => {
           'TYPE_CONTRIBUTION': {
             impressions: [
               CURRENT_TIME -
-              10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
+                10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
             ],
             dismissals: [
               CURRENT_TIME -
-              10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
+                10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
             ],
           },
           'contribution_config_id': {
@@ -5268,7 +5268,6 @@ describes.realWin('AutoPromptManager', (env) => {
         expect(actionFlowSpy).to.not.have.been.called;
       });
     });
-
   });
 
   describe('Helper Functions', () => {
