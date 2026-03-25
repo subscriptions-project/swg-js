@@ -3916,7 +3916,7 @@ describes.realWin('AutoPromptManager', (env) => {
             ],
             dismissals: [
               CURRENT_TIME -
-              (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
+                (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
             ],
           },
         });
