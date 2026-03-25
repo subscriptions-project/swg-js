@@ -152,7 +152,9 @@ export function getTimestampsForPromptFrequency(
   timestamps: ActionsTimestamps,
   orchestration: InterventionOrchestration
 ) {
-  const actionTimestamps = timestamps[orchestration.configId] || timestamps[orchestration.type];
+  const actionTimestamps = orchestration.configId
+    ? timestamps[orchestration.configId]
+    : timestamps[orchestration.type];
   return orchestration.closability === Closability.BLOCKING
     ? actionTimestamps?.completions || []
     : [

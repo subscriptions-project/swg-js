@@ -2183,7 +2183,7 @@ describes.realWin('AutoPromptManager', (env) => {
             CURRENT_TIME -
               10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
-          completions: [
+          dismissals: [
             CURRENT_TIME -
               10 * contributionFrequencyCapDurationSeconds * SECOND_IN_MS,
           ],
@@ -2197,18 +2197,8 @@ describes.realWin('AutoPromptManager', (env) => {
 
     it('should show the first CTA if the first CTA was abandoned', async () => {
       expectFrequencyCappingTimestamps(storageMock, {
-        'TYPE_CONTRIBUTION': {
-          impressions: [
-            CURRENT_TIME -
-              (funnelGlobalFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-          ],
-        },
         'contribution_config_id': {
           impressions: [
-            CURRENT_TIME -
-              (funnelGlobalFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
-          ],
-          completions: [
             CURRENT_TIME -
               (funnelGlobalFrequencyCapDurationSeconds - 1) * SECOND_IN_MS,
           ],
@@ -5668,13 +5658,6 @@ describes.realWin('AutoPromptManager', (env) => {
           CURRENT_TIME -
           (contributionFrequencyCapDurationSeconds - 1) * SECOND_IN_MS;
         expectFrequencyCappingTimestamps(storageMock, {
-          'TYPE_CONTRIBUTION': {
-            impressions: [contributionTimestamps],
-            dismissals: [contributionTimestamps],
-          },
-          'TYPE_REWARDED_SURVEY': {
-            impressions: [CURRENT_TIME - 1],
-          },
           'contribution_config_id': {
             impressions: [contributionTimestamps],
             dismissals: [contributionTimestamps],
