@@ -907,8 +907,10 @@ export class AutoPromptManager {
       // Client side eligibility is required to handle identity transitions
       // after sign-in flow. TODO(b/332759781): update survey completion check
       // to persist even after 2 weeks.
-      const completions = (timestamps[action.configurationId!] ||
-        timestamps[InterventionType.TYPE_REWARDED_SURVEY])?.completions;
+      const completions = (
+        timestamps[action.configurationId!] ||
+        timestamps[InterventionType.TYPE_REWARDED_SURVEY]
+      )?.completions;
       return !(completions || []).length;
     }
     // NOTE: passing these checks does not mean the APIs are always available.

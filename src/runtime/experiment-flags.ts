@@ -43,7 +43,6 @@ export enum ArticleExperimentFlags {
    */
   BACKGROUND_CLICK_BEHAVIOR_EXPERIMENT = 'background_click_behavior_experiment',
 
-
   /**
    * Experiment flag that shows non-dismissible contribution CTA regardless of
    * reader's region. (If reader is in RRM-unsupported region, expect

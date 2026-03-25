@@ -75,14 +75,13 @@ export function getFrequencyCappedOrchestration(
   if (isValidFrequencyCapDuration(globalFrequencyCapDuration)) {
     const globalTimestamps = Array.prototype.concat.apply(
       [],
-      Object.entries(actionsTimestamps!)
-        .map(([key, timestamps]) =>
-          key === nextOrchestration!.configId
+      Object.entries(actionsTimestamps!).map(([key, timestamps]) =>
+        key === nextOrchestration!.configId
+          ? timestamps.completions
+          : key === nextOrchestration!.type
             ? timestamps.completions
-            : key === nextOrchestration!.type
-              ? timestamps.completions
-              : timestamps.impressions
-        )
+            : timestamps.impressions
+      )
     );
     if (isFrequencyCapped(globalFrequencyCapDuration!, globalTimestamps)) {
       eventManager.logSwgEvent(AnalyticsEvent.EVENT_GLOBAL_FREQUENCY_CAP_MET);
