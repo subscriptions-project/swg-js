@@ -160,6 +160,7 @@ describes.realWin('CTA utils', (env) => {
         clientConfig,
         clientConfigManager,
         pageConfig,
+        /* configurationId */ '',
         /* isInlineCta */ true
       );
 
@@ -179,6 +180,7 @@ describes.realWin('CTA utils', (env) => {
         clientConfig,
         clientConfigManager,
         pageConfig,
+        /* configurationId */ '',
         /* isInlineCta */ true
       );
 
@@ -201,6 +203,21 @@ describes.realWin('CTA utils', (env) => {
 
       expect(result).to.equal(
         'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&publicationId=pub1&purchaseUnavailableRegion=true'
+      );
+    });
+
+    it('returns url with configurationId', () => {
+      const clientConfig = new ClientConfig({useUpdatedOfferFlows: true});
+
+      const result = getContributionsUrl(
+        clientConfig,
+        clientConfigManager,
+        pageConfig,
+        'test_config_id'
+      );
+
+      expect(result).to.equal(
+        'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&publicationId=pub1&configurationId=test_config_id'
       );
     });
   });
@@ -481,6 +498,7 @@ describes.realWin('CTA utils', (env) => {
         clientConfigManager,
         pageConfig,
         query,
+        /* configurationId */ '',
         /* isInlineCta */ true
       );
 
@@ -501,11 +519,28 @@ describes.realWin('CTA utils', (env) => {
         clientConfigManager,
         pageConfig,
         query,
+        /* configurationId */ '',
         /* isInlineCta */ true
       );
 
       expect(result).to.equal(
         'https://news.google.com/swg/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&hl=fr-CA&ctaMode=CTA_MODE_INLINE'
+      );
+    });
+
+    it('returns url with configurationId', () => {
+      const clientConfig = new ClientConfig({useUpdatedOfferFlows: true});
+
+      const result = getSubscriptionUrl(
+        clientConfig,
+        clientConfigManager,
+        pageConfig,
+        query,
+        'test_config_id'
+      );
+
+      expect(result).to.equal(
+        'https://news.google.com/swg/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&configurationId=test_config_id'
       );
     });
   });

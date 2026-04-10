@@ -155,6 +155,7 @@ export class InlineCtaApi {
             this.clientConfigManager_,
             this.deps_.pageConfig(),
             this.win_.location.hash,
+            /* configurationId */ '',
             /* isInlineCta */ true
           )
         : action.type === InterventionType.TYPE_CONTRIBUTION
@@ -162,6 +163,7 @@ export class InlineCtaApi {
               clientConfig,
               this.clientConfigManager_,
               this.deps_.pageConfig(),
+              /* configurationId */ '',
               /* isInlineCta */ true
             )
           : this.getUrl_(urlPrefix, configId);
