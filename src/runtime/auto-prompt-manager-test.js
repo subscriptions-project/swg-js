@@ -3788,6 +3788,20 @@ describes.realWin('AutoPromptManager', (env) => {
 
         expect(contributionPromptFnSpy).to.have.been.calledOnce;
       });
+
+      it('passes configurationId if multi-instance monetary CTA experiment enabled', async () => {
+        const article = {
+          ...createArticle(CONTRIBUTION_INTERVENTION, 'BLOCKING'),
+          experimentConfig: {experimentFlags: ['bcontrib_experiment', 'multi_instance_monetary_cta_exp']},
+        };
+        getArticleExpectation.resolves(article).once();
+        expectFrequencyCappingTimestamps(storageMock);
+
+        await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+
+        expect(contributionPromptFnSpy).to.have.been.calledOnce;
+        expect(contributionPromptFnSpy.getCall(0).args[0].configurationId).to.equal('contribution_config_id');
+      });
     });
 
     describe('with frequency capping writes ONLY by configId', () => {

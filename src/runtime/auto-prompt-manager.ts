@@ -185,6 +185,7 @@ export class AutoPromptManager {
   private contentType_?: ContentType;
   private shouldRenderOnsitePreview_: boolean = false;
   private alwaysShowBlockingContributionExperiment: boolean = false;
+  private multiInstanceMonetaryCtaExperiment: boolean = false;
 
   private readonly doc_: Doc;
   private readonly pageConfig_: PageConfig;
@@ -284,6 +285,11 @@ export class AutoPromptManager {
       this.isArticleExperimentEnabled_(
         article,
         ArticleExperimentFlags.ALWAYS_SHOW_BLOCKING_CONTRIBUTION_EXPERIMENT
+      );
+    this.multiInstanceMonetaryCtaExperiment =
+      this.isArticleExperimentEnabled_(
+        article,
+        ArticleExperimentFlags.MULTI_INSTANCE_MONETARY_CTA_EXPERIMENT
       );
   }
 
@@ -399,6 +405,9 @@ export class AutoPromptManager {
       }
     }
 
+    this.promptIsFromCtaButton_ = false;
+    this.configId_ = potentialAction?.configurationId;
+
     const promptFn = potentialAction
       ? this.getAutoPromptFunction_(potentialAction)
       : undefined;
@@ -408,8 +417,6 @@ export class AutoPromptManager {
       return;
     }
 
-    this.promptIsFromCtaButton_ = false;
-    this.configId_ = potentialAction?.configurationId;
     // Add display delay to dismissible prompts.
     const displayDelayMs = this.isClosable_
       ? (clientConfig?.autoPromptConfig?.clientDisplayTrigger
@@ -552,12 +559,16 @@ export class AutoPromptManager {
    * or undefined if the type of prompt cannot be determined.
    */
   private getLargeMonetizationPromptFn_(
-    shouldAnimateFade: boolean = true
+    shouldAnimateFade: boolean = true,
+    configurationId?: string
   ): (() => void) | undefined {
     const options: OffersRequest = {
       isClosable: !!this.isMonetizationClosable_,
       shouldAnimateFade,
     };
+    if (this.multiInstanceMonetaryCtaExperiment && configurationId) {
+      options.configurationId = configurationId;
+    }
     if (this.isSubscription_()) {
       return () => {
         this.configuredRuntime_.showOffers(options);
@@ -585,7 +596,8 @@ export class AutoPromptManager {
         calledManually: false,
         shouldRenderPreview: !!this.shouldRenderOnsitePreview_,
         onAlternateAction: this.getLargeMonetizationPromptFn_(
-          /* shouldAnimateFade */ false
+          /* shouldAnimateFade */ false,
+          configurationId
         ),
       });
       this.setLastAudienceActionFlow(audienceActionFlow);
@@ -605,7 +617,10 @@ export class AutoPromptManager {
    * Shows the prompt based on the type specified.
    */
   private getMonetizationPromptFn_(): () => void {
-    const displayLargePromptFn = this.getLargeMonetizationPromptFn_();
+    const displayLargePromptFn = this.getLargeMonetizationPromptFn_(
+      /* shouldAnimateFade */ true,
+      this.configId_
+    );
     return () => {
       if (
         this.autoPromptType_ === AutoPromptType.SUBSCRIPTION ||
