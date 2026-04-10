@@ -548,6 +548,13 @@ export interface OffersRequest {
    * TODO: b/304803271 - remove this field from the api.
    */
   shouldAnimateFade?: boolean;
+
+  /**
+   * Optional. The CTA configuration ID that has offers associated to.
+   * If set, only the offers that included in the CTA configuration
+   * can be shown to the readers.
+   */
+  configurationId?: string;
 }
 
 export interface LoginRequest {
