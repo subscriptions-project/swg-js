@@ -830,6 +830,30 @@ describes.realWin('AutoPromptManager', (env) => {
     });
   });
 
+  describe('getLargeMonetizationPromptFn_', () => {
+    it('should use default shouldAnimateFade = true for subscription', () => {
+      autoPromptManager.autoPromptType_ = AutoPromptType.SUBSCRIPTION_LARGE;
+      const promptFn = autoPromptManager['getLargeMonetizationPromptFn_']();
+      promptFn();
+      expect(subscriptionPromptFnSpy).to.have.been.calledWith(
+        sinon.match({
+          shouldAnimateFade: true,
+        })
+      );
+    });
+
+    it('should use default shouldAnimateFade = true for contribution', () => {
+      autoPromptManager.autoPromptType_ = AutoPromptType.CONTRIBUTION_LARGE;
+      const promptFn = autoPromptManager['getLargeMonetizationPromptFn_']();
+      promptFn();
+      expect(contributionPromptFnSpy).to.have.been.calledWith(
+        sinon.match({
+          shouldAnimateFade: true,
+        })
+      );
+    });
+  });
+
   describe('Miniprompt', () => {
     it('should set isInDevMode_ to true if alwaysShow is enabled', async () => {
       await autoPromptManager.showAutoPrompt({
@@ -3787,6 +3811,27 @@ describes.realWin('AutoPromptManager', (env) => {
         await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
 
         expect(contributionPromptFnSpy).to.have.been.calledOnce;
+      });
+
+      it('passes configurationId if multi-instance monetary CTA experiment enabled', async () => {
+        const article = {
+          ...createArticle(CONTRIBUTION_INTERVENTION, 'BLOCKING'),
+          experimentConfig: {
+            experimentFlags: [
+              'bcontrib_experiment',
+              'multi_instance_monetary_cta_exp',
+            ],
+          },
+        };
+        getArticleExpectation.resolves(article).once();
+        expectFrequencyCappingTimestamps(storageMock);
+
+        await autoPromptManager.showAutoPrompt({contentType: ContentType.OPEN});
+
+        expect(contributionPromptFnSpy).to.have.been.calledOnce;
+        expect(
+          contributionPromptFnSpy.getCall(0).args[0].configurationId
+        ).to.equal('contribution_config_id');
       });
     });
 

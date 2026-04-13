@@ -80,7 +80,8 @@ export class ContributionsFlow {
       getContributionsUrl(
         clientConfig,
         this.clientConfigManager_,
-        this.deps_.pageConfig()
+        this.deps_.pageConfig(),
+        this.options_?.configurationId
       ),
       feArgs({
         'productId': this.deps_.pageConfig().getProductId(),
