@@ -32,6 +32,15 @@ import {Toast} from '../ui/toast';
 import {feUrl} from '../runtime/services';
 import {msg} from './i18n';
 import {parseQueryString} from './url';
+import {
+  ActionTimestamps,
+  ActionsTimestamps,
+} from './frequency-capping-utils';
+import {GoogleAnalyticsEventListener} from '../runtime/google-analytics-event-listener';
+import {Intervention, PromptPreference} from '../runtime/intervention';
+import {InterventionType} from '../api/intervention-type';
+import {StorageKeys} from './constants';
+import {pruneTimestamps} from '../runtime/storage';
 
 const INLINE_CTA_LABEL = 'CTA_MODE_INLINE';
 
@@ -216,4 +225,110 @@ export function startNativeFlow(
   if (response.getNative()) {
     deps.callbacks().triggerSubscribeRequest();
   }
+}
+
+export async function getTimestamps(deps: Deps): Promise<ActionsTimestamps> {
+  const storage = deps.storage();
+  const stringified = await storage.get(
+    StorageKeys.TIMESTAMPS,
+    /* useLocalStorage */ true
+  );
+  if (!stringified) {
+    return {};
+  }
+
+  try {
+    const timestamps: ActionsTimestamps = JSON.parse(stringified);
+    const isValid =
+      timestamps instanceof Object &&
+      !(timestamps instanceof Array) &&
+      Object.values(
+        Object.values(timestamps).map(
+          (t) =>
+            Object.keys(t).length === 3 &&
+            t.impressions.every((n) => !isNaN(n)) &&
+            t.dismissals.every((n) => !isNaN(n)) &&
+            t.completions.every((n) => !isNaN(n))
+        )
+      ).every(Boolean);
+
+    if (!isValid) {
+      deps
+        .eventManager()
+        .logSwgEvent(
+          AnalyticsEvent.EVENT_LOCAL_STORAGE_TIMESTAMPS_PARSING_ERROR
+        );
+      return {};
+    }
+
+    return Object.entries(timestamps).reduce(
+      (acc: ActionsTimestamps, [key, value]: [string, ActionTimestamps]) => {
+        return {
+          ...acc,
+          [key]: {
+            impressions: pruneTimestamps(value.impressions),
+            dismissals: pruneTimestamps(value.dismissals),
+            completions: pruneTimestamps(value.completions),
+          },
+        };
+      },
+      {}
+    );
+  } catch (e) {
+    deps
+      .eventManager()
+      .logSwgEvent(
+        AnalyticsEvent.EVENT_LOCAL_STORAGE_TIMESTAMPS_PARSING_ERROR
+      );
+    return {};
+  }
+}
+
+/**
+ * Checks AudienceAction eligbility, used to filter potential actions.
+ */
+export function isActionEligible(
+  action: Intervention,
+  deps: Deps,
+  timestamps: ActionsTimestamps
+): boolean {
+  if (action.type === InterventionType.TYPE_REWARDED_SURVEY) {
+    const isAnalyticsEligible =
+      GoogleAnalyticsEventListener.isGaEligible(deps) ||
+      GoogleAnalyticsEventListener.isGtagEligible(deps) ||
+      GoogleAnalyticsEventListener.isGtmEligible(deps);
+    if (!isAnalyticsEligible) {
+      return false;
+    }
+
+    const completions = (
+      timestamps[action.configurationId!] ||
+      timestamps[InterventionType.TYPE_REWARDED_SURVEY]
+    )?.completions;
+    return !(completions || []).length;
+  }
+
+  if (action.type === InterventionType.TYPE_REWARDED_AD) {
+    if (
+      action.preference === PromptPreference.PREFERENCE_ADSENSE_REWARDED_AD
+    ) {
+      const adsbygoogle = deps.win().adsbygoogle;
+      if (!adsbygoogle?.loaded) {
+        deps
+          .eventManager()
+          .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_ADSENSE_FILTERED);
+        return false;
+      }
+    } else {
+      const googletag = deps.win().googletag;
+      if (!googletag?.getVersion()) {
+        deps
+          .eventManager()
+          .logSwgEvent(AnalyticsEvent.EVENT_REWARDED_AD_GPT_FILTERED);
+        return false;
+      }
+    }
+  }
+
+  return true;
 }

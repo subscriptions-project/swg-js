@@ -39,6 +39,8 @@ import {feArgs, feUrl} from './services';
 import {
   getContributionsUrl,
   getSubscriptionUrl,
+  getTimestamps,
+  isActionEligible,
   showAlreadyOptedInToast,
   startContributionPayFlow,
   startNativeFlow,
@@ -145,6 +147,10 @@ export class InlineCtaApi {
       action.type === InterventionType.TYPE_REWARDED_AD ||
       action.type === InterventionType.TYPE_BYO_CTA
     ) {
+      return;
+    }
+    const timestamps = await getTimestamps(this.deps_);
+    if (!isActionEligible(action, this.deps_, timestamps)) {
       return;
     }
     const urlPrefix = ActionToIframeMapping[action.type];
