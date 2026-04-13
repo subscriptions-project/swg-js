@@ -79,6 +79,7 @@ export function getContributionsUrl(
   clientConfig: ClientConfig,
   clientConfigManager: ClientConfigManager,
   pageConfig: PageConfig,
+  configurationId: string = '',
   isInlineCta: boolean = false
 ): string {
   if (!clientConfig.useUpdatedOfferFlows) {
@@ -97,6 +98,9 @@ export function getContributionsUrl(
   }
   if (isInlineCta) {
     params['ctaMode'] = INLINE_CTA_LABEL;
+  }
+  if (configurationId) {
+    params['configurationId'] = configurationId;
   }
 
   return feUrl('/contributionoffersiframe', params);
@@ -140,6 +144,7 @@ export function getSubscriptionUrl(
   clientConfigManager: ClientConfigManager,
   pageConfig: PageConfig,
   query: string,
+  configurationId: string = '',
   isInlineCta: boolean = false
 ): string {
   if (!clientConfig.useUpdatedOfferFlows) {
@@ -164,6 +169,10 @@ export function getSubscriptionUrl(
 
   if (isInlineCta) {
     params['ctaMode'] = INLINE_CTA_LABEL;
+  }
+
+  if (configurationId) {
+    params['configurationId'] = configurationId;
   }
 
   return feUrl('/subscriptionoffersiframe', params);
