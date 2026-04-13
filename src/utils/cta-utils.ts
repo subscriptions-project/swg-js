@@ -243,9 +243,32 @@ export async function getTimestamps(deps: Deps): Promise<ActionsTimestamps> {
     return {};
   }
 
-  try {
-    const timestamps: ActionsTimestamps = JSON.parse(stringified);
-    const isValid =
+  const timestamps: ActionsTimestamps = JSON.parse(stringified);
+  if (!isValidActionsTimestamps(timestamps)) {
+    deps
+      .eventManager()
+      .logSwgEvent(
+        AnalyticsEvent.EVENT_LOCAL_STORAGE_TIMESTAMPS_PARSING_ERROR
+      );
+    return {};
+  }
+  return Object.entries(timestamps).reduce(
+    (acc: ActionsTimestamps, [key, value]: [string, ActionTimestamps]) => {
+      return {
+        ...acc,
+        [key]: {
+          impressions: pruneTimestamps(value.impressions),
+          dismissals: pruneTimestamps(value.dismissals),
+          completions: pruneTimestamps(value.completions),
+        },
+      };
+    },
+    {}
+  );
+}
+
+function isValidActionsTimestamps(timestamps: ActionsTimestamps) {
+    return (
       timestamps instanceof Object &&
       !(timestamps instanceof Array) &&
       Object.values(
@@ -256,37 +279,9 @@ export async function getTimestamps(deps: Deps): Promise<ActionsTimestamps> {
             t.dismissals.every((n) => !isNaN(n)) &&
             t.completions.every((n) => !isNaN(n))
         )
-      ).every(Boolean);
-
-    if (!isValid) {
-      deps
-        .eventManager()
-        .logSwgEvent(
-          AnalyticsEvent.EVENT_LOCAL_STORAGE_TIMESTAMPS_PARSING_ERROR
-        );
-      return {};
-    }
-
-    return Object.entries(timestamps).reduce(
-      (acc: ActionsTimestamps, [key, value]: [string, ActionTimestamps]) => {
-        return {
-          ...acc,
-          [key]: {
-            impressions: pruneTimestamps(value.impressions),
-            dismissals: pruneTimestamps(value.dismissals),
-            completions: pruneTimestamps(value.completions),
-          },
-        };
-      },
-      {}
+      ).every(Boolean)
     );
-  } catch (e) {
-    deps
-      .eventManager()
-      .logSwgEvent(AnalyticsEvent.EVENT_LOCAL_STORAGE_TIMESTAMPS_PARSING_ERROR);
-    return {};
   }
-}
 
 /**
  * Checks AudienceAction eligbility, used to filter potential actions.
