@@ -238,6 +238,34 @@ describes.realWin('ContributionsFlow', (env) => {
     await contributionsFlow.start();
   });
 
+  it('passes configurationId to contributions iframe URL', async () => {
+    sandbox
+      .stub(runtime.clientConfigManager(), 'getClientConfig')
+      .resolves(new ClientConfig({useUpdatedOfferFlows: true}));
+    contributionsFlow = new ContributionsFlow(runtime, {
+      list: 'other',
+      configurationId: 'test-config-id',
+    });
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&publicationId=pub1&configurationId=test-config-id',
+        {
+          _client: 'SwG 0.0.0',
+          publicationId: 'pub1',
+          productId: 'pub1:label1',
+          'productType': ProductType.UI_CONTRIBUTION,
+          list: 'other',
+          skus: null,
+          isClosable: true,
+          supportsEventManager: true,
+        }
+      )
+      .resolves(port);
+    await contributionsFlow.start();
+  });
+
   it('constructs valid ContributionsFlow with forced language', async () => {
     const clientConfigManager = runtime.clientConfigManager();
     sandbox

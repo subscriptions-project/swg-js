@@ -99,6 +99,10 @@ export class OffersFlow {
       'isClosable': this.isClosable_,
     });
 
+    if (options?.configurationId !== undefined) {
+      feArgsObj['configurationId'] = options.configurationId;
+    }
+
     if (options?.oldSku) {
       feArgsObj['oldSku'] = options.oldSku;
       assert(feArgsObj['skus'], 'Need a sku list if old sku is provided!');
@@ -150,7 +154,8 @@ export class OffersFlow {
         clientConfig,
         this.clientConfigManager_,
         this.deps_.pageConfig(),
-        this.win_.location.hash
+        this.win_.location.hash,
+        args.configurationId
       ),
       args as {[key: string]: string},
       this.clientConfigManager_.getLanguage(),
