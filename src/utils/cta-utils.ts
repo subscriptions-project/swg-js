@@ -233,6 +233,10 @@ export function startNativeFlow(
   }
 }
 
+/**
+ * Fetches frequency capping timestamps from local storage for prompts.
+ * Timestamps are not necessarily sorted.
+ */
 export async function getTimestamps(deps: Deps): Promise<ActionsTimestamps> {
   const storage = deps.storage();
   const stringified = await storage.get(
@@ -243,28 +247,28 @@ export async function getTimestamps(deps: Deps): Promise<ActionsTimestamps> {
     return {};
   }
 
-  const timestamps: ActionsTimestamps = JSON.parse(stringified);
-  if (!isValidActionsTimestamps(timestamps)) {
-    deps
-      .eventManager()
-      .logSwgEvent(
-        AnalyticsEvent.EVENT_LOCAL_STORAGE_TIMESTAMPS_PARSING_ERROR
-      );
-    return {};
-  }
-  return Object.entries(timestamps).reduce(
-    (acc: ActionsTimestamps, [key, value]: [string, ActionTimestamps]) => {
-      return {
-        ...acc,
-        [key]: {
-          impressions: pruneTimestamps(value.impressions),
-          dismissals: pruneTimestamps(value.dismissals),
-          completions: pruneTimestamps(value.completions),
-        },
-      };
-    },
-    {}
-  );
+    const timestamps: ActionsTimestamps = JSON.parse(stringified);
+    if (!isValidActionsTimestamps(timestamps)) {
+      deps
+        .eventManager()
+        .logSwgEvent(
+          AnalyticsEvent.EVENT_LOCAL_STORAGE_TIMESTAMPS_PARSING_ERROR
+        );
+      return {};
+    }
+    return Object.entries(timestamps).reduce(
+      (acc: ActionsTimestamps, [key, value]: [string, ActionTimestamps]) => {
+        return {
+          ...acc,
+          [key]: {
+            impressions: pruneTimestamps(value.impressions),
+            dismissals: pruneTimestamps(value.dismissals),
+            completions: pruneTimestamps(value.completions),
+          },
+        };
+      },
+      {}
+    );
 }
 
 function isValidActionsTimestamps(timestamps: ActionsTimestamps) {

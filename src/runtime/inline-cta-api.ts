@@ -307,7 +307,7 @@ export class InlineCtaApi {
     }
 
     for (const element of elements) {
-      this.renderInlineCtaWithAttribute_(element, actions, clientConfig);
+      await this.renderInlineCtaWithAttribute_(element, actions, clientConfig);
     }
   }
 }

@@ -506,7 +506,7 @@ export class AutoPromptManager {
     }
 
     // Complete client-side eligibility checks for actions.
-    const actionsTimestamps = await this.getTimestamps();
+    const actionsTimestamps = await getTimestamps(this.deps_);
     const eligibleActionIds = new Set(
       eligibleActions
         .filter((action) =>
@@ -736,21 +736,13 @@ export class AutoPromptManager {
     this.storeEvent(analyticsEvent);
   }
 
-  /**
-   * Fetches frequency capping timestamps from local storage for prompts.
-   * Timestamps are not necessarily sorted.
-   */
-  async getTimestamps(): Promise<ActionsTimestamps> {
-    return getTimestamps(this.deps_);
-  }
-
   async setTimestamps(timestamps: ActionsTimestamps) {
     const json = JSON.stringify(timestamps);
     this.storage_.set(StorageKeys.TIMESTAMPS, json, /* useLocalStorage */ true);
   }
 
   async storeImpression(action: string): Promise<void> {
-    const timestamps = await this.getTimestamps();
+    const timestamps = await getTimestamps(this.deps_);
     const actionTimestamps = timestamps[action] || {
       impressions: [],
       dismissals: [],
@@ -773,7 +765,7 @@ export class AutoPromptManager {
   }
 
   async storeDismissal(action: string): Promise<void> {
-    const timestamps = await this.getTimestamps();
+    const timestamps = await getTimestamps(this.deps_);
     const actionTimestamps = timestamps[action] || {
       impressions: [],
       dismissals: [],
@@ -796,7 +788,7 @@ export class AutoPromptManager {
   }
 
   async storeCompletion(action: string): Promise<void> {
-    const timestamps = await this.getTimestamps();
+    const timestamps = await getTimestamps(this.deps_);
     const actionTimestamps = timestamps[action] || {
       impressions: [],
       dismissals: [],

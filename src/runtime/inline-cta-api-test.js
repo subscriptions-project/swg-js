@@ -602,6 +602,7 @@ describes.realWin('InlineCtaApi', (env) => {
         .expects('set')
         .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
         .once();
+      expectOpenIframe();
     });
 
     afterEach(() => {
@@ -612,7 +613,7 @@ describes.realWin('InlineCtaApi', (env) => {
     it('newsletter action on completion new sign up', async () => {
       win.document.body.appendChild(newsletterSnippet);
       const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
-      inlineCtaApi.renderInlineCtaWithAttribute_(newsletterSnippet, [
+      await inlineCtaApi.renderInlineCtaWithAttribute_(newsletterSnippet, [
         CONTRIBUTION_INTERVENTION,
         SURVEY_INTERVENTION,
         NEWSLETTER_INTERVENTION,
@@ -636,7 +637,7 @@ describes.realWin('InlineCtaApi', (env) => {
         .callsFake(function () {
           toast = this;
         });
-      inlineCtaApi.renderInlineCtaWithAttribute_(newsletterSnippet, [
+      await inlineCtaApi.renderInlineCtaWithAttribute_(newsletterSnippet, [
         CONTRIBUTION_INTERVENTION,
         SURVEY_INTERVENTION,
         NEWSLETTER_INTERVENTION,

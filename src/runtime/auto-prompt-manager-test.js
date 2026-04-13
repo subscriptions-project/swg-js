@@ -32,6 +32,7 @@ import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
 import {StorageKeys} from '../utils/constants';
 import {XhrFetcher} from './fetcher';
+import {getTimestamps} from '../utils/cta-utils';
 import sinon from 'sinon';
 
 const CURRENT_TIME = 1615416442; // GMT: Wednesday, March 10, 2021 10:47:22 PM
@@ -226,7 +227,7 @@ describes.realWin('AutoPromptManager', (env) => {
           completions: [CURRENT_TIME],
         },
       });
-      const timestamps = await autoPromptManager.getTimestamps();
+      const timestamps = await getTimestamps(autoPromptManager.deps_);
       expect(JSON.stringify(timestamps)).to.equal(
         JSON.stringify({
           'TYPE_CONTRIBUTION': {
