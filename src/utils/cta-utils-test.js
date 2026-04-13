@@ -33,6 +33,8 @@ import {XhrFetcher} from '../runtime/fetcher';
 import {
   getContributionsUrl,
   getSubscriptionUrl,
+  getTimestamps,
+  isActionEligible,
   showAlreadyOptedInToast,
   startContributionPayFlow,
   startSubscriptionPayFlow,
@@ -542,6 +544,254 @@ describes.realWin('CTA utils', (env) => {
       expect(result).to.equal(
         'https://news.google.com/swg/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&configurationId=test_config_id'
       );
+    });
+  });
+
+  describe('isActionEligible', () => {
+    let eventManagerStub;
+
+    beforeEach(() => {
+      eventManagerStub = {
+        logSwgEvent: sandbox.stub(),
+      };
+      sandbox.stub(deps, 'eventManager').returns(eventManagerStub);
+    });
+
+    it('Survey is eligible when gTag logging is eligible', () => {
+      win.gtag = () => {};
+      delete win.ga;
+      delete win.dataLayer;
+
+      const isEligible = isActionEligible(
+        {type: 'TYPE_REWARDED_SURVEY'},
+        deps,
+        {}
+      );
+
+      expect(isEligible).to.be.true;
+    });
+
+    it('Survey is eligible when GA logging is eligible', () => {
+      win.ga = () => {};
+      delete win.gtag;
+      delete win.dataLayer;
+
+      const isEligible = isActionEligible(
+        {type: 'TYPE_REWARDED_SURVEY'},
+        deps,
+        {}
+      );
+
+      expect(isEligible).to.be.true;
+    });
+
+    it('Survey is eligible when GTM logging is eligible', () => {
+      win.dataLayer = [];
+      delete win.ga;
+      delete win.gtag;
+
+      const isEligible = isActionEligible(
+        {type: 'TYPE_REWARDED_SURVEY'},
+        deps,
+        {}
+      );
+
+      expect(isEligible).to.be.true;
+    });
+
+    it('Survey is not eligible when no Analytics logging is eligible', () => {
+      delete win.gtag;
+      delete win.ga;
+      delete win.dataLayer;
+
+      const isEligible = isActionEligible(
+        {type: 'TYPE_REWARDED_SURVEY'},
+        deps,
+        {}
+      );
+
+      expect(isEligible).to.be.false;
+    });
+
+    it('Survey is not eligible when there are previous completions', () => {
+      const isEligible = isActionEligible(
+        {type: 'TYPE_REWARDED_SURVEY'},
+        deps,
+        {
+          'TYPE_REWARDED_SURVEY': {
+            'impressions': [],
+            'dismissals': [],
+            'completions': [123456789],
+          },
+        }
+      );
+
+      expect(isEligible).to.be.false;
+    });
+
+    it('Rewarded ad is not eligible when googletag is not available', () => {
+      win.googletag = undefined;
+
+      const isEligible = isActionEligible(
+        {type: 'TYPE_REWARDED_AD'},
+        deps,
+        {}
+      );
+
+      expect(isEligible).to.be.false;
+      expect(eventManagerStub.logSwgEvent).to.be.calledWith(
+        AnalyticsEvent.EVENT_REWARDED_AD_GPT_FILTERED
+      );
+    });
+
+    it('Rewarded ad is not eligible when fake googletag api is available', () => {
+      win.googletag = {
+        apiReady: true,
+        getVersion: () => '',
+      };
+
+      const isEligible = isActionEligible(
+        {type: 'TYPE_REWARDED_AD'},
+        deps,
+        {}
+      );
+
+      expect(isEligible).to.be.false;
+      expect(eventManagerStub.logSwgEvent).to.be.calledWith(
+        AnalyticsEvent.EVENT_REWARDED_AD_GPT_FILTERED
+      );
+    });
+
+    it('Rewarded ad is eligible when googletag available', () => {
+      win.googletag = {
+        apiReady: true,
+        getVersion: () => 'foo',
+      };
+
+      const isEligible = isActionEligible(
+        {type: 'TYPE_REWARDED_AD'},
+        deps,
+        {}
+      );
+
+      expect(isEligible).to.be.true;
+      expect(eventManagerStub.logSwgEvent).to.not.be.called;
+    });
+
+    it('Rewarded ad with adsense is not eligible when adsbygoogle is not available', () => {
+      win.adsbygoogle = undefined;
+
+      const isEligible = isActionEligible(
+        {
+          type: 'TYPE_REWARDED_AD',
+          preference: 'PREFERENCE_ADSENSE_REWARDED_AD',
+        },
+        deps,
+        {}
+      );
+
+      expect(isEligible).to.be.false;
+      expect(eventManagerStub.logSwgEvent).to.be.calledWith(
+        AnalyticsEvent.EVENT_REWARDED_AD_ADSENSE_FILTERED
+      );
+    });
+
+    it('Rewarded ad with adsense is eligible when adsbygoogle is available', () => {
+      win.adsbygoogle = {loaded: true};
+
+      const isEligible = isActionEligible(
+        {
+          type: 'TYPE_REWARDED_AD',
+          preference: 'PREFERENCE_ADSENSE_REWARDED_AD',
+        },
+        deps,
+        {}
+      );
+
+      expect(isEligible).to.be.true;
+      expect(eventManagerStub.logSwgEvent).to.not.be.called;
+    });
+  });
+
+  describe('getTimestamps', () => {
+    let storageMock;
+    let eventManagerStub;
+
+    beforeEach(() => {
+      storageMock = {
+        get: sandbox.stub(),
+      };
+      sandbox.stub(deps, 'storage').returns(storageMock);
+
+      eventManagerStub = {
+        logSwgEvent: sandbox.stub(),
+      };
+      sandbox.stub(deps, 'eventManager').returns(eventManagerStub);
+    });
+
+    [
+      '12345',
+      'this is a string',
+      '[]',
+      JSON.stringify({
+        'TYPE_CONTRIBUTION': {},
+      }),
+      JSON.stringify({
+        'TYPE_CONTRIBUTION': {
+          impressions: [55555, 99999],
+        },
+      }),
+      JSON.stringify({
+        'TYPE_CONTRIBUTION': {
+          impressions: [55555, 99999],
+          dismissals: [0, 'not a timestamps'],
+          completions: [],
+        },
+      }),
+      JSON.stringify({
+        'TYPE_CONTRIBUTION': {
+          impressions: [55555, 99999],
+          dismissals: [0],
+          completions: [],
+          extraField: [],
+        },
+      }),
+      JSON.stringify({
+        'TYPE_CONTRIBUTION': {
+          impressions: [55555, 99999],
+          dismissals: [0],
+          completions: [],
+        },
+        'TYPE WITH EMPTY TIMESTAMPS': {},
+      }),
+    ].forEach((timestamps, index) => {
+      it(`should return empty object for invalid timestamps - case ${index}`, async () => {
+        storageMock.get.resolves(timestamps);
+
+        const result = await getTimestamps(deps);
+
+        expect(result).to.deep.equal({});
+        expect(eventManagerStub.logSwgEvent).to.be.calledWith(
+          AnalyticsEvent.EVENT_LOCAL_STORAGE_TIMESTAMPS_PARSING_ERROR
+        );
+      });
+    });
+
+    it('should return valid object for valid timestamps', async () => {
+      const now = Date.now();
+      const validTimestamps = {
+        'TYPE_CONTRIBUTION': {
+          impressions: [now],
+          dismissals: [now],
+          completions: [now],
+        },
+      };
+      storageMock.get.resolves(JSON.stringify(validTimestamps));
+
+      const result = await getTimestamps(deps);
+
+      expect(result).to.deep.equal(validTimestamps);
+      expect(eventManagerStub.logSwgEvent).to.not.be.called;
     });
   });
 });
