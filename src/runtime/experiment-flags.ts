@@ -49,4 +49,9 @@ export enum ArticleExperimentFlags {
    * contribution CTA to render "purchase not available").
    */
   ALWAYS_SHOW_BLOCKING_CONTRIBUTION_EXPERIMENT = 'bcontrib_experiment',
+
+  /**
+   * Experiment flag for multi-instance monetary CTA.
+   */
+  MULTI_INSTANCE_MONETARY_CTA_EXPERIMENT = 'multi_instance_monetary_cta_exp',
 }
