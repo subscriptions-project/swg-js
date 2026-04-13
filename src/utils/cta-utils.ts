@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import {ActionTimestamps, ActionsTimestamps} from './frequency-capping-utils';
 import {
   AnalyticsEvent,
   CtaMode,
@@ -24,22 +25,18 @@ import {
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from '../runtime/client-config-manager';
 import {Deps} from '../runtime/deps';
+import {GoogleAnalyticsEventListener} from '../runtime/google-analytics-event-listener';
 import {I18N_STRINGS} from '../i18n/strings';
+import {Intervention, PromptPreference} from '../runtime/intervention';
+import {InterventionType} from '../api/intervention-type';
 import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from '../runtime/pay-flow';
 import {ProductType, SubscriptionRequest} from '../api/subscriptions';
+import {StorageKeys} from './constants';
 import {Toast} from '../ui/toast';
 import {feUrl} from '../runtime/services';
 import {msg} from './i18n';
 import {parseQueryString} from './url';
-import {
-  ActionTimestamps,
-  ActionsTimestamps,
-} from './frequency-capping-utils';
-import {GoogleAnalyticsEventListener} from '../runtime/google-analytics-event-listener';
-import {Intervention, PromptPreference} from '../runtime/intervention';
-import {InterventionType} from '../api/intervention-type';
-import {StorageKeys} from './constants';
 import {pruneTimestamps} from '../runtime/storage';
 
 const INLINE_CTA_LABEL = 'CTA_MODE_INLINE';
@@ -286,9 +283,7 @@ export async function getTimestamps(deps: Deps): Promise<ActionsTimestamps> {
   } catch (e) {
     deps
       .eventManager()
-      .logSwgEvent(
-        AnalyticsEvent.EVENT_LOCAL_STORAGE_TIMESTAMPS_PARSING_ERROR
-      );
+      .logSwgEvent(AnalyticsEvent.EVENT_LOCAL_STORAGE_TIMESTAMPS_PARSING_ERROR);
     return {};
   }
 }
@@ -318,9 +313,7 @@ export function isActionEligible(
   }
 
   if (action.type === InterventionType.TYPE_REWARDED_AD) {
-    if (
-      action.preference === PromptPreference.PREFERENCE_ADSENSE_REWARDED_AD
-    ) {
+    if (action.preference === PromptPreference.PREFERENCE_ADSENSE_REWARDED_AD) {
       const adsbygoogle = deps.win().adsbygoogle;
       if (!adsbygoogle?.loaded) {
         deps

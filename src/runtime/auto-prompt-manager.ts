@@ -48,8 +48,8 @@ import {OffersRequest} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
 import {StorageKeys} from '../utils/constants';
-import {getTimestamps, isActionEligible} from '../utils/cta-utils';
 import {assert} from '../utils/log';
+import {getTimestamps, isActionEligible} from '../utils/cta-utils';
 
 const SECOND_IN_MILLIS = 1000;
 
@@ -857,8 +857,6 @@ export class AutoPromptManager {
   private isInDemoMode_(): boolean {
     return this.isInDevMode_ || this.shouldRenderOnsitePreview_;
   }
-
-
 
   /**
    * Checks Intervention eligibility, used to filter interventions in a given

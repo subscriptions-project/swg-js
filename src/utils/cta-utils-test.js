@@ -632,11 +632,7 @@ describes.realWin('CTA utils', (env) => {
     it('Rewarded ad is not eligible when googletag is not available', () => {
       win.googletag = undefined;
 
-      const isEligible = isActionEligible(
-        {type: 'TYPE_REWARDED_AD'},
-        deps,
-        {}
-      );
+      const isEligible = isActionEligible({type: 'TYPE_REWARDED_AD'}, deps, {});
 
       expect(isEligible).to.be.false;
       expect(eventManagerStub.logSwgEvent).to.be.calledWith(
@@ -650,11 +646,7 @@ describes.realWin('CTA utils', (env) => {
         getVersion: () => '',
       };
 
-      const isEligible = isActionEligible(
-        {type: 'TYPE_REWARDED_AD'},
-        deps,
-        {}
-      );
+      const isEligible = isActionEligible({type: 'TYPE_REWARDED_AD'}, deps, {});
 
       expect(isEligible).to.be.false;
       expect(eventManagerStub.logSwgEvent).to.be.calledWith(
@@ -668,11 +660,7 @@ describes.realWin('CTA utils', (env) => {
         getVersion: () => 'foo',
       };
 
-      const isEligible = isActionEligible(
-        {type: 'TYPE_REWARDED_AD'},
-        deps,
-        {}
-      );
+      const isEligible = isActionEligible({type: 'TYPE_REWARDED_AD'}, deps, {});
 
       expect(isEligible).to.be.true;
       expect(eventManagerStub.logSwgEvent).to.not.be.called;
