@@ -247,45 +247,56 @@ export async function getTimestamps(deps: Deps): Promise<ActionsTimestamps> {
     return {};
   }
 
-    const timestamps: ActionsTimestamps = JSON.parse(stringified);
-    if (!isValidActionsTimestamps(timestamps)) {
-      deps
-        .eventManager()
-        .logSwgEvent(
-          AnalyticsEvent.EVENT_LOCAL_STORAGE_TIMESTAMPS_PARSING_ERROR
-        );
-      return {};
-    }
-    return Object.entries(timestamps).reduce(
-      (acc: ActionsTimestamps, [key, value]: [string, ActionTimestamps]) => {
-        return {
-          ...acc,
-          [key]: {
-            impressions: pruneTimestamps(value.impressions),
-            dismissals: pruneTimestamps(value.dismissals),
-            completions: pruneTimestamps(value.completions),
-          },
-        };
-      },
-      {}
-    );
+  let timestamps: ActionsTimestamps;
+  try {
+    timestamps = JSON.parse(stringified);
+  } catch (e) {
+    deps
+      .eventManager()
+      .logSwgEvent(
+        AnalyticsEvent.EVENT_LOCAL_STORAGE_TIMESTAMPS_PARSING_ERROR
+      );
+    return {};
+  }
+
+  if (!isValidActionsTimestamps(timestamps)) {
+    deps
+      .eventManager()
+      .logSwgEvent(
+        AnalyticsEvent.EVENT_LOCAL_STORAGE_TIMESTAMPS_PARSING_ERROR
+      );
+    return {};
+  }
+  return Object.entries(timestamps).reduce(
+    (acc: ActionsTimestamps, [key, value]: [string, ActionTimestamps]) => {
+      return {
+        ...acc,
+        [key]: {
+          impressions: pruneTimestamps(value.impressions),
+          dismissals: pruneTimestamps(value.dismissals),
+          completions: pruneTimestamps(value.completions),
+        },
+      };
+    },
+    {}
+  );
 }
 
 function isValidActionsTimestamps(timestamps: ActionsTimestamps) {
-    return (
-      timestamps instanceof Object &&
-      !(timestamps instanceof Array) &&
-      Object.values(
-        Object.values(timestamps).map(
-          (t) =>
-            Object.keys(t).length === 3 &&
-            t.impressions.every((n) => !isNaN(n)) &&
-            t.dismissals.every((n) => !isNaN(n)) &&
-            t.completions.every((n) => !isNaN(n))
-        )
-      ).every(Boolean)
-    );
-  }
+  return (
+    timestamps instanceof Object &&
+    !(timestamps instanceof Array) &&
+    Object.values(
+      Object.values(timestamps).map(
+        (t) =>
+          Object.keys(t).length === 3 &&
+          t.impressions.every((n) => !isNaN(n)) &&
+          t.dismissals.every((n) => !isNaN(n)) &&
+          t.completions.every((n) => !isNaN(n))
+      )
+    ).every(Boolean)
+  );
+}
 
 /**
  * Checks AudienceAction eligbility, used to filter potential actions.
@@ -304,6 +315,9 @@ export function isActionEligible(
       return false;
     }
 
+    // Do not show survey if there is a previous completion record. 
+    // Client side eligibility is required to handle identity transitions 
+    // after sign-in flow.
     const completions = (
       timestamps[action.configurationId!] ||
       timestamps[InterventionType.TYPE_REWARDED_SURVEY]
@@ -311,6 +325,7 @@ export function isActionEligible(
     return !(completions || []).length;
   }
 
+  // NOTE: passing these checks does not mean the APIs are always available.
   if (action.type === InterventionType.TYPE_REWARDED_AD) {
     if (action.preference === PromptPreference.PREFERENCE_ADSENSE_REWARDED_AD) {
       const adsbygoogle = deps.win().adsbygoogle;
@@ -322,6 +337,7 @@ export function isActionEligible(
       }
     } else {
       const googletag = deps.win().googletag;
+      // Because this happens after the article call, googletag should have had enough time to set up
       if (!googletag?.getVersion()) {
         deps
           .eventManager()
