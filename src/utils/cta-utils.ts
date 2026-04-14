@@ -253,18 +253,14 @@ export async function getTimestamps(deps: Deps): Promise<ActionsTimestamps> {
   } catch (e) {
     deps
       .eventManager()
-      .logSwgEvent(
-        AnalyticsEvent.EVENT_LOCAL_STORAGE_TIMESTAMPS_PARSING_ERROR
-      );
+      .logSwgEvent(AnalyticsEvent.EVENT_LOCAL_STORAGE_TIMESTAMPS_PARSING_ERROR);
     return {};
   }
 
   if (!isValidActionsTimestamps(timestamps)) {
     deps
       .eventManager()
-      .logSwgEvent(
-        AnalyticsEvent.EVENT_LOCAL_STORAGE_TIMESTAMPS_PARSING_ERROR
-      );
+      .logSwgEvent(AnalyticsEvent.EVENT_LOCAL_STORAGE_TIMESTAMPS_PARSING_ERROR);
     return {};
   }
   return Object.entries(timestamps).reduce(
@@ -315,8 +311,8 @@ export function isActionEligible(
       return false;
     }
 
-    // Do not show survey if there is a previous completion record. 
-    // Client side eligibility is required to handle identity transitions 
+    // Do not show survey if there is a previous completion record.
+    // Client side eligibility is required to handle identity transitions
     // after sign-in flow.
     const completions = (
       timestamps[action.configurationId!] ||
