@@ -290,6 +290,39 @@ describes.realWin('InlineCtaApi', (env) => {
       expect(iframe).to.equal(null);
     });
 
+    it('should not render CTA if action is not eligible', async () => {
+      const surveySnippet = createElement(win.document, 'div', {
+        'rrm-inline-cta': SURVEY_INTERVENTION.configurationId,
+      });
+      win.document.body.append(surveySnippet);
+      setEntitlements();
+      setArticleResponse([SURVEY_INTERVENTION]);
+      const mockTimestamps = {
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [],
+          dismissals: [],
+          completions: [],
+        },
+      };
+      const getTimestampsStub = sandbox
+        .stub(CtaUtils, 'getTimestamps')
+        .resolves(mockTimestamps);
+      const isActionEligibleStub = sandbox
+        .stub(CtaUtils, 'isActionEligible')
+        .returns(false);
+
+      await inlineCtaApi.attachInlineCtasWithAttribute({});
+
+      expect(getTimestampsStub).to.be.calledOnce;
+      expect(isActionEligibleStub).to.be.calledWith(
+        SURVEY_INTERVENTION,
+        deps,
+        mockTimestamps
+      );
+      const iframe = win.document.querySelector('iframe');
+      expect(iframe).to.equal(null);
+    });
+
     it('should render CTA if action is active', async () => {
       setEntitlements();
       setArticleResponse([
@@ -602,6 +635,7 @@ describes.realWin('InlineCtaApi', (env) => {
         .expects('set')
         .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
         .once();
+      expectOpenIframe();
     });
 
     afterEach(() => {
@@ -612,7 +646,7 @@ describes.realWin('InlineCtaApi', (env) => {
     it('newsletter action on completion new sign up', async () => {
       win.document.body.appendChild(newsletterSnippet);
       const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
-      inlineCtaApi.renderInlineCtaWithAttribute_(newsletterSnippet, [
+      await inlineCtaApi.renderInlineCtaWithAttribute_(newsletterSnippet, [
         CONTRIBUTION_INTERVENTION,
         SURVEY_INTERVENTION,
         NEWSLETTER_INTERVENTION,
@@ -636,7 +670,7 @@ describes.realWin('InlineCtaApi', (env) => {
         .callsFake(function () {
           toast = this;
         });
-      inlineCtaApi.renderInlineCtaWithAttribute_(newsletterSnippet, [
+      await inlineCtaApi.renderInlineCtaWithAttribute_(newsletterSnippet, [
         CONTRIBUTION_INTERVENTION,
         SURVEY_INTERVENTION,
         NEWSLETTER_INTERVENTION,
