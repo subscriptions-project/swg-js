@@ -471,6 +471,42 @@ describes.realWin('InlineCtaApi', (env) => {
       await inlineCtaApi.attachInlineCtasWithAttribute({});
     });
 
+    it('opens iframe with configurationId when experiment enabled', async () => {
+      const element = sandbox.match((arg) => arg.tagName == 'IFRAME');
+      const resultUrl =
+        'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&publicationId=pub1&ctaMode=CTA_MODE_INLINE&configurationId=contribution_config_id';
+      const resultArgs = {
+        'productId': productId,
+        'publicationId': pubId,
+        'productType': 'UI_CONTRIBUTION',
+        'list': 'default',
+        'skus': null,
+        'isClosable': false,
+        'supportsEventManager': true,
+        _client: 'SwG 0.0.0',
+      };
+
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [CONTRIBUTION_INTERVENTION],
+            engineId: '123',
+          },
+          experimentConfig: {
+            experimentFlags: ['multi_instance_monetary_cta_exp'],
+          },
+        })
+        .once();
+
+      callbacksMock.expects('triggerFlowStarted').once();
+      activitiesMock
+        .expects('openIframe')
+        .withExactArgs(element, resultUrl, resultArgs)
+        .resolves(port);
+
+      await inlineCtaApi.attachInlineCtasWithAttribute({});
+    });
+
     it('handles flow cancellation', async () => {
       activitiesMock.expects('openIframe').resolves(port);
 
@@ -564,6 +600,45 @@ describes.realWin('InlineCtaApi', (env) => {
         })
         .returns(resultArgs)
         .once();
+      activitiesMock
+        .expects('openIframe')
+        .withExactArgs(element, resultUrl, resultArgs)
+        .resolves(port);
+
+      await inlineCtaApi.attachInlineCtasWithAttribute({});
+    });
+
+    it('opens iframe for subscription with configurationId when experiment enabled', async () => {
+      const element = sandbox.match((arg) => arg.tagName == 'IFRAME');
+      const resultUrl =
+        'https://news.google.com/swg/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&ctaMode=CTA_MODE_INLINE&configurationId=subscription_config_id';
+      const resultArgs = {
+        'analyticsContext': [],
+        'publicationId': pubId,
+        'productId': productId,
+        '_client': 'SwG 0.0.0',
+        'supportsEventManager': true,
+        showNative: false,
+        productType: 'SUBSCRIPTION',
+        list: 'default',
+        skus: null,
+        isClosable: false,
+      };
+
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [SUBSCRIPTION_INTERVENTION],
+            engineId: '123',
+          },
+          experimentConfig: {
+            experimentFlags: ['multi_instance_monetary_cta_exp'],
+          },
+        })
+        .once();
+
+      callbacksMock.expects('triggerFlowStarted').once();
+      activitiesMock.expects('addDefaultArguments').returns(resultArgs).once();
       activitiesMock
         .expects('openIframe')
         .withExactArgs(element, resultUrl, resultArgs)

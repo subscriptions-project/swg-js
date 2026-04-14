@@ -17,6 +17,8 @@
 import {ActionToIframeMapping, parseUrl} from '../utils/url';
 import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {ActivityPorts} from '../components/activities';
+import {Article, EntitlementsManager} from './entitlements-manager';
+import {ArticleExperimentFlags} from './experiment-flags';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {
@@ -28,7 +30,7 @@ import {
 } from '../proto/api_messages';
 import {Deps} from './deps';
 import {Doc} from '../model/doc';
-import {EntitlementsManager} from './entitlements-manager';
+
 import {Intervention} from './intervention';
 import {InterventionType} from '../api/intervention-type';
 import {ProductType, SubscriptionFlows} from '../api/subscriptions';
@@ -123,8 +125,16 @@ export class InlineCtaApi {
   private async renderInlineCtaWithAttribute_(
     div: HTMLElement,
     actions: Intervention[],
-    clientConfig: ClientConfig
+    clientConfig: ClientConfig,
+    article?: Article
   ) {
+    const articleExpFlags = article
+      ? this.entitlementsManager_.parseArticleExperimentConfigFlags(article)
+      : [];
+    const multiInstanceMonetaryCtaExperiment = articleExpFlags.includes(
+      ArticleExperimentFlags.MULTI_INSTANCE_MONETARY_CTA_EXPERIMENT
+    );
+
     // return if config id is not set in inline CTA code snippet and remove double quotation mark if wrapped around config id..
     const configId = div
       .getAttribute(INLINE_CTA_ATTRIUBUTE)
@@ -161,7 +171,9 @@ export class InlineCtaApi {
             this.clientConfigManager_,
             this.deps_.pageConfig(),
             this.win_.location.hash,
-            /* configurationId */ '',
+            /* configurationId */ multiInstanceMonetaryCtaExperiment
+              ? configId
+              : '',
             /* isInlineCta */ true
           )
         : action.type === InterventionType.TYPE_CONTRIBUTION
@@ -169,7 +181,9 @@ export class InlineCtaApi {
               clientConfig,
               this.clientConfigManager_,
               this.deps_.pageConfig(),
-              /* configurationId */ '',
+              /* configurationId */ multiInstanceMonetaryCtaExperiment
+                ? configId
+                : '',
               /* isInlineCta */ true
             )
           : this.getUrl_(urlPrefix, configId);
@@ -307,7 +321,12 @@ export class InlineCtaApi {
     }
 
     for (const element of elements) {
-      await this.renderInlineCtaWithAttribute_(element, actions, clientConfig);
+      await this.renderInlineCtaWithAttribute_(
+        element,
+        actions,
+        clientConfig,
+        article
+      );
     }
   }
 }
