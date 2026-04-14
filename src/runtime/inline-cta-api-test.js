@@ -290,6 +290,39 @@ describes.realWin('InlineCtaApi', (env) => {
       expect(iframe).to.equal(null);
     });
 
+    it('should not render CTA if action is not eligible', async () => {
+      const surveySnippet = createElement(win.document, 'div', {
+        'rrm-inline-cta': SURVEY_INTERVENTION.configurationId,
+      });
+      win.document.body.append(surveySnippet);
+      setEntitlements();
+      setArticleResponse([SURVEY_INTERVENTION]);
+      const mockTimestamps = {
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [],
+          dismissals: [],
+          completions: [],
+        },
+      };
+      const getTimestampsStub = sandbox
+        .stub(CtaUtils, 'getTimestamps')
+        .resolves(mockTimestamps);
+      const isActionEligibleStub = sandbox
+        .stub(CtaUtils, 'isActionEligible')
+        .returns(false);
+
+      await inlineCtaApi.attachInlineCtasWithAttribute({});
+
+      expect(getTimestampsStub).to.be.calledOnce;
+      expect(isActionEligibleStub).to.be.calledWith(
+        SURVEY_INTERVENTION,
+        deps,
+        mockTimestamps
+      );
+      const iframe = win.document.querySelector('iframe');
+      expect(iframe).to.equal(null);
+    });
+
     it('should render CTA if action is active', async () => {
       setEntitlements();
       setArticleResponse([
