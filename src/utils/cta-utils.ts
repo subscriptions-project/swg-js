@@ -250,7 +250,7 @@ export async function getTimestamps(deps: Deps): Promise<ActionsTimestamps> {
   let timestamps: ActionsTimestamps;
   try {
     timestamps = JSON.parse(stringified);
-  } catch (e) {
+  } catch {
     deps
       .eventManager()
       .logSwgEvent(AnalyticsEvent.EVENT_LOCAL_STORAGE_TIMESTAMPS_PARSING_ERROR);
