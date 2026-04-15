@@ -290,6 +290,39 @@ describes.realWin('InlineCtaApi', (env) => {
       expect(iframe).to.equal(null);
     });
 
+    it('should not render CTA if action is not eligible', async () => {
+      const surveySnippet = createElement(win.document, 'div', {
+        'rrm-inline-cta': SURVEY_INTERVENTION.configurationId,
+      });
+      win.document.body.append(surveySnippet);
+      setEntitlements();
+      setArticleResponse([SURVEY_INTERVENTION]);
+      const mockTimestamps = {
+        'TYPE_REWARDED_SURVEY': {
+          impressions: [],
+          dismissals: [],
+          completions: [],
+        },
+      };
+      const getTimestampsStub = sandbox
+        .stub(CtaUtils, 'getTimestamps')
+        .resolves(mockTimestamps);
+      const isActionEligibleStub = sandbox
+        .stub(CtaUtils, 'isActionEligible')
+        .returns(false);
+
+      await inlineCtaApi.attachInlineCtasWithAttribute({});
+
+      expect(getTimestampsStub).to.be.calledOnce;
+      expect(isActionEligibleStub).to.be.calledWith(
+        SURVEY_INTERVENTION,
+        deps,
+        mockTimestamps
+      );
+      const iframe = win.document.querySelector('iframe');
+      expect(iframe).to.equal(null);
+    });
+
     it('should render CTA if action is active', async () => {
       setEntitlements();
       setArticleResponse([
@@ -438,6 +471,42 @@ describes.realWin('InlineCtaApi', (env) => {
       await inlineCtaApi.attachInlineCtasWithAttribute({});
     });
 
+    it('opens iframe with configurationId when experiment enabled', async () => {
+      const element = sandbox.match((arg) => arg.tagName == 'IFRAME');
+      const resultUrl =
+        'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&publicationId=pub1&ctaMode=CTA_MODE_INLINE&configurationId=contribution_config_id';
+      const resultArgs = {
+        'productId': productId,
+        'publicationId': pubId,
+        'productType': 'UI_CONTRIBUTION',
+        'list': 'default',
+        'skus': null,
+        'isClosable': false,
+        'supportsEventManager': true,
+        _client: 'SwG 0.0.0',
+      };
+
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [CONTRIBUTION_INTERVENTION],
+            engineId: '123',
+          },
+          experimentConfig: {
+            experimentFlags: ['multi_instance_monetary_cta_exp'],
+          },
+        })
+        .once();
+
+      callbacksMock.expects('triggerFlowStarted').once();
+      activitiesMock
+        .expects('openIframe')
+        .withExactArgs(element, resultUrl, resultArgs)
+        .resolves(port);
+
+      await inlineCtaApi.attachInlineCtasWithAttribute({});
+    });
+
     it('handles flow cancellation', async () => {
       activitiesMock.expects('openIframe').resolves(port);
 
@@ -539,6 +608,45 @@ describes.realWin('InlineCtaApi', (env) => {
       await inlineCtaApi.attachInlineCtasWithAttribute({});
     });
 
+    it('opens iframe for subscription with configurationId when experiment enabled', async () => {
+      const element = sandbox.match((arg) => arg.tagName == 'IFRAME');
+      const resultUrl =
+        'https://news.google.com/swg/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&ctaMode=CTA_MODE_INLINE&configurationId=subscription_config_id';
+      const resultArgs = {
+        'analyticsContext': [],
+        'publicationId': pubId,
+        'productId': productId,
+        '_client': 'SwG 0.0.0',
+        'supportsEventManager': true,
+        showNative: false,
+        productType: 'SUBSCRIPTION',
+        list: 'default',
+        skus: null,
+        isClosable: false,
+      };
+
+      getArticleExpectation
+        .resolves({
+          audienceActions: {
+            actions: [SUBSCRIPTION_INTERVENTION],
+            engineId: '123',
+          },
+          experimentConfig: {
+            experimentFlags: ['multi_instance_monetary_cta_exp'],
+          },
+        })
+        .once();
+
+      callbacksMock.expects('triggerFlowStarted').once();
+      activitiesMock.expects('addDefaultArguments').returns(resultArgs).once();
+      activitiesMock
+        .expects('openIframe')
+        .withExactArgs(element, resultUrl, resultArgs)
+        .resolves(port);
+
+      await inlineCtaApi.attachInlineCtasWithAttribute({});
+    });
+
     it('handles flow cancellation', async () => {
       activitiesMock.expects('addDefaultArguments').returns({}).once();
       activitiesMock.expects('openIframe').resolves(port);
@@ -602,6 +710,7 @@ describes.realWin('InlineCtaApi', (env) => {
         .expects('set')
         .withExactArgs(StorageKeys.READ_TIME, EXPECTED_TIME_STRING, false)
         .once();
+      expectOpenIframe();
     });
 
     afterEach(() => {
@@ -612,7 +721,7 @@ describes.realWin('InlineCtaApi', (env) => {
     it('newsletter action on completion new sign up', async () => {
       win.document.body.appendChild(newsletterSnippet);
       const toastOpenStub = sandbox.stub(Toast.prototype, 'open');
-      inlineCtaApi.renderInlineCtaWithAttribute_(newsletterSnippet, [
+      await inlineCtaApi.renderInlineCtaWithAttribute_(newsletterSnippet, [
         CONTRIBUTION_INTERVENTION,
         SURVEY_INTERVENTION,
         NEWSLETTER_INTERVENTION,
@@ -636,7 +745,7 @@ describes.realWin('InlineCtaApi', (env) => {
         .callsFake(function () {
           toast = this;
         });
-      inlineCtaApi.renderInlineCtaWithAttribute_(newsletterSnippet, [
+      await inlineCtaApi.renderInlineCtaWithAttribute_(newsletterSnippet, [
         CONTRIBUTION_INTERVENTION,
         SURVEY_INTERVENTION,
         NEWSLETTER_INTERVENTION,

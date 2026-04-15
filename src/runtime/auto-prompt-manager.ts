@@ -15,7 +15,6 @@
  */
 
 import {
-  ActionTimestamps,
   ActionsTimestamps,
   getFrequencyCappedOrchestration,
 } from '../utils/frequency-capping-utils';
@@ -42,15 +41,15 @@ import {ConfiguredRuntime} from './runtime';
 import {Deps} from './deps';
 import {Doc} from '../model/doc';
 import {Entitlements} from '../api/entitlements';
-import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {Intervention, PromptPreference} from './intervention';
 import {InterventionType} from '../api/intervention-type';
 import {MiniPromptApi} from './mini-prompt-api';
 import {OffersRequest} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
-import {Storage, pruneTimestamps} from './storage';
+import {Storage} from './storage';
 import {StorageKeys} from '../utils/constants';
 import {assert} from '../utils/log';
+import {getTimestamps, isActionEligible} from '../utils/cta-utils';
 
 const SECOND_IN_MILLIS = 1000;
 
@@ -507,11 +506,11 @@ export class AutoPromptManager {
     }
 
     // Complete client-side eligibility checks for actions.
-    const actionsTimestamps = await this.getTimestamps();
+    const actionsTimestamps = await getTimestamps(this.deps_);
     const eligibleActionIds = new Set(
       eligibleActions
         .filter((action) =>
-          this.checkActionEligibility_(action, actionsTimestamps!)
+          isActionEligible(action, this.deps_, actionsTimestamps!)
         )
         .map((action) => action.configurationId)
     );
@@ -737,64 +736,13 @@ export class AutoPromptManager {
     this.storeEvent(analyticsEvent);
   }
 
-  /**
-   * Fetches frequency capping timestamps from local storage for prompts.
-   * Timestamps are not necessarily sorted.
-   */
-  async getTimestamps(): Promise<ActionsTimestamps> {
-    const stringified = await this.storage_.get(
-      StorageKeys.TIMESTAMPS,
-      /* useLocalStorage */ true
-    );
-    if (!stringified) {
-      return {};
-    }
-
-    const timestamps: ActionsTimestamps = JSON.parse(stringified);
-    if (!this.isValidActionsTimestamps_(timestamps)) {
-      this.eventManager_.logSwgEvent(
-        AnalyticsEvent.EVENT_LOCAL_STORAGE_TIMESTAMPS_PARSING_ERROR
-      );
-      return {};
-    }
-    return Object.entries(timestamps).reduce(
-      (acc: ActionsTimestamps, [key, value]: [string, ActionTimestamps]) => {
-        return {
-          ...acc,
-          [key]: {
-            impressions: pruneTimestamps(value.impressions),
-            dismissals: pruneTimestamps(value.dismissals),
-            completions: pruneTimestamps(value.completions),
-          },
-        };
-      },
-      {}
-    );
-  }
-
-  isValidActionsTimestamps_(timestamps: ActionsTimestamps) {
-    return (
-      timestamps instanceof Object &&
-      !(timestamps instanceof Array) &&
-      Object.values(
-        Object.values(timestamps).map(
-          (t) =>
-            Object.keys(t).length === 3 &&
-            t.impressions.every((n) => !isNaN(n)) &&
-            t.dismissals.every((n) => !isNaN(n)) &&
-            t.completions.every((n) => !isNaN(n))
-        )
-      ).every(Boolean)
-    );
-  }
-
   async setTimestamps(timestamps: ActionsTimestamps) {
     const json = JSON.stringify(timestamps);
     this.storage_.set(StorageKeys.TIMESTAMPS, json, /* useLocalStorage */ true);
   }
 
   async storeImpression(action: string): Promise<void> {
-    const timestamps = await this.getTimestamps();
+    const timestamps = await getTimestamps(this.deps_);
     const actionTimestamps = timestamps[action] || {
       impressions: [],
       dismissals: [],
@@ -817,7 +765,7 @@ export class AutoPromptManager {
   }
 
   async storeDismissal(action: string): Promise<void> {
-    const timestamps = await this.getTimestamps();
+    const timestamps = await getTimestamps(this.deps_);
     const actionTimestamps = timestamps[action] || {
       impressions: [],
       dismissals: [],
@@ -840,7 +788,7 @@ export class AutoPromptManager {
   }
 
   async storeCompletion(action: string): Promise<void> {
-    const timestamps = await this.getTimestamps();
+    const timestamps = await getTimestamps(this.deps_);
     const actionTimestamps = timestamps[action] || {
       impressions: [],
       dismissals: [],
@@ -900,57 +848,6 @@ export class AutoPromptManager {
    */
   private isInDemoMode_(): boolean {
     return this.isInDevMode_ || this.shouldRenderOnsitePreview_;
-  }
-
-  /**
-   * Checks AudienceAction eligbility, used to filter potential actions.
-   */
-  private checkActionEligibility_(
-    action: Intervention,
-    timestamps: ActionsTimestamps
-  ): boolean {
-    if (action.type === InterventionType.TYPE_REWARDED_SURVEY) {
-      const isAnalyticsEligible =
-        GoogleAnalyticsEventListener.isGaEligible(this.deps_) ||
-        GoogleAnalyticsEventListener.isGtagEligible(this.deps_) ||
-        GoogleAnalyticsEventListener.isGtmEligible(this.deps_);
-      if (!isAnalyticsEligible) {
-        return false;
-      }
-      // Do not show survey if there is a previous completion record.
-      // Client side eligibility is required to handle identity transitions
-      // after sign-in flow. TODO(b/332759781): update survey completion check
-      // to persist even after 2 weeks.
-      const completions = (
-        timestamps[action.configurationId!] ||
-        timestamps[InterventionType.TYPE_REWARDED_SURVEY]
-      )?.completions;
-      return !(completions || []).length;
-    }
-    // NOTE: passing these checks does not mean the APIs are always available.
-    if (action.type === InterventionType.TYPE_REWARDED_AD) {
-      if (
-        action.preference === PromptPreference.PREFERENCE_ADSENSE_REWARDED_AD
-      ) {
-        const adsbygoogle = this.deps_.win().adsbygoogle;
-        if (!adsbygoogle?.loaded) {
-          this.eventManager_.logSwgEvent(
-            AnalyticsEvent.EVENT_REWARDED_AD_ADSENSE_FILTERED
-          );
-          return false;
-        }
-      } else {
-        const googletag = this.deps_.win().googletag;
-        // Because this happens after the article call, googletag should have had enough time to set up
-        if (!googletag?.getVersion()) {
-          this.eventManager_.logSwgEvent(
-            AnalyticsEvent.EVENT_REWARDED_AD_GPT_FILTERED
-          );
-          return false;
-        }
-      }
-    }
-    return true;
   }
 
   /**
