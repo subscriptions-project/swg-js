@@ -147,6 +147,7 @@ describes.realWin('AutoPromptManager', (env) => {
     const gisInteropManager = {
       yield: sandbox.spy(),
       getState: sandbox.spy(),
+      isConnectionExpected: () => true,
     };
     sandbox.stub(deps, 'gisInteropManager').returns(gisInteropManager);
 

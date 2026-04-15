@@ -165,7 +165,8 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     const gisMode = getGisMode(
       this.deps_.win(),
       this.params_.action,
-      this.deps_.gisInteropManager()
+      this.deps_.gisInteropManager(),
+      this.deps_.config?.()?.gisInterop
     );
 
     const iframeParams: {[key: string]: string} = {

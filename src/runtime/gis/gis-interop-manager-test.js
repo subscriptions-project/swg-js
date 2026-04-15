@@ -38,7 +38,8 @@ describes.realWin('GisInteropManager', (env) => {
     win = env.win;
     doc = new GlobalDoc(win);
     storageMock = {
-      get: sandbox.stub(),
+      get: sandbox.stub().resolves(null),
+      set: sandbox.stub(),
       remove: sandbox.stub(),
     };
     entitlementsManagerMock = {
@@ -502,6 +503,37 @@ describes.realWin('GisInteropManager', (env) => {
 
       const token = await tokenPromise;
       expect(token).to.equal('new-user-token');
+    });
+  });
+
+  describe('isConnectionExpected', () => {
+    it('returns false initially', () => {
+      expect(manager.isConnectionExpected()).to.be.false;
+    });
+
+    it('returns true after receiving valid PING and persists to storage', async () => {
+      await dispatchFromGisIframe({type: 'RRM_GIS_PING'});
+      expect(manager.isConnectionExpected()).to.be.true;
+      expect(storageMock.set).to.have.been.calledWith(
+        StorageKeys.HAS_GIS_CONNECTION,
+        'true',
+        false
+      );
+    });
+
+    it('returns true when storage resolves true initially', async () => {
+      const storageWithConnection = {
+        get: sandbox.stub().resolves('true'),
+      };
+      const newManager = new GisInteropManager(
+        doc,
+        storageWithConnection,
+        entitlementsManagerMock,
+        pageConfigMock,
+        eventManagerMock
+      );
+      await Promise.resolve(); // let constructor storage promise resolve
+      expect(newManager.isConnectionExpected()).to.be.true;
     });
   });
 });
