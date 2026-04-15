@@ -992,6 +992,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
   it('passes gisMode=GIS_MODE_OVERLAY in query param for Safari with GIS', async () => {
     sandbox.stub(runtime, 'gisInteropManager').returns({
       getState: () => GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED,
+      isConnectionExpected: () => true,
       signIn: sandbox.spy(),
       redirectOk: sandbox.spy(),
     });
@@ -1024,6 +1025,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
   it('passes gisMode=GIS_MODE_NORMAL in query param for Chrome with GIS', async () => {
     sandbox.stub(runtime, 'gisInteropManager').returns({
       getState: () => GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED,
+      isConnectionExpected: () => true,
       signIn: sandbox.spy(),
       redirectOk: sandbox.spy(),
     });
@@ -1450,6 +1452,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
   it('creates GisLoginFlow when gisInteropManager is ready', async () => {
     sandbox.stub(runtime, 'gisInteropManager').returns({
       getState: () => GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED,
+      isConnectionExpected: () => true,
       signIn: sandbox.spy(),
       redirectOk: sandbox.spy(),
     });
@@ -1479,6 +1482,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
   it('does not create GisLoginFlow when action is not TYPE_REGISTRATION_WALL', async () => {
     sandbox.stub(runtime, 'gisInteropManager').returns({
       getState: () => GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED,
+      isConnectionExpected: () => true,
       signIn: sandbox.spy(),
       redirectOk: sandbox.spy(),
     });
@@ -1496,6 +1500,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
   it('disposes GisLoginFlow on complete', async () => {
     sandbox.stub(runtime, 'gisInteropManager').returns({
       getState: () => GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED,
+      isConnectionExpected: () => true,
       signIn: sandbox.spy(),
       redirectOk: sandbox.spy(),
     });

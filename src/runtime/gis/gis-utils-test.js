@@ -32,9 +32,11 @@ describes.realWin('gis-utils', (env) => {
       gisInteropManagerReady = {
         getState: () =>
           GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED,
+        isConnectionExpected: () => true,
       };
       gisInteropManagerNotReady = {
         getState: () => GisInteropManagerStates.WAITING_FOR_PING,
+        isConnectionExpected: () => false,
       };
     });
 
@@ -86,6 +88,42 @@ describes.realWin('gis-utils', (env) => {
           fakeWin,
           InterventionType.TYPE_REGISTRATION_WALL,
           gisInteropManagerReady
+        )
+      ).to.equal(GisMode.GisModeNormal);
+    });
+
+    it('returns GisModeNormal when gisInterop parameter is true, even if gisInteropManager is not ready', () => {
+      const fakeWin = {
+        navigator: {
+          userAgent:
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+        },
+      };
+      expect(
+        getGisMode(
+          fakeWin,
+          InterventionType.TYPE_REGISTRATION_WALL,
+          gisInteropManagerNotReady,
+          true
+        )
+      ).to.equal(GisMode.GisModeNormal);
+    });
+
+    it('returns GisModeNormal when gisInteropManager.isConnectionExpected() is true', () => {
+      const fakeWin = {
+        navigator: {
+          userAgent: 'Chrome',
+        },
+      };
+      const managerWithExpectedConnection = {
+        getState: () => GisInteropManagerStates.WAITING_FOR_PING,
+        isConnectionExpected: () => true,
+      };
+      expect(
+        getGisMode(
+          fakeWin,
+          InterventionType.TYPE_REGISTRATION_WALL,
+          managerWithExpectedConnection
         )
       ).to.equal(GisMode.GisModeNormal);
     });

@@ -67,6 +67,11 @@ const StorageKeys = {
    * Local storage key for frequency capping timestamps.
    */
   TIMESTAMPS: 'tsp',
+
+  /**
+   * Session storage key indicating if GIS connection happened. Used to avoid race conditions due to cached entitlements reads.
+   */
+  HAS_GIS_CONNECTION: 'hasgisconnection',
 };
 
 const StorageKeysWithoutPublicationIdSuffix = {

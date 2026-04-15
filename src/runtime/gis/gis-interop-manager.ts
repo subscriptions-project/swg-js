@@ -102,6 +102,7 @@ export class GisInteropManager {
 
   // Flag indicating if there is someone waiting for the updated token.
   private signInInProgress = false;
+  private hasSessionConnection = false;
   private readonly messageHandlerBound = this.messageHandler.bind(this);
   private readonly communicationIframeEstablishedPromise: Promise<void>;
   private communicationIframeEstablishedPromiseResolve!: () => void;
@@ -120,10 +121,22 @@ export class GisInteropManager {
     const {promise, resolve} = Promise.withResolvers<string>();
     this.updatedTokenPromise = promise;
     this.updatedTokenPromiseResolve = resolve;
+    this.storage.get(StorageKeys.HAS_GIS_CONNECTION, false).then((value) => {
+      if (value === 'true') {
+        this.hasSessionConnection = true;
+      }
+    });
   }
 
   public getState(): GisInteropManagerStates {
     return this.state;
+  }
+
+  public isConnectionExpected(): boolean {
+    return (
+      this.state !== GisInteropManagerStates.WAITING_FOR_PING ||
+      this.hasSessionConnection
+    );
   }
 
   public async yield() {
@@ -181,6 +194,9 @@ export class GisInteropManager {
     this.eventManager.logSwgEvent(
       AnalyticsEvent.EVENT_GIS_INTEROP_PING_RECEIVED
     );
+
+    this.hasSessionConnection = true;
+    this.storage.set(StorageKeys.HAS_GIS_CONNECTION, 'true', false);
 
     this.sendGis({type: 'RRM_GIS_ACK'});
 
