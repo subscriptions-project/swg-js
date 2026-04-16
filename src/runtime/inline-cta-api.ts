@@ -174,7 +174,10 @@ export class InlineCtaApi {
             /* configurationId */ multiInstanceMonetaryCtaExperiment
               ? configId
               : '',
-            /* isInlineCta */ true
+            /* isInlineCta */ true,
+            /* origin */ multiInstanceMonetaryCtaExperiment
+              ? parseUrl(this.win_.location.href).origin
+              : undefined
           )
         : action.type === InterventionType.TYPE_CONTRIBUTION
           ? getContributionsUrl(
@@ -184,7 +187,10 @@ export class InlineCtaApi {
               /* configurationId */ multiInstanceMonetaryCtaExperiment
                 ? configId
                 : '',
-              /* isInlineCta */ true
+              /* isInlineCta */ true,
+              /* origin */ multiInstanceMonetaryCtaExperiment
+                ? parseUrl(this.win_.location.href).origin
+                : undefined
             )
           : this.getUrl_(urlPrefix, configId);
     const fetchArgs =
