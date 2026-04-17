@@ -474,7 +474,7 @@ describes.realWin('InlineCtaApi', (env) => {
     it('opens iframe with configurationId when experiment enabled', async () => {
       const element = sandbox.match((arg) => arg.tagName == 'IFRAME');
       const resultUrl =
-        'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&publicationId=pub1&ctaMode=CTA_MODE_INLINE&configurationId=contribution_config_id';
+        'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&publicationId=pub1&ctaMode=CTA_MODE_INLINE&configurationId=contribution_config_id&origin=about%3Asrcdoc';
       const resultArgs = {
         'productId': productId,
         'publicationId': pubId,
@@ -611,7 +611,7 @@ describes.realWin('InlineCtaApi', (env) => {
     it('opens iframe for subscription with configurationId when experiment enabled', async () => {
       const element = sandbox.match((arg) => arg.tagName == 'IFRAME');
       const resultUrl =
-        'https://news.google.com/swg/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&ctaMode=CTA_MODE_INLINE&configurationId=subscription_config_id';
+        'https://news.google.com/swg/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&ctaMode=CTA_MODE_INLINE&configurationId=subscription_config_id&origin=about%3Asrcdoc';
       const resultArgs = {
         'analyticsContext': [],
         'publicationId': pubId,

@@ -77,7 +77,8 @@ export function getContributionsUrl(
   clientConfigManager: ClientConfigManager,
   pageConfig: PageConfig,
   configurationId: string = '',
-  isInlineCta: boolean = false
+  isInlineCta: boolean = false,
+  origin?: string
 ): string {
   if (!clientConfig.useUpdatedOfferFlows) {
     return feUrl('/contributionsiframe');
@@ -98,6 +99,9 @@ export function getContributionsUrl(
   }
   if (configurationId) {
     params['configurationId'] = configurationId;
+  }
+  if (origin) {
+    params['origin'] = origin;
   }
 
   return feUrl('/contributionoffersiframe', params);
@@ -142,7 +146,8 @@ export function getSubscriptionUrl(
   pageConfig: PageConfig,
   query: string,
   configurationId: string = '',
-  isInlineCta: boolean = false
+  isInlineCta: boolean = false,
+  origin?: string
 ): string {
   if (!clientConfig.useUpdatedOfferFlows) {
     const offerCardParam = parseQueryString(query)['swg.newoffercard'];
@@ -170,6 +175,10 @@ export function getSubscriptionUrl(
 
   if (configurationId) {
     params['configurationId'] = configurationId;
+  }
+
+  if (origin) {
+    params['origin'] = origin;
   }
 
   return feUrl('/subscriptionoffersiframe', params);

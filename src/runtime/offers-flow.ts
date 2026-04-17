@@ -18,12 +18,13 @@ import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {ActivityPorts} from '../components/activities';
 import {
   AlreadySubscribedResponse,
+  AnalyticsEvent,
   EntitlementsResponse,
   SkuSelectedResponse,
   SubscribeResponse,
   ViewSubscriptionsResponse,
 } from '../proto/api_messages';
-import {AnalyticsEvent} from '../proto/api_messages';
+import {ArticleExperimentFlags} from './experiment-flags';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
@@ -42,6 +43,7 @@ import {
   startNativeFlow,
   startSubscriptionPayFlow,
 } from '../utils/cta-utils';
+import {parseUrl} from '../utils/url';
 
 /**
  * Offers view is closable when request was originated from 'AbbrvOfferFlow'
@@ -147,6 +149,13 @@ export class OffersFlow {
   ): Promise<ActivityIframeView | null> {
     const clientConfig = await this.clientConfigPromise_!;
 
+    const flags = await this.deps_
+      .entitlementsManager()
+      .getExperimentConfigFlags();
+    const multiInstanceMonetaryCtaExperiment = flags.includes(
+      ArticleExperimentFlags.MULTI_INSTANCE_MONETARY_CTA_EXPERIMENT
+    );
+
     return new ActivityIframeView(
       this.win_,
       this.activityPorts_,
@@ -155,7 +164,11 @@ export class OffersFlow {
         this.clientConfigManager_,
         this.deps_.pageConfig(),
         this.win_.location.hash,
-        args.configurationId
+        args.configurationId,
+        /* isInlineCta */ false,
+        /* origin */ multiInstanceMonetaryCtaExperiment
+          ? parseUrl(this.win_.location.href).origin
+          : undefined
       ),
       args as {[key: string]: string},
       this.clientConfigManager_.getLanguage(),

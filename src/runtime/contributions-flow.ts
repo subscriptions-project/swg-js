@@ -21,6 +21,7 @@ import {
   EntitlementsResponse,
   SkuSelectedResponse,
 } from '../proto/api_messages';
+import {ArticleExperimentFlags} from './experiment-flags';
 import {ClientConfig} from '../model/client-config';
 import {ClientConfigManager} from './client-config-manager';
 import {Deps} from './deps';
@@ -36,6 +37,7 @@ import {
   getContributionsUrl,
   startContributionPayFlow,
 } from '../utils/cta-utils';
+import {parseUrl} from '../utils/url';
 
 /**
  * The class for Contributions flow.
@@ -74,6 +76,13 @@ export class ContributionsFlow {
   private async getActivityIframeView_(): Promise<ActivityIframeView> {
     const clientConfig = await this.clientConfigManager_.getClientConfig();
 
+    const flags = await this.deps_
+      .entitlementsManager()
+      .getExperimentConfigFlags();
+    const multiInstanceMonetaryCtaExperiment = flags.includes(
+      ArticleExperimentFlags.MULTI_INSTANCE_MONETARY_CTA_EXPERIMENT
+    );
+
     return new ActivityIframeView(
       this.win_,
       this.activityPorts_,
@@ -81,7 +90,11 @@ export class ContributionsFlow {
         clientConfig,
         this.clientConfigManager_,
         this.deps_.pageConfig(),
-        this.options_?.configurationId
+        this.options_?.configurationId,
+        /* isInlineCta */ false,
+        /* origin */ multiInstanceMonetaryCtaExperiment
+          ? parseUrl(this.win_.location.href).origin
+          : undefined
       ),
       feArgs({
         'productId': this.deps_.pageConfig().getProductId(),

@@ -222,6 +222,23 @@ describes.realWin('CTA utils', (env) => {
         'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&publicationId=pub1&configurationId=test_config_id'
       );
     });
+
+    it('returns url with origin', () => {
+      const clientConfig = new ClientConfig({useUpdatedOfferFlows: true});
+
+      const result = getContributionsUrl(
+        clientConfig,
+        clientConfigManager,
+        pageConfig,
+        /* configurationId */ '',
+        /* isInlineCta */ false,
+        'https://example.com'
+      );
+
+      expect(result).to.equal(
+        'https://news.google.com/swg/ui/v1/contributionoffersiframe?_=_&publicationId=pub1&origin=https%3A%2F%2Fexample.com'
+      );
+    });
   });
 
   describe('startContributionPayFlow', () => {
@@ -543,6 +560,24 @@ describes.realWin('CTA utils', (env) => {
 
       expect(result).to.equal(
         'https://news.google.com/swg/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&configurationId=test_config_id'
+      );
+    });
+
+    it('returns url with origin', () => {
+      const clientConfig = new ClientConfig({useUpdatedOfferFlows: true});
+
+      const result = getSubscriptionUrl(
+        clientConfig,
+        clientConfigManager,
+        pageConfig,
+        query,
+        /* configurationId */ '',
+        /* isInlineCta */ false,
+        'https://example.com'
+      );
+
+      expect(result).to.equal(
+        'https://news.google.com/swg/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&origin=https%3A%2F%2Fexample.com'
       );
     });
   });
