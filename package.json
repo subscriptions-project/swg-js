@@ -104,7 +104,7 @@
     "request": "2.88.2",
     "rollup-plugin-visualizer": "6.0.11",
     "shuffle-seed": "1.1.6",
-    "sinon": "21.1.1",
+    "sinon": "21.1.2",
     "sinon-chai": "3.7.0",
     "terser": "5.46.1",
     "through2": "4.0.2",
