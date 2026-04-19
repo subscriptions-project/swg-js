@@ -58,7 +58,7 @@
     "fancy-log": "2.0.0",
     "fs-extra": "11.3.4",
     "glob": "13.0.6",
-    "globals": "17.4.0",
+    "globals": "17.5.0",
     "gulp": "5.0.1",
     "gulp-eslint-if-fixed": "1.0.0",
     "gulp-help": "chmontgomery/gulp-help#gulp4",
