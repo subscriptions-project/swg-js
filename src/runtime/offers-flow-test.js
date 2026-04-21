@@ -237,16 +237,13 @@ describes.realWin('OffersFlow', (env) => {
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
         'https://news.google.com/swg/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&configurationId=test_config_id',
-        Object.assign(
-          runtime.activities().addDefaultArguments({
-            showNative: false,
-            productType: ProductType.SUBSCRIPTION,
-            list: 'default',
-            skus: null,
-            isClosable: false,
-          }),
-          {configurationId: 'test_config_id'}
-        )
+        runtime.activities().addDefaultArguments({
+          showNative: false,
+          productType: ProductType.SUBSCRIPTION,
+          list: 'default',
+          skus: null,
+          isClosable: false,
+        })
       )
       .resolves(port);
     await offersFlow.start();
@@ -274,6 +271,42 @@ describes.realWin('OffersFlow', (env) => {
       .withExactArgs(
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
         'https://news.google.com/swg/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&origin=about%3Asrcdoc',
+        runtime.activities().addDefaultArguments({
+          showNative: false,
+          productType: ProductType.SUBSCRIPTION,
+          list: 'default',
+          skus: null,
+          isClosable: false,
+        })
+      )
+      .resolves(port);
+    await offersFlow.start();
+  });
+
+  it('includes isFromButton param if isFromButton is true', async () => {
+    sandbox
+      .stub(runtime.clientConfigManager(), 'getClientConfig')
+      .resolves(new ClientConfig({useUpdatedOfferFlows: true}));
+    const entitlementsManager = {
+      getExperimentConfigFlags: sandbox
+        .stub()
+        .resolves(['multi_instance_monetary_cta_exp']),
+    };
+    sandbox.stub(runtime, 'entitlementsManager').returns(entitlementsManager);
+    offersFlow = new OffersFlow(runtime, {
+      isClosable: false,
+      isFromButton: true,
+    });
+    callbacksMock
+      .expects('triggerFlowStarted')
+      .withExactArgs('showOffers', SHOW_OFFERS_ARGS)
+      .once();
+    callbacksMock.expects('triggerFlowCanceled').never();
+    activitiesMock
+      .expects('openIframe')
+      .withExactArgs(
+        sandbox.match((arg) => arg.tagName == 'IFRAME'),
+        'https://news.google.com/swg/ui/v1/subscriptionoffersiframe?_=_&publicationId=pub1&origin=about%3Asrcdoc&isFromButton=true',
         runtime.activities().addDefaultArguments({
           showNative: false,
           productType: ProductType.SUBSCRIPTION,

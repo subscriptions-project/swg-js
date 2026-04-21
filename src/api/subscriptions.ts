@@ -555,6 +555,11 @@ export interface OffersRequest {
    * can be shown to the readers.
    */
   configurationId?: string;
+
+  /**
+   * Optional. Whether the request was triggered from a button click.
+   */
+  isFromButton?: boolean;
 }
 
 export interface LoginRequest {
