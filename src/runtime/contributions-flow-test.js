@@ -273,7 +273,7 @@ describes.realWin('ContributionsFlow', (env) => {
     const entitlementsManager = {
       getExperimentConfigFlags: sandbox
         .stub()
-        .resolves(['multi_instance_monetary_cta_exp']),
+        .resolves(['multi_instance_monetary_cta_experiment']),
     };
     sandbox.stub(runtime, 'entitlementsManager').returns(entitlementsManager);
 

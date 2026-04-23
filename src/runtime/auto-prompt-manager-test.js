@@ -3821,7 +3821,7 @@ describes.realWin('AutoPromptManager', (env) => {
           experimentConfig: {
             experimentFlags: [
               'bcontrib_experiment',
-              'multi_instance_monetary_cta_exp',
+              'multi_instance_monetary_cta_experiment',
             ],
           },
         };
