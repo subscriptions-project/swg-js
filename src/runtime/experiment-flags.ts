@@ -53,5 +53,5 @@ export enum ArticleExperimentFlags {
   /**
    * Experiment flag for multi-instance monetary CTA.
    */
-  MULTI_INSTANCE_MONETARY_CTA_EXPERIMENT = 'multi_instance_monetary_cta_exp',
+  MULTI_INSTANCE_MONETARY_CTA_EXPERIMENT = 'multi_instance_monetary_cta_experiment',
 }

@@ -493,7 +493,7 @@ describes.realWin('InlineCtaApi', (env) => {
             engineId: '123',
           },
           experimentConfig: {
-            experimentFlags: ['multi_instance_monetary_cta_exp'],
+            experimentFlags: ['multi_instance_monetary_cta_experiment'],
           },
         })
         .once();
@@ -632,7 +632,7 @@ describes.realWin('InlineCtaApi', (env) => {
             engineId: '123',
           },
           experimentConfig: {
-            experimentFlags: ['multi_instance_monetary_cta_exp'],
+            experimentFlags: ['multi_instance_monetary_cta_experiment'],
           },
         })
         .once();
