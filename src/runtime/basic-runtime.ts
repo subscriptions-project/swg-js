@@ -29,7 +29,7 @@ import {ButtonApi, ButtonAttributeValues} from './button-api';
 import {Callbacks} from './callbacks';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
-import {Config} from '../api/subscriptions';
+import {Config, OffersRequest} from '../api/subscriptions';
 import {ConfiguredRuntime} from './runtime';
 import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
@@ -43,6 +43,7 @@ import {
 } from './gis/gis-interop-manager';
 import {I18N_STRINGS} from '../i18n/strings';
 import {InlineCtaApi} from './inline-cta-api';
+import {InterventionType} from '../api/intervention-type';
 import {JsError} from './jserror';
 import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
@@ -55,6 +56,7 @@ import {Toast} from '../ui/toast';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {assert} from '../utils/log';
 import {feArgs, feOrigin, feUrl} from './services';
+import {isExperimentOn} from './experiments';
 import {msg} from '../utils/i18n';
 
 const BASIC_RUNTIME_PROP = 'SWG_BASIC';
@@ -326,7 +328,7 @@ export class BasicRuntime implements BasicSubscriptions {
    */
   async setupButtons(): Promise<void> {
     const runtime = await this.configured_(false);
-    runtime.setupButtons();
+    await runtime.setupButtons();
   }
 
   /**
@@ -679,6 +681,59 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
    */
   async setupButtons(): Promise<void> {
     const enable = await this.clientConfigManager().shouldEnableButton();
+    const article = await this.entitlementsManager().getArticle();
+    const isLocked = this.pageConfig().isLocked();
+
+    const isMultiInstanceMonetaryCtaEnabled = isExperimentOn(
+      this.doc_.getWin(),
+      'multi_instance_monetary_cta_experiment'
+    );
+
+    let subscriptionConfigId: string | undefined;
+    let contributionConfigId: string | undefined;
+
+    if (isMultiInstanceMonetaryCtaEnabled && article) {
+      const interventions =
+        article.actionOrchestration?.interventionFunnel?.interventions;
+      const audienceActions = article.audienceActions?.actions;
+
+      contributionConfigId = interventions?.find(
+        (intervention) =>
+          intervention.type === InterventionType.TYPE_CONTRIBUTION
+      )?.configId;
+
+      if (isLocked) {
+        // Closed Content - Get subscription from funnel
+        subscriptionConfigId = interventions?.find(
+          (intervention) =>
+            intervention.type === InterventionType.TYPE_SUBSCRIPTION
+        )?.configId;
+      } else {
+        // Open Content - Get subscription from audienceActions
+        const audienceSubscriptionActions = audienceActions?.filter(
+          (action) => action.type === InterventionType.TYPE_SUBSCRIPTION
+        );
+
+        if (audienceSubscriptionActions?.length === 1) {
+          subscriptionConfigId = audienceSubscriptionActions[0].configurationId;
+        } else {
+          const funnelSubscriptionIds = interventions
+            ? interventions
+                .filter((i) => i.type === InterventionType.TYPE_SUBSCRIPTION)
+                .map((i) => i.configId)
+            : [];
+
+          // If multiple subscription actions exist, find one with a configurationId that is not in the open content funnel
+          // (which is the subscription action in closed content funnel)
+          subscriptionConfigId = audienceSubscriptionActions?.find(
+            (action) =>
+              action.configurationId &&
+              !funnelSubscriptionIds.includes(action.configurationId)
+          )?.configurationId;
+        }
+      }
+    }
+
     this.buttonApi_.attachButtonsWithAttribute(
       BUTTON_ATTRIUBUTE,
       [ButtonAttributeValues.SUBSCRIPTION, ButtonAttributeValues.CONTRIBUTION],
@@ -689,14 +744,18 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
       },
       {
         [ButtonAttributeValues.SUBSCRIPTION]: () => {
-          this.configuredClassicRuntime_.showOffers({
-            isClosable: true,
-          });
+          const options: OffersRequest = {isClosable: true};
+          if (isMultiInstanceMonetaryCtaEnabled && subscriptionConfigId) {
+            options.configurationId = subscriptionConfigId;
+          }
+          this.configuredClassicRuntime_.showOffers(options);
         },
         [ButtonAttributeValues.CONTRIBUTION]: () => {
-          this.configuredClassicRuntime_.showContributionOptions({
-            isClosable: true,
-          });
+          const options: OffersRequest = {isClosable: true};
+          if (isMultiInstanceMonetaryCtaEnabled && contributionConfigId) {
+            options.configurationId = contributionConfigId;
+          }
+          this.configuredClassicRuntime_.showContributionOptions(options);
         },
       }
     );
