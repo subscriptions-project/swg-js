@@ -35,6 +35,7 @@ import {Entitlements} from '../api/entitlements';
 import {EntitlementsManager} from './entitlements-manager';
 import {GisInteropManagerStates} from './gis/gis-interop-manager';
 import {GlobalDoc} from '../model/doc';
+import {InterventionType} from '../api/intervention-type';
 import {MeterClientTypes} from '../api/metering';
 import {MeterToastApi} from './meter-toast-api';
 import {MiniPromptApi} from './mini-prompt-api';
@@ -47,6 +48,7 @@ import {UiPredicates} from '../model/client-config';
 import {acceptPortResultData} from './../utils/activity-utils';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {createElement} from '../utils/dom';
+import {setExperiment} from './experiments';
 import {tick} from '../../test/tick';
 
 const DEFAULT_INIT_PARAMS = {
@@ -505,6 +507,7 @@ describes.realWin('BasicRuntime', (env) => {
     let configuredBasicRuntimeMock;
     let clientConfigManagerMock;
     let configuredClassicRuntimeMock;
+    let getArticleStub;
 
     beforeEach(() => {
       pageConfig = new PageConfig('pub1');
@@ -520,6 +523,10 @@ describes.realWin('BasicRuntime', (env) => {
       sandbox
         .stub(basicRuntime, 'configured_')
         .callsFake(() => Promise.resolve(configuredBasicRuntime));
+
+      getArticleStub = sandbox
+        .stub(configuredBasicRuntime.entitlementsManager(), 'getArticle')
+        .resolves({});
     });
 
     afterEach(() => {
@@ -743,6 +750,229 @@ describes.realWin('BasicRuntime', (env) => {
         })
         .once();
       await contributionButton.click();
+    });
+
+    it('should extract configurationId from funnel for subscription on closed content funnel', async () => {
+      setExperiment(
+        doc.getWin(),
+        'multi_instance_monetary_cta_experiment',
+        true
+      );
+      sandbox.stub(pageConfig, 'isLocked').returns(true);
+      const subscriptionButton = createElement(doc.getRootNode(), 'button', {
+        'swg-standard-button': 'subscription',
+      });
+      doc.getBody().appendChild(subscriptionButton);
+
+      clientConfigManagerMock
+        .expects('shouldEnableButton')
+        .resolves(true)
+        .once();
+
+      getArticleStub.resolves({
+        actionOrchestration: {
+          interventionFunnel: {
+            interventions: [
+              {
+                configId: 'sub_config_id',
+                type: InterventionType.TYPE_SUBSCRIPTION,
+              },
+            ],
+          },
+        },
+      });
+
+      await basicRuntime.setupButtons();
+      configuredClassicRuntimeMock
+        .expects('showOffers')
+        .withExactArgs({
+          isClosable: true,
+          configurationId: 'sub_config_id',
+        })
+        .once();
+      await subscriptionButton.click();
+    });
+
+    it('should extract configurationId from funnel for contribution on open content funnel', async () => {
+      setExperiment(
+        doc.getWin(),
+        'multi_instance_monetary_cta_experiment',
+        true
+      );
+      sandbox.stub(pageConfig, 'isLocked').returns(false);
+      const contributionButton = createElement(doc.getRootNode(), 'button', {
+        'swg-standard-button': 'contribution',
+      });
+      doc.getBody().appendChild(contributionButton);
+
+      clientConfigManagerMock
+        .expects('shouldEnableButton')
+        .resolves(true)
+        .once();
+
+      getArticleStub.resolves({
+        actionOrchestration: {
+          interventionFunnel: {
+            interventions: [
+              {
+                configId: 'contrib_config_id',
+                type: InterventionType.TYPE_CONTRIBUTION,
+              },
+            ],
+          },
+        },
+      });
+
+      await basicRuntime.setupButtons();
+      configuredClassicRuntimeMock
+        .expects('showContributionOptions')
+        .withExactArgs({
+          isClosable: true,
+          configurationId: 'contrib_config_id',
+        })
+        .once();
+      await contributionButton.click();
+    });
+
+    it('should extract configurationId from audienceActions for subscription on open content funnel', async () => {
+      setExperiment(
+        doc.getWin(),
+        'multi_instance_monetary_cta_experiment',
+        true
+      );
+      sandbox.stub(pageConfig, 'isLocked').returns(false);
+      const subscriptionButton = createElement(doc.getRootNode(), 'button', {
+        'swg-standard-button': 'subscription',
+      });
+      doc.getBody().appendChild(subscriptionButton);
+
+      clientConfigManagerMock
+        .expects('shouldEnableButton')
+        .resolves(true)
+        .once();
+
+      getArticleStub.resolves({
+        audienceActions: {
+          actions: [
+            {
+              type: InterventionType.TYPE_SUBSCRIPTION,
+              configurationId: 'sub_audience_id',
+            },
+          ],
+        },
+      });
+
+      await basicRuntime.setupButtons();
+      configuredClassicRuntimeMock
+        .expects('showOffers')
+        .withExactArgs({
+          isClosable: true,
+          configurationId: 'sub_audience_id',
+        })
+        .once();
+      await subscriptionButton.click();
+    });
+
+    it('should extract configurationId from audienceActions not in interventions for subscription on open content funnel', async () => {
+      setExperiment(
+        doc.getWin(),
+        'multi_instance_monetary_cta_experiment',
+        true
+      );
+      sandbox.stub(pageConfig, 'isLocked').returns(false);
+      const subscriptionButton = createElement(doc.getRootNode(), 'button', {
+        'swg-standard-button': 'subscription',
+      });
+      doc.getBody().appendChild(subscriptionButton);
+
+      clientConfigManagerMock
+        .expects('shouldEnableButton')
+        .resolves(true)
+        .once();
+
+      getArticleStub.resolves({
+        actionOrchestration: {
+          interventionFunnel: {
+            interventions: [
+              {
+                configId: 'sub_config_id_1',
+                type: InterventionType.TYPE_SUBSCRIPTION,
+              },
+            ],
+          },
+        },
+        audienceActions: {
+          actions: [
+            {
+              type: InterventionType.TYPE_SUBSCRIPTION,
+              configurationId: 'sub_config_id_1',
+            },
+            {
+              type: InterventionType.TYPE_SUBSCRIPTION,
+              configurationId: 'sub_config_id_2',
+            },
+          ],
+        },
+      });
+
+      await basicRuntime.setupButtons();
+      configuredClassicRuntimeMock
+        .expects('showOffers')
+        .withExactArgs({
+          isClosable: true,
+          configurationId: 'sub_config_id_2',
+        })
+        .once();
+      await subscriptionButton.click();
+    });
+
+    it('should extract configurationId from audienceActions for subscription on open content funnel when only one action exists even if in interventions', async () => {
+      setExperiment(
+        doc.getWin(),
+        'multi_instance_monetary_cta_experiment',
+        true
+      );
+      sandbox.stub(pageConfig, 'isLocked').returns(false);
+      const subscriptionButton = createElement(doc.getRootNode(), 'button', {
+        'swg-standard-button': 'subscription',
+      });
+      doc.getBody().appendChild(subscriptionButton);
+
+      clientConfigManagerMock
+        .expects('shouldEnableButton')
+        .resolves(true)
+        .once();
+
+      getArticleStub.resolves({
+        actionOrchestration: {
+          interventionFunnel: {
+            interventions: [
+              {
+                configId: 'sub_config_id_1',
+                type: InterventionType.TYPE_SUBSCRIPTION,
+              },
+            ],
+          },
+        },
+        audienceActions: {
+          actions: [
+            {
+              type: InterventionType.TYPE_SUBSCRIPTION,
+              configurationId: 'sub_config_id_1',
+            },
+          ],
+        },
+      });
+
+      await basicRuntime.setupButtons();
+      configuredClassicRuntimeMock
+        .expects('showOffers')
+        .withExactArgs({
+          isClosable: true,
+          configurationId: 'sub_config_id_1',
+        })
+        .once();
+      await subscriptionButton.click();
     });
 
     it('should not call attach on all buttons if buttons should be disabled', async () => {
