@@ -47,7 +47,7 @@
     "cheerio": "1.2.0",
     "chromedriver": "147.0.4",
     "cookie-parser": "1.4.7",
-    "cssnano": "7.1.5",
+    "cssnano": "7.1.7",
     "del": "8.0.1",
     "eslint": "9.39.4",
     "eslint-plugin-google-camelcase": "0.0.2",
