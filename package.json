@@ -106,7 +106,7 @@
     "shuffle-seed": "1.1.6",
     "sinon": "21.1.2",
     "sinon-chai": "3.7.0",
-    "terser": "5.46.1",
+    "terser": "5.46.2",
     "through2": "4.0.2",
     "touch": "3.1.1",
     "tsify": "5.0.4",
