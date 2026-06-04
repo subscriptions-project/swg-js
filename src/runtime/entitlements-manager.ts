@@ -52,7 +52,12 @@ import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
 import {StorageKeys} from '../utils/constants';
 import {Toast} from '../ui/toast';
-import {addQueryParam, getCanonicalUrl, parseQueryString} from '../utils/url';
+import {
+  addQueryParam,
+  getCanonicalUrl,
+  parseQueryString,
+  parseUrl,
+} from '../utils/url';
 import {analyticsEventToEntitlementResult} from './event-type-mapping';
 import {base64UrlEncodeFromBytes, utf8EncodeSync} from '../utils/bytes';
 import {feArgs, feUrl} from './services';
@@ -800,6 +805,8 @@ export class EntitlementsManager {
 
     url = addPreviewKeyToUrl(this.win_.location, url);
 
+    url = addReferrerDomainToUrl(this.win_.document, url);
+
     // Add encryption param.
     if (params?.encryption) {
       url = addQueryParam(url, 'crypt', params.encryption.encryptedDocumentKey);
@@ -1027,6 +1034,21 @@ function addPreviewKeyToUrl(location: Location, url: string): string {
     return url;
   }
   return addQueryParam(url, 'previewKey', previewKeyRequested);
+}
+
+/**
+ * Parses referrer domain from the given document and adds it
+ * to the given URL.
+ */
+function addReferrerDomainToUrl(document: Document, url: string): string {
+  if (!document.referrer) {
+    return url;
+  }
+  let hostname = parseUrl(document.referrer).hostname.replace(/^www\./, '');
+  if (!hostname || hostname === 'localhost') {
+    return url;
+  }
+  return addQueryParam(url, 'referrerDomain', hostname);
 }
 
 /**
