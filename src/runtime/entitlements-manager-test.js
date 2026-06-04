@@ -440,6 +440,30 @@ describes.realWin('EntitlementsManager', (env) => {
       });
     });
 
+    it('adds referrerDomain param to request when document.referrer is present', async () => {
+      sandbox
+        .stub(win.document, 'referrer')
+        .value('https://www.google.com/search');
+      fetcherMock
+        .expects('fetch')
+        .withExactArgs(
+          'https://news.google.com/swg/_/api/v1/publication/pub1/article?referrerDomain=google.com&locked=true&contentType=CLOSED',
+          {
+            method: 'GET',
+            headers: {'Accept': 'text/plain, application/json'},
+            credentials: 'include',
+          }
+        )
+        .returns(
+          Promise.resolve({
+            text: () => Promise.resolve('{}'),
+          })
+        );
+      expectGetSwgUserTokenToBeCalled();
+
+      await manager.getEntitlements();
+    });
+
     it('should accept encrypted document key', async () => {
       fetcherMock
         .expects('fetch')
