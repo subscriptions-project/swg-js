@@ -1044,7 +1044,7 @@ function addReferrerDomainToUrl(document: Document, url: string): string {
   if (!document.referrer) {
     return url;
   }
-  let hostname = parseUrl(document.referrer).hostname.replace(/^www\./, '');
+  const hostname = parseUrl(document.referrer).hostname.replace(/^www\./, '');
   if (!hostname || hostname === 'localhost') {
     return url;
   }
