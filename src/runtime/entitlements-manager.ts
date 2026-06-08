@@ -805,7 +805,7 @@ export class EntitlementsManager {
 
     url = addPreviewKeyToUrl(this.win_.location, url);
 
-    url = addReferrerDomainToUrl(this.win_.document, url);
+    url = addPageReferrerToUrl(this.win_.document, url);
 
     // Add encryption param.
     if (params?.encryption) {
@@ -1037,10 +1037,10 @@ function addPreviewKeyToUrl(location: Location, url: string): string {
 }
 
 /**
- * Parses referrer domain from the given document and adds it
+ * Parses page referrer from the given document and adds it
  * to the given URL.
  */
-function addReferrerDomainToUrl(document: Document, url: string): string {
+function addPageReferrerToUrl(document: Document, url: string): string {
   if (!document.referrer) {
     return url;
   }
@@ -1048,7 +1048,7 @@ function addReferrerDomainToUrl(document: Document, url: string): string {
   if (!hostname || hostname === 'localhost') {
     return url;
   }
-  return addQueryParam(url, 'referrerDomain', hostname);
+  return addQueryParam(url, 'pageReferrer', hostname);
 }
 
 /**
