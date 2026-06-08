@@ -378,8 +378,7 @@ export class PayCompleteFlow {
       'publicationId': this.deps_.pageConfig().getPublicationId(),
       'productType': response['productType'],
       'isSubscriptionUpdate': !!response['oldSku'],
-      'isOneTime':
-        response['paymentRecurrence'] === RecurrenceMapping['ONE_TIME'],
+      'isOneTime': !!response['paymentRecurrence'],
     };
 
     // TODO(dvoytenko, #400): cleanup once entitlements is launched everywhere.
