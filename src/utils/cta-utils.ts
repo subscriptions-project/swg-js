@@ -195,6 +195,10 @@ export function startSubscriptionPayFlow(
     const subscriptionRequest: SubscriptionRequest = {
       'skuId': sku,
     };
+    const isOneTime = response.getOneTime();
+    if (isOneTime) {
+      subscriptionRequest['oneTime'] = isOneTime;
+    }
     const oldSku = response.getOldSku();
     if (oldSku) {
       subscriptionRequest['oldSku'] = oldSku;

@@ -28,6 +28,7 @@ import {GlobalDoc} from '../model/doc';
 import {MockDeps} from '../../test/mock-deps';
 import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from '../runtime/pay-flow';
+import {ProductType} from '../api/subscriptions';
 import {Toast} from '../ui/toast';
 import {XhrFetcher} from '../runtime/fetcher';
 import {
@@ -323,6 +324,47 @@ describes.realWin('CTA utils', (env) => {
       expect(payStub.getCalls()[0].thisValue.isInlineCta_).to.be.true;
       expect(payStub.getCalls()[0].thisValue.configId_).to.equal(configId);
     });
+
+    it('does not set oneTime param for contribution if SkuSelectedResponse has oneTime as false', async () => {
+      const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
+      const skuSelected = new SkuSelectedResponse();
+      skuSelected.setSku('sku1');
+      skuSelected.setOneTime(false);
+      analyticsMock
+        .expects('removeLabels')
+        .withExactArgs(['CTA_MODE_INLINE'])
+        .once();
+
+      startContributionPayFlow(deps, skuSelected, /* isInlineCta */ false);
+
+      expect(payStub).to.be.calledOnce;
+      expect(
+        payStub.getCalls()[0].thisValue.subscriptionRequest_.skuId
+      ).to.equal('sku1');
+      expect(payStub.getCalls()[0].thisValue.subscriptionRequest_.oneTime).to.be
+        .undefined;
+      analyticsMock.verify();
+    });
+
+    it('does not set oneTime param for contribution if SkuSelectedResponse has oneTime as undefined', async () => {
+      const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
+      const skuSelected = new SkuSelectedResponse();
+      skuSelected.setSku('sku1');
+      analyticsMock
+        .expects('removeLabels')
+        .withExactArgs(['CTA_MODE_INLINE'])
+        .once();
+
+      startContributionPayFlow(deps, skuSelected, /* isInlineCta */ false);
+
+      expect(payStub).to.be.calledOnce;
+      expect(
+        payStub.getCalls()[0].thisValue.subscriptionRequest_.skuId
+      ).to.equal('sku1');
+      expect(payStub.getCalls()[0].thisValue.subscriptionRequest_.oneTime).to.be
+        .undefined;
+      analyticsMock.verify();
+    });
   });
 
   describe('startSubscriptionPayFlow', () => {
@@ -427,6 +469,72 @@ describes.realWin('CTA utils', (env) => {
       ).to.equal('sku1');
       expect(payStub.getCalls()[0].thisValue.isInlineCta_).to.be.true;
       expect(payStub.getCalls()[0].thisValue.configId_).to.equal(configId);
+      analyticsMock.verify();
+    });
+
+    it('calls PayStartFlow with right params for one-time offer', async () => {
+      const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
+      const skuSelected = new SkuSelectedResponse();
+      skuSelected.setSku('sku1');
+      skuSelected.setOneTime(true);
+      analyticsMock
+        .expects('removeLabels')
+        .withExactArgs(['CTA_MODE_INLINE'])
+        .once();
+
+      startSubscriptionPayFlow(deps, skuSelected);
+
+      expect(payStub).to.be.calledOnce;
+      expect(
+        payStub.getCalls()[0].thisValue.subscriptionRequest_.skuId
+      ).to.equal('sku1');
+      expect(payStub.getCalls()[0].thisValue.subscriptionRequest_.oneTime).to.be
+        .true;
+      expect(payStub.getCalls()[0].thisValue.productType_).to.equal(
+        ProductType.SUBSCRIPTION
+      );
+      expect(payStub.getCalls()[0].thisValue.isInlineCta_).to.be.false;
+      analyticsMock.verify();
+    });
+
+    it('does not set oneTime param for subscription if SkuSelectedResponse has oneTime as false', async () => {
+      const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
+      const skuSelected = new SkuSelectedResponse();
+      skuSelected.setSku('sku1');
+      skuSelected.setOneTime(false);
+      analyticsMock
+        .expects('removeLabels')
+        .withExactArgs(['CTA_MODE_INLINE'])
+        .once();
+
+      startSubscriptionPayFlow(deps, skuSelected);
+
+      expect(payStub).to.be.calledOnce;
+      expect(
+        payStub.getCalls()[0].thisValue.subscriptionRequest_.skuId
+      ).to.equal('sku1');
+      expect(payStub.getCalls()[0].thisValue.subscriptionRequest_.oneTime).to.be
+        .undefined;
+      analyticsMock.verify();
+    });
+
+    it('does not set oneTime param for subscription if SkuSelectedResponse has oneTime as undefined', async () => {
+      const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
+      const skuSelected = new SkuSelectedResponse();
+      skuSelected.setSku('sku1');
+      analyticsMock
+        .expects('removeLabels')
+        .withExactArgs(['CTA_MODE_INLINE'])
+        .once();
+
+      startSubscriptionPayFlow(deps, skuSelected);
+
+      expect(payStub).to.be.calledOnce;
+      expect(
+        payStub.getCalls()[0].thisValue.subscriptionRequest_.skuId
+      ).to.equal('sku1');
+      expect(payStub.getCalls()[0].thisValue.subscriptionRequest_.oneTime).to.be
+        .undefined;
       analyticsMock.verify();
     });
   });
