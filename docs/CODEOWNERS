@@ -1,5 +1,5 @@
-src/ @chrisantaki  @mhkawano @Wayne-X @mborof @kristenwang
-third_party/ @chrisantaki  @mhkawano @Wayne-X @mborof @kristenwang
-src/api/ @chrisantaki  @mhkawano @Wayne-X @mborof @kristenwang
-src/runtime/pay*.js @chrisantaki @younmi-park  @mhkawano @Wayne-X @mborof @kristenwang
-docs/CODEOWNERS @chrisantaki  @mhkawano @Wayne-X @mborof @kristenwang
+src/ @chrisantaki  @mhkawano @Wayne-X @mborof @kristenwang @minyuj
+third_party/ @chrisantaki  @mhkawano @Wayne-X @mborof @kristenwang @minyuj
+src/api/ @chrisantaki  @mhkawano @Wayne-X @mborof @kristenwang @minyuj
+src/runtime/pay*.js @chrisantaki @younmi-park  @mhkawano @Wayne-X @mborof @kristenwang @minyuj
+docs/CODEOWNERS @chrisantaki  @mhkawano @Wayne-X @mborof @kristenwang @minyuj
