@@ -16,6 +16,7 @@
 
 import {ActivityPortDef, ActivityPorts} from '../components/activities';
 import {AnalyticsService} from './analytics-service';
+import {ArticleExperimentFlags} from './experiment-flags';
 import {AudienceActivityEventListener} from './audience-activity-listener';
 import {AutoPromptManager} from './auto-prompt-manager';
 import {
@@ -56,7 +57,6 @@ import {Toast} from '../ui/toast';
 import {acceptPortResultData} from '../utils/activity-utils';
 import {assert} from '../utils/log';
 import {feArgs, feOrigin, feUrl} from './services';
-import {isExperimentOn} from './experiments';
 import {msg} from '../utils/i18n';
 
 const BASIC_RUNTIME_PROP = 'SWG_BASIC';
@@ -684,9 +684,9 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     const article = await this.entitlementsManager().getArticle();
     const isLocked = this.pageConfig().isLocked();
 
-    const isMultiInstanceMonetaryCtaEnabled = isExperimentOn(
-      this.doc_.getWin(),
-      'multi_instance_monetary_cta_experiment'
+    const flags = await this.entitlementsManager().getExperimentConfigFlags();
+    const isMultiInstanceMonetaryCtaEnabled = flags.includes(
+      ArticleExperimentFlags.MULTI_INSTANCE_MONETARY_CTA_EXPERIMENT
     );
 
     let subscriptionConfigId: string | undefined;
