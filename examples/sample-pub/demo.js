@@ -15,6 +15,46 @@
  */
 
 /**
+ * @const {{
+ *   LOW_FT: string,
+ *   LOW_P: string,
+ *   LOW_R: string,
+ *   HIGH_FT: string,
+ *   HIGH_P: string,
+ *   HIGH_R: string,
+ *   PREMIUM_SUBSCRIPTION: string,
+ *   BASIC_SUBSCRIPTION: string
+ * }}
+ */
+const SwgProductIds = {
+  LOW_FT: 'SWGPD.7716-2831-5545-40033',
+  LOW_P: 'SWGPD.8143-4243-1406-39532',
+  LOW_R: 'SWGPD.7723-8287-0082-90506',
+  HIGH_FT: 'SWGPD.6534-5912-6087-73404',
+  HIGH_P: 'SWGPD.7900-3652-4910-90150',
+  HIGH_R: 'SWGPD.5062-6472-7475-70605',
+  PREMIUM_SUBSCRIPTION: 'SWGPD.8872-1402-5665-17070',
+  BASIC_SUBSCRIPTION: 'SWGPD.7576-6365-1250-92092',
+};
+
+/**
+ * Parses the URL hash fragment into URLSearchParams.
+ * @return {!URLSearchParams}
+ */
+function parseHashParams() {
+  const hashString = window.location.hash.substring(1);
+  if (!hashString) {
+    return new URLSearchParams();
+  }
+  try {
+    return new URLSearchParams(hashString);
+  } catch (e) {
+    log('Error parsing URL hash:', e);
+    return new URLSearchParams();
+  }
+}
+
+/**
  * Demo paywall controller to demonstrate some key features.
  * @param {!Subscriptions} subscriptions
  */
@@ -26,6 +66,12 @@ function DemoPaywallController(subscriptions) {
   this.subscriptions.setOnLoginRequest(this.loginRequest_.bind(this));
   this.subscriptions.setOnLinkComplete(this.linkComplete_.bind(this));
   this.subscriptions.setOnPaymentResponse(this.subscribeResponse_.bind(this));
+
+  // Parse URL flags only once when the controller is created.
+  const hashParams = parseHashParams();
+
+  /** @const {boolean} */
+  this.planChangeEnabled = hashParams.get('planchange') === 'true';
 
   /** @const {?Entitlements} */
   this.entitlements = null;
@@ -54,8 +100,34 @@ DemoPaywallController.prototype.onEntitlements_ = async function (
     this.createAccount_(entitlements);
     return;
   }
-
   if (entitlements && entitlements.enablesThis()) {
+    if (this.planChangeEnabled) {
+      let skuToBeReplaced = '';
+      // Handle the entitlements response
+      const entitlementsFromResponse = entitlements.entitlements;
+      const googleEntitlements = entitlementsFromResponse.filter((o) => {
+        return o.source === 'google:subscriber';
+      });
+
+      if (googleEntitlements.length > 0) {
+        // Parse the subscriptionToken to retrieve the user's subscribed offer.
+        const subscriptionToken = JSON.parse(
+          googleEntitlements[0].subscriptionToken
+        );
+        skuToBeReplaced = subscriptionToken.productId;
+      }
+      // Get an array of all values from SwgProductIds
+      const allProductIds = Object.values(SwgProductIds);
+
+      // Filter out the skuToBeReplaced
+      const availableSkusForChange = allProductIds.filter(
+        (id) => id !== skuToBeReplaced
+      );
+      this.subscriptions.showUpdateOffers({
+        skus: availableSkusForChange,
+        oldSku: skuToBeReplaced,
+      });
+    }
     // Entitlements available: open access.
     this.openPaywall_();
     entitlements.ack();
