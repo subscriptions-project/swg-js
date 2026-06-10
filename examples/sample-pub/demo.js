@@ -93,7 +93,7 @@ DemoPaywallController.prototype.subscribeResponse_ = async function (
   }
 
   // TODO: Start account creation flow.
-  log('got subscription response', response);
+  log('got subscription response: ', response);
   const toast = document.getElementById('creating_account_toast');
   const userEl = document.getElementById('creating_account_toast_user');
   userEl.textContent = response.userData.email;
