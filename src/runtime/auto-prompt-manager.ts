@@ -161,6 +161,16 @@ const ACTON_CTA_BUTTON_CLICK = [
   AnalyticsEvent.ACTION_SWG_BUTTON_SHOW_CONTRIBUTIONS_CLICK,
 ];
 
+const READER_VISIT_EVENTS = new Set([
+  AnalyticsEvent.EVENT_NO_ENTITLEMENTS,
+  AnalyticsEvent.EVENT_HAS_METERING_ENTITLEMENTS,
+  AnalyticsEvent.EVENT_OFFERED_METER,
+  AnalyticsEvent.EVENT_UNLOCKED_BY_METER,
+  AnalyticsEvent.EVENT_UNLOCKED_FREE_PAGE,
+]);
+
+export const READER_VISIT_ACTION_KEY = 'reader_visit';
+
 export interface ShowAutoPromptParams {
   autoPromptType?: AutoPromptType;
   alwaysShow?: boolean;
@@ -175,6 +185,7 @@ export interface ShowAutoPromptParams {
 export class AutoPromptManager {
   private isInDevMode_?: boolean;
   private hasStoredMiniPromptImpression_ = false;
+  private hasStoredReaderVisit_ = false;
   private promptIsFromCtaButton_ = false;
   private lastAudienceActionFlow_: AudienceActionFlow | null = null;
   private configId_?: string;
@@ -232,6 +243,10 @@ export class AutoPromptManager {
    * A prompt may not be displayed if the appropriate criteria are not met.
    */
   async showAutoPrompt(params: ShowAutoPromptParams): Promise<void> {
+    // Reset hasStoredReaderVisit_ on new auto-prompt cycles to support soft
+    // navigations in Single Page Applications (SPAs) where the manager instance
+    // persists across pages.
+    this.hasStoredReaderVisit_ = false;
     if (params.autoPromptType === AutoPromptType.NONE) {
       return;
     }
@@ -705,6 +720,15 @@ export class AutoPromptManager {
   private async handleFrequencyCappingLocalStorage_(
     analyticsEvent: AnalyticsEvent
   ): Promise<void> {
+    if (READER_VISIT_EVENTS.has(analyticsEvent)) {
+      if (this.hasStoredReaderVisit_) {
+        return;
+      }
+      this.hasStoredReaderVisit_ = true;
+      await this.storeReaderVisit();
+      return;
+    }
+
     // For FCA, do not log frequency capping event for closed contentType. Blocking
     // interventions on Open content will still log impression & completion timestamps
     // (but not dismissal).
@@ -739,6 +763,18 @@ export class AutoPromptManager {
   async setTimestamps(timestamps: ActionsTimestamps) {
     const json = JSON.stringify(timestamps);
     this.storage_.set(StorageKeys.TIMESTAMPS, json, /* useLocalStorage */ true);
+  }
+
+  async storeReaderVisit(): Promise<void> {
+    const timestamps = await getTimestamps(this.deps_);
+    const actionTimestamps = timestamps[READER_VISIT_ACTION_KEY] || {
+      impressions: [],
+      dismissals: [],
+      completions: [],
+    };
+    actionTimestamps.impressions.push(Date.now());
+    timestamps[READER_VISIT_ACTION_KEY] = actionTimestamps;
+    this.setTimestamps(timestamps);
   }
 
   async storeImpression(action: string): Promise<void> {

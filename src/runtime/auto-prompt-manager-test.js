@@ -391,6 +391,89 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.storeImpression('TYPE_REWARDED_SURVEY');
     });
 
+    it('should store reader visit impression when storeReaderVisit is called', async () => {
+      storageMock
+        .expects('get')
+        .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
+        .resolves('')
+        .once();
+      storageMock
+        .expects('set')
+        .withExactArgs(
+          StorageKeys.TIMESTAMPS,
+          JSON.stringify({
+            'reader_visit': {
+              impressions: [CURRENT_TIME],
+              dismissals: [],
+              completions: [],
+            },
+          }),
+          /* useLocalStorage */ true
+        )
+        .resolves(null)
+        .once();
+
+      await autoPromptManager.storeReaderVisit();
+    });
+
+    it('should store reader visit impression when EVENT_NO_ENTITLEMENTS event is logged', async () => {
+      expectFrequencyCappingTimestamps(
+        storageMock,
+        {},
+        {
+          ['reader_visit']: {impressions: [CURRENT_TIME]},
+        }
+      );
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.EVENT_NO_ENTITLEMENTS,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+
+    it('should store reader visit impression when EVENT_HAS_METERING_ENTITLEMENTS event is logged', async () => {
+      expectFrequencyCappingTimestamps(
+        storageMock,
+        {},
+        {
+          ['reader_visit']: {impressions: [CURRENT_TIME]},
+        }
+      );
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.EVENT_HAS_METERING_ENTITLEMENTS,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+
+    it('should only store one reader visit impression per page load when multiple reader visit events are logged', async () => {
+      expectFrequencyCappingTimestamps(
+        storageMock,
+        {},
+        {
+          ['reader_visit']: {impressions: [CURRENT_TIME]},
+        }
+      );
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.EVENT_NO_ENTITLEMENTS,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+      // Second event on same manager instance should not trigger a storage set
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.EVENT_HAS_METERING_ENTITLEMENTS,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+
     it(`should set configId keyed impression timestamps when not in dev mode`, async () => {
       autoPromptManager.isInDevMode_ = false;
       autoPromptManager.configId_ = 'config_id';
