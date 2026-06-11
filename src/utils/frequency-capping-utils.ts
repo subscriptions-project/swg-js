@@ -6,6 +6,8 @@ import {
   InterventionOrchestration,
 } from '../api/action-orchestration';
 import {Duration, FrequencyCapConfig} from '../model/auto-prompt-config';
+import {READER_VISIT_ACTION_KEY} from './constants';
+
 
 const SECOND_IN_MILLIS = 1000;
 
@@ -75,7 +77,9 @@ export function getFrequencyCappedOrchestration(
   if (isValidFrequencyCapDuration(globalFrequencyCapDuration)) {
     const globalTimestamps = Array.prototype.concat.apply(
       [],
-      Object.entries(actionsTimestamps!).map(([key, timestamps]) =>
+      Object.entries(actionsTimestamps!)
+        .filter(([key]) => key !== READER_VISIT_ACTION_KEY)
+        .map(([key, timestamps]) =>
         key === nextOrchestration!.configId
           ? timestamps.completions
           : key === nextOrchestration!.type
