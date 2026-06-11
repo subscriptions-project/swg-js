@@ -22,7 +22,9 @@ module.exports = {
     enterprise
       .navigate()
       .pause(3000)
-      .assert.screenshotIdenticalToBaseline('html', 'enterprise-newsletter', {threshold: 0.1})
+      .assert.screenshotIdenticalToBaseline('html', 'enterprise-newsletter', {
+        threshold: 0.1,
+      })
       .viewNewsletter()
       .assert.textContains(
         '@newsletterHeader',
