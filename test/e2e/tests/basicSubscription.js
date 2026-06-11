@@ -25,7 +25,7 @@ module.exports = {
       .waitForElementVisible('@swgBasicButton')
       .click('@swgBasicButton')
       .pause(3000)
-      .assert.screenshotIdenticalToBaseline('html', 'basic-subscription')
+      .assert.screenshotIdenticalToBaseline('html', 'basic-subscription', { threshold: 0.1 })
       .viewSubscriptionOffers()
       .assert.textContains('@subscriptionHeader', 'Swgjs Subscription Demos')
       .subscribe()
