@@ -110,11 +110,15 @@ DemoPaywallController.prototype.onEntitlements_ = async function (
       });
 
       if (googleEntitlements.length > 0) {
-        // Parse the subscriptionToken to retrieve the user's subscribed offer.
-        const subscriptionToken = JSON.parse(
-          googleEntitlements[0].subscriptionToken
-        );
-        skuToBeReplaced = subscriptionToken.productId;
+        try {
+          // Parse the subscriptionToken to retrieve the user's subscribed offer.
+          const subscriptionToken = JSON.parse(
+            googleEntitlements[0].subscriptionToken
+          );
+          skuToBeReplaced = subscriptionToken.productId;
+        } catch (e) {
+          log('Error parsing subscriptionToken:', e);
+        }
       }
       // Get an array of all values from SwgProductIds
       const allProductIds = Object.values(SwgProductIds);
