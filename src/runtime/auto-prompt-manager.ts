@@ -46,8 +46,8 @@ import {InterventionType} from '../api/intervention-type';
 import {MiniPromptApi} from './mini-prompt-api';
 import {OffersRequest} from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
-import {Storage} from './storage';
 import {READER_VISIT_ACTION_KEY, StorageKeys} from '../utils/constants';
+import {Storage} from './storage';
 import {assert} from '../utils/log';
 import {getTimestamps, isActionEligible} from '../utils/cta-utils';
 
@@ -168,7 +168,6 @@ const READER_VISIT_EVENTS = new Set([
   AnalyticsEvent.EVENT_UNLOCKED_BY_METER,
   AnalyticsEvent.EVENT_UNLOCKED_FREE_PAGE,
 ]);
-
 
 export interface ShowAutoPromptParams {
   autoPromptType?: AutoPromptType;
