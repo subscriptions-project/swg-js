@@ -83,4 +83,6 @@ const StorageKeysWithoutPublicationIdSuffix = {
   PPS_TAXONOMIES: 'ppstaxonomies',
 };
 
+export const READER_VISIT_ACTION_KEY = 'reader_visit';
+
 export {Constants, StorageKeys, StorageKeysWithoutPublicationIdSuffix};
