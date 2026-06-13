@@ -31,7 +31,7 @@
     "@babel/core": "7.29.0",
     "@babel/preset-env": "7.29.2",
     "@nightwatch/vrt": "3.5.2",
-    "@rollup/plugin-commonjs": "25.0.8",
+    "@rollup/plugin-commonjs": "29.0.2",
     "@rollup/plugin-replace": "6.0.3",
     "@types/google-publisher-tag": "1.20260420.0",
     "@typescript-eslint/eslint-plugin": "8.59.1",
