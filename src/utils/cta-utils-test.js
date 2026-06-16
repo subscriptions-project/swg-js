@@ -928,75 +928,94 @@ describes.realWin('CTA utils', (env) => {
   });
 
   describe('getVisitFrequency', () => {
+    const now = 1000000000000; // Arbitrary fixed time
+    const ONE_DAY = 24 * 60 * 60 * 1000;
+
     it('should return VISIT_FREQUENCY_NEW for 0 past visits (1 total)', () => {
-      const result = getVisitFrequency({});
+      const result = getVisitFrequency({}, now);
       expect(result).to.equal('VISIT_FREQUENCY_NEW');
     });
 
-    it('should return VISIT_FREQUENCY_NEW for 1 past visit (2 total)', () => {
-      const result = getVisitFrequency({
-        'reader_visit': {
-          impressions: [1],
-          dismissals: [],
-          completions: [],
+    it('should return VISIT_FREQUENCY_CASUAL for 1 past visit (2 total)', () => {
+      const result = getVisitFrequency(
+        {
+          'reader_visit': {
+            impressions: [now - ONE_DAY],
+            dismissals: [],
+            completions: [],
+          },
         },
-      });
-      expect(result).to.equal('VISIT_FREQUENCY_NEW');
-    });
-
-    it('should return VISIT_FREQUENCY_NEW for 2 past visits (3 total)', () => {
-      const result = getVisitFrequency({
-        'reader_visit': {
-          impressions: [1, 2],
-          dismissals: [],
-          completions: [],
-        },
-      });
-      expect(result).to.equal('VISIT_FREQUENCY_NEW');
-    });
-
-    it('should return VISIT_FREQUENCY_CASUAL for 3 past visits (4 total)', () => {
-      const result = getVisitFrequency({
-        'reader_visit': {
-          impressions: [1, 2, 3],
-          dismissals: [],
-          completions: [],
-        },
-      });
+        now
+      );
       expect(result).to.equal('VISIT_FREQUENCY_CASUAL');
     });
 
-    it('should return VISIT_FREQUENCY_CASUAL for 6 past visits (7 total)', () => {
-      const result = getVisitFrequency({
-        'reader_visit': {
-          impressions: [1, 2, 3, 4, 5, 6],
-          dismissals: [],
-          completions: [],
+    it('should return VISIT_FREQUENCY_CASUAL for 2 past visits (3 total)', () => {
+      const result = getVisitFrequency(
+        {
+          'reader_visit': {
+            impressions: [now - ONE_DAY, now - 2 * ONE_DAY],
+            dismissals: [],
+            completions: [],
+          },
         },
-      });
+        now
+      );
       expect(result).to.equal('VISIT_FREQUENCY_CASUAL');
     });
 
-    it('should return VISIT_FREQUENCY_FREQUENT for 7 past visits (8 total)', () => {
-      const result = getVisitFrequency({
-        'reader_visit': {
-          impressions: [1, 2, 3, 4, 5, 6, 7],
-          dismissals: [],
-          completions: [],
+    it('should return VISIT_FREQUENCY_FREQUENT for 3 past visits (4 total)', () => {
+      const result = getVisitFrequency(
+        {
+          'reader_visit': {
+            impressions: [now - ONE_DAY, now - 2 * ONE_DAY, now - 3 * ONE_DAY],
+            dismissals: [],
+            completions: [],
+          },
         },
-      });
+        now
+      );
       expect(result).to.equal('VISIT_FREQUENCY_FREQUENT');
     });
 
-    it('should return VISIT_FREQUENCY_FREQUENT for 10 past visits (11 total)', () => {
-      const result = getVisitFrequency({
-        'reader_visit': {
-          impressions: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-          dismissals: [],
-          completions: [],
+    it('should return VISIT_FREQUENCY_FREQUENT for 6 past visits (7 total)', () => {
+      const result = getVisitFrequency(
+        {
+          'reader_visit': {
+            impressions: [
+              now - ONE_DAY,
+              now - 2 * ONE_DAY,
+              now - 3 * ONE_DAY,
+              now - 4 * ONE_DAY,
+              now - 5 * ONE_DAY,
+              now - 6 * ONE_DAY,
+            ],
+            dismissals: [],
+            completions: [],
+          },
         },
-      });
+        now
+      );
       expect(result).to.equal('VISIT_FREQUENCY_FREQUENT');
+    });
+
+    it('should ignore visits older than 1 week', () => {
+      const result = getVisitFrequency(
+        {
+          'reader_visit': {
+            impressions: [
+              now - ONE_DAY, // 1 fresh
+              now - 8 * ONE_DAY, // old, should be ignored
+              now - 9 * ONE_DAY, // old, should be ignored
+            ],
+            dismissals: [],
+            completions: [],
+          },
+        },
+        now
+      );
+      // 1 fresh + 1 current = 2 visits -> CASUAL
+      expect(result).to.equal('VISIT_FREQUENCY_CASUAL');
     });
   });
 });

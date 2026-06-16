@@ -2234,9 +2234,12 @@ describes.realWin('EntitlementsManager', (env) => {
     });
 
     describe('visitFrequency parameter', () => {
+      const CURRENT_TIME = 1615416442000;
+      const ONE_DAY = 24 * 60 * 60 * 1000;
       let article;
 
       beforeEach(() => {
+        sandbox.useFakeTimers(CURRENT_TIME);
         article = {
           entitlements: {
             signedEntitlements: 'SIGNED_DATA',
@@ -2294,11 +2297,11 @@ describes.realWin('EntitlementsManager', (env) => {
         await manager.getEntitlements();
       });
 
-      it('should pass VISIT_FREQUENCY_CASUAL if reader has 3 past visits (4 total)', async () => {
+      it('should pass VISIT_FREQUENCY_CASUAL if reader has 1 past visit (2 total)', async () => {
         expectGetSwgUserTokenToBeCalled();
         const timestamps = {
           'reader_visit': {
-            impressions: [1, 2, 3],
+            impressions: [CURRENT_TIME - ONE_DAY],
             dismissals: [],
             completions: [],
           },
@@ -2324,11 +2327,15 @@ describes.realWin('EntitlementsManager', (env) => {
         await manager.getEntitlements();
       });
 
-      it('should pass VISIT_FREQUENCY_FREQUENT if reader has 7 past visits (8 total)', async () => {
+      it('should pass VISIT_FREQUENCY_FREQUENT if reader has 3 past visits (4 total)', async () => {
         expectGetSwgUserTokenToBeCalled();
         const timestamps = {
           'reader_visit': {
-            impressions: [1, 2, 3, 4, 5, 6, 7],
+            impressions: [
+              CURRENT_TIME - ONE_DAY,
+              CURRENT_TIME - 2 * ONE_DAY,
+              CURRENT_TIME - 3 * ONE_DAY,
+            ],
             dismissals: [],
             completions: [],
           },

@@ -359,26 +359,31 @@ export function isActionEligible(
   return true;
 }
 
+const ONE_WEEK_IN_MILLIS = 7 * 24 * 60 * 60 * 1000;
+
 /**
  * Calculates the visit frequency category based on the recorded reader visits.
  * The categories are:
- * - New: 1 visit per week (mapped to VISIT_FREQUENCY_LOW)
- * - Casual: 2–3 visits per week (mapped to VISIT_FREQUENCY_MEDIUM)
- * - Frequent: 4+ visits per week (mapped to VISIT_FREQUENCY_HIGH)
+ * - New: 1 visit per week (mapped to VISIT_FREQUENCY_NEW)
+ * - Casual: 2–3 visits per week (mapped to VISIT_FREQUENCY_CASUAL)
+ * - Frequent: 4+ visits per week (mapped to VISIT_FREQUENCY_FREQUENT)
  *
- * Since we keep track of the last 2 weeks of visits, we calculate the weekly
- * rate by dividing the total visits (including the current visit) by 2.
+ * We only count visits that occurred in the past week (7 days), plus the current visit.
  */
-export function getVisitFrequency(timestamps: ActionsTimestamps): string {
+export function getVisitFrequency(
+  timestamps: ActionsTimestamps,
+  currentTime: number = Date.now()
+): string {
   const readerVisitTimestamps = timestamps[READER_VISIT_ACTION_KEY];
   const impressions = readerVisitTimestamps?.impressions || [];
-  // Include the current visit.
-  const totalVisits = impressions.length + 1;
-  const weeklyRate = totalVisits / 2;
 
-  if (weeklyRate >= 4.0) {
+  const oneWeekAgo = currentTime - ONE_WEEK_IN_MILLIS;
+  const visitsInPastWeek =
+    impressions.filter((t) => t >= oneWeekAgo).length + 1;
+
+  if (visitsInPastWeek >= 4) {
     return 'VISIT_FREQUENCY_FREQUENT';
-  } else if (weeklyRate >= 2.0) {
+  } else if (visitsInPastWeek >= 2) {
     return 'VISIT_FREQUENCY_CASUAL';
   } else {
     return 'VISIT_FREQUENCY_NEW';
