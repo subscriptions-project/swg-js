@@ -928,12 +928,12 @@ describes.realWin('CTA utils', (env) => {
   });
 
   describe('getVisitFrequency', () => {
-    it('should return VISIT_FREQUENCY_LOW for 0 past visits (1 total)', () => {
+    it('should return VISIT_FREQUENCY_NEW for 0 past visits (1 total)', () => {
       const result = getVisitFrequency({});
-      expect(result).to.equal('VISIT_FREQUENCY_LOW');
+      expect(result).to.equal('VISIT_FREQUENCY_NEW');
     });
 
-    it('should return VISIT_FREQUENCY_LOW for 1 past visit (2 total)', () => {
+    it('should return VISIT_FREQUENCY_NEW for 1 past visit (2 total)', () => {
       const result = getVisitFrequency({
         'reader_visit': {
           impressions: [1],
@@ -941,10 +941,10 @@ describes.realWin('CTA utils', (env) => {
           completions: [],
         },
       });
-      expect(result).to.equal('VISIT_FREQUENCY_LOW');
+      expect(result).to.equal('VISIT_FREQUENCY_NEW');
     });
 
-    it('should return VISIT_FREQUENCY_LOW for 2 past visits (3 total)', () => {
+    it('should return VISIT_FREQUENCY_NEW for 2 past visits (3 total)', () => {
       const result = getVisitFrequency({
         'reader_visit': {
           impressions: [1, 2],
@@ -952,10 +952,10 @@ describes.realWin('CTA utils', (env) => {
           completions: [],
         },
       });
-      expect(result).to.equal('VISIT_FREQUENCY_LOW');
+      expect(result).to.equal('VISIT_FREQUENCY_NEW');
     });
 
-    it('should return VISIT_FREQUENCY_MEDIUM for 3 past visits (4 total)', () => {
+    it('should return VISIT_FREQUENCY_CASUAL for 3 past visits (4 total)', () => {
       const result = getVisitFrequency({
         'reader_visit': {
           impressions: [1, 2, 3],
@@ -963,10 +963,10 @@ describes.realWin('CTA utils', (env) => {
           completions: [],
         },
       });
-      expect(result).to.equal('VISIT_FREQUENCY_MEDIUM');
+      expect(result).to.equal('VISIT_FREQUENCY_CASUAL');
     });
 
-    it('should return VISIT_FREQUENCY_MEDIUM for 6 past visits (7 total)', () => {
+    it('should return VISIT_FREQUENCY_CASUAL for 6 past visits (7 total)', () => {
       const result = getVisitFrequency({
         'reader_visit': {
           impressions: [1, 2, 3, 4, 5, 6],
@@ -974,10 +974,10 @@ describes.realWin('CTA utils', (env) => {
           completions: [],
         },
       });
-      expect(result).to.equal('VISIT_FREQUENCY_MEDIUM');
+      expect(result).to.equal('VISIT_FREQUENCY_CASUAL');
     });
 
-    it('should return VISIT_FREQUENCY_HIGH for 7 past visits (8 total)', () => {
+    it('should return VISIT_FREQUENCY_FREQUENT for 7 past visits (8 total)', () => {
       const result = getVisitFrequency({
         'reader_visit': {
           impressions: [1, 2, 3, 4, 5, 6, 7],
@@ -985,10 +985,10 @@ describes.realWin('CTA utils', (env) => {
           completions: [],
         },
       });
-      expect(result).to.equal('VISIT_FREQUENCY_HIGH');
+      expect(result).to.equal('VISIT_FREQUENCY_FREQUENT');
     });
 
-    it('should return VISIT_FREQUENCY_HIGH for 10 past visits (11 total)', () => {
+    it('should return VISIT_FREQUENCY_FREQUENT for 10 past visits (11 total)', () => {
       const result = getVisitFrequency({
         'reader_visit': {
           impressions: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
@@ -996,7 +996,7 @@ describes.realWin('CTA utils', (env) => {
           completions: [],
         },
       });
-      expect(result).to.equal('VISIT_FREQUENCY_HIGH');
+      expect(result).to.equal('VISIT_FREQUENCY_FREQUENT');
     });
   });
 });

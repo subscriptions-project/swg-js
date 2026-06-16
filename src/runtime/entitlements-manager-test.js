@@ -389,7 +389,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          'https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_LOW',
+          'https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_NEW',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -423,7 +423,7 @@ describes.realWin('EntitlementsManager', (env) => {
             encodeURIComponent(scenario) +
             '&crypt=' +
             encodeURIComponent(encryptedDocumentKey) +
-            '&locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_LOW',
+            '&locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_NEW',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -449,7 +449,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          'https://news.google.com/swg/_/api/v1/publication/pub1/article?pageReferrer=google.com&locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_LOW',
+          'https://news.google.com/swg/_/api/v1/publication/pub1/article?pageReferrer=google.com&locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_NEW',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -472,7 +472,7 @@ describes.realWin('EntitlementsManager', (env) => {
         .withExactArgs(
           'https://news.google.com/swg/_/api/v1/publication/pub1/article?crypt=' +
             encodeURIComponent(encryptedDocumentKey) +
-            '&locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_LOW',
+            '&locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_NEW',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -507,7 +507,7 @@ describes.realWin('EntitlementsManager', (env) => {
             encodeURIComponent(encryptedDocumentKey) +
             '&sut=' +
             encodeURIComponent('abc') +
-            '&locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_LOW',
+            '&locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_NEW',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -569,7 +569,7 @@ describes.realWin('EntitlementsManager', (env) => {
         .withExactArgs(
           'https://news.google.com/swg/_/api/v1/publication/pub1/article?crypt=' +
             encodeURIComponent(encryptedDocumentKey) +
-            '&locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_LOW',
+            '&locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_NEW',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -627,7 +627,7 @@ describes.realWin('EntitlementsManager', (env) => {
         .withExactArgs(
           'https://news.google.com/swg/_/api/v1/publication/pub1/article?crypt=' +
             encodeURIComponent(encryptedDocumentKey) +
-            '&locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_LOW',
+            '&locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_NEW',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -752,7 +752,7 @@ describes.realWin('EntitlementsManager', (env) => {
         .withExactArgs(
           'https://news.google.com/swg/_/api/v1/publication/pub1/article?crypt=' +
             encodeURIComponent(encryptedDocumentKey) +
-            '&locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_LOW',
+            '&locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_NEW',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -809,7 +809,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          'https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_LOW',
+          'https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_NEW',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -877,7 +877,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          'https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_LOW',
+          'https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_NEW',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1159,7 +1159,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&encodedEntitlementsParams=${encodedParams}&visitFrequency=VISIT_FREQUENCY_LOW`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&encodedEntitlementsParams=${encodedParams}&visitFrequency=VISIT_FREQUENCY_NEW`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1661,7 +1661,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          'https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_LOW',
+          'https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_NEW',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1689,7 +1689,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          'https://news.google.com/swg/_/api/v1/publication/pub1/article?crypt=deprecated&locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_LOW',
+          'https://news.google.com/swg/_/api/v1/publication/pub1/article?crypt=deprecated&locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_NEW',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1779,7 +1779,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&encodedEntitlementsParams=${encodedParams}&visitFrequency=VISIT_FREQUENCY_LOW`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&encodedEntitlementsParams=${encodedParams}&visitFrequency=VISIT_FREQUENCY_NEW`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1859,7 +1859,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=false&contentType=OPEN&encodedEntitlementsParams=${encodedParams}&visitFrequency=VISIT_FREQUENCY_LOW`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=false&contentType=OPEN&encodedEntitlementsParams=${encodedParams}&visitFrequency=VISIT_FREQUENCY_NEW`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1902,7 +1902,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `https://news.google.com/swg/_/api/v1/publication/pub1/article?previewConfigId=${configId}&locked=true&contentType=CLOSED&encodedEntitlementsParams=${encodedParams}&visitFrequency=VISIT_FREQUENCY_LOW`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/article?previewConfigId=${configId}&locked=true&contentType=CLOSED&encodedEntitlementsParams=${encodedParams}&visitFrequency=VISIT_FREQUENCY_NEW`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1951,7 +1951,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `https://news.google.com/swg/_/api/v1/publication/pub1/article?previewConfigId=${configId}&previewKey=${previewKey}&locked=true&contentType=CLOSED&encodedEntitlementsParams=${encodedParams}&visitFrequency=VISIT_FREQUENCY_LOW`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/article?previewConfigId=${configId}&previewKey=${previewKey}&locked=true&contentType=CLOSED&encodedEntitlementsParams=${encodedParams}&visitFrequency=VISIT_FREQUENCY_NEW`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -1985,7 +1985,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&encodedEntitlementsParams=${defaultGoogleMeteringEncodedParams}&visitFrequency=VISIT_FREQUENCY_LOW`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&encodedEntitlementsParams=${defaultGoogleMeteringEncodedParams}&visitFrequency=VISIT_FREQUENCY_NEW`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -2010,7 +2010,7 @@ describes.realWin('EntitlementsManager', (env) => {
             encodeURIComponent('abc') +
             '&ppid=' +
             encodeURIComponent('publisherProvidedId') +
-            '&locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_LOW',
+            '&locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_NEW',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -2042,7 +2042,7 @@ describes.realWin('EntitlementsManager', (env) => {
             encodeURIComponent('abc') +
             '&ppid=' +
             encodeURIComponent('publisherProvidedId') +
-            '&locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_LOW',
+            '&locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_NEW',
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -2079,7 +2079,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `https://news.google.com/swg/_/api/v1/publication/pub1/article?interaction_age=2&locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_LOW`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/article?interaction_age=2&locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_NEW`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -2109,7 +2109,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_LOW`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_NEW`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -2139,7 +2139,7 @@ describes.realWin('EntitlementsManager', (env) => {
       fetcherMock
         .expects('fetch')
         .withExactArgs(
-          `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_LOW`,
+          `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_NEW`,
           {
             method: 'GET',
             headers: {'Accept': 'text/plain, application/json'},
@@ -2271,14 +2271,14 @@ describes.realWin('EntitlementsManager', (env) => {
           .atLeast(0);
       });
 
-      it('should pass VISIT_FREQUENCY_LOW if reader has 0 past visits (1 total)', async () => {
+      it('should pass VISIT_FREQUENCY_NEW if reader has 0 past visits (1 total)', async () => {
         expectGetSwgUserTokenToBeCalled();
         ctaUtils.getTimestamps.resolves({});
 
         fetcherMock
           .expects('fetch')
           .withExactArgs(
-            `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_LOW`,
+            `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_NEW`,
             {
               method: 'GET',
               headers: {'Accept': 'text/plain, application/json'},
@@ -2294,7 +2294,7 @@ describes.realWin('EntitlementsManager', (env) => {
         await manager.getEntitlements();
       });
 
-      it('should pass VISIT_FREQUENCY_MEDIUM if reader has 3 past visits (4 total)', async () => {
+      it('should pass VISIT_FREQUENCY_CASUAL if reader has 3 past visits (4 total)', async () => {
         expectGetSwgUserTokenToBeCalled();
         const timestamps = {
           'reader_visit': {
@@ -2308,7 +2308,7 @@ describes.realWin('EntitlementsManager', (env) => {
         fetcherMock
           .expects('fetch')
           .withExactArgs(
-            `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_MEDIUM`,
+            `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_CASUAL`,
             {
               method: 'GET',
               headers: {'Accept': 'text/plain, application/json'},
@@ -2324,7 +2324,7 @@ describes.realWin('EntitlementsManager', (env) => {
         await manager.getEntitlements();
       });
 
-      it('should pass VISIT_FREQUENCY_HIGH if reader has 7 past visits (8 total)', async () => {
+      it('should pass VISIT_FREQUENCY_FREQUENT if reader has 7 past visits (8 total)', async () => {
         expectGetSwgUserTokenToBeCalled();
         const timestamps = {
           'reader_visit': {
@@ -2338,7 +2338,7 @@ describes.realWin('EntitlementsManager', (env) => {
         fetcherMock
           .expects('fetch')
           .withExactArgs(
-            `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_HIGH`,
+            `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_FREQUENT`,
             {
               method: 'GET',
               headers: {'Accept': 'text/plain, application/json'},
@@ -2888,7 +2888,7 @@ describes.realWin('EntitlementsManager', (env) => {
         fetcherMock
           .expects('fetch')
           .withExactArgs(
-            'https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_LOW',
+            'https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_NEW',
             {
               method: 'GET',
               headers: {'Accept': 'text/plain, application/json'},

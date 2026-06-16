@@ -377,10 +377,10 @@ export function getVisitFrequency(timestamps: ActionsTimestamps): string {
   const weeklyRate = totalVisits / 2;
 
   if (weeklyRate >= 4.0) {
-    return 'VISIT_FREQUENCY_HIGH';
+    return 'VISIT_FREQUENCY_FREQUENT';
   } else if (weeklyRate >= 2.0) {
-    return 'VISIT_FREQUENCY_MEDIUM';
+    return 'VISIT_FREQUENCY_CASUAL';
   } else {
-    return 'VISIT_FREQUENCY_LOW';
+    return 'VISIT_FREQUENCY_NEW';
   }
 }
