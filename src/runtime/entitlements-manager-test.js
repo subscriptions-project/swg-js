@@ -144,6 +144,7 @@ describes.realWin('EntitlementsManager', (env) => {
     manager = new EntitlementsManager(win, pageConfig, fetcher, deps);
     jwtHelperMock = sandbox.mock(manager.jwtHelper_);
     sandbox.stub(ctaUtils, 'getTimestamps').resolves({});
+    sandbox.stub(ctaUtils, 'getVisitFrequency').returns('VISIT_FREQUENCY_NEW');
     encryptedDocumentKey =
       '{"accessRequirements": ' +
       '["norcal.com:premium"], "key":"aBcDef781-2-4/sjfdi"}';
@@ -2234,12 +2235,9 @@ describes.realWin('EntitlementsManager', (env) => {
     });
 
     describe('visitFrequency parameter', () => {
-      const CURRENT_TIME = 1615416442000;
-      const ONE_DAY = 24 * 60 * 60 * 1000;
       let article;
 
       beforeEach(() => {
-        sandbox.useFakeTimers(CURRENT_TIME);
         article = {
           entitlements: {
             signedEntitlements: 'SIGNED_DATA',
@@ -2274,78 +2272,14 @@ describes.realWin('EntitlementsManager', (env) => {
           .atLeast(0);
       });
 
-      it('should pass VISIT_FREQUENCY_NEW if reader has 0 past visits (1 total)', async () => {
+      it('should append visitFrequency parameter returned by getVisitFrequency helper to the article URL', async () => {
         expectGetSwgUserTokenToBeCalled();
-        ctaUtils.getTimestamps.resolves({});
+        ctaUtils.getVisitFrequency.returns('MOCK_FREQUENCY_VALUE');
 
         fetcherMock
           .expects('fetch')
           .withExactArgs(
-            `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_NEW`,
-            {
-              method: 'GET',
-              headers: {'Accept': 'text/plain, application/json'},
-              credentials: 'include',
-            }
-          )
-          .returns(
-            Promise.resolve({
-              text: () => Promise.resolve(JSON.stringify(article)),
-            })
-          );
-
-        await manager.getEntitlements();
-      });
-
-      it('should pass VISIT_FREQUENCY_CASUAL if reader has 1 past visit (2 total)', async () => {
-        expectGetSwgUserTokenToBeCalled();
-        const timestamps = {
-          'reader_visit': {
-            impressions: [CURRENT_TIME - ONE_DAY],
-            dismissals: [],
-            completions: [],
-          },
-        };
-        ctaUtils.getTimestamps.resolves(timestamps);
-
-        fetcherMock
-          .expects('fetch')
-          .withExactArgs(
-            `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_CASUAL`,
-            {
-              method: 'GET',
-              headers: {'Accept': 'text/plain, application/json'},
-              credentials: 'include',
-            }
-          )
-          .returns(
-            Promise.resolve({
-              text: () => Promise.resolve(JSON.stringify(article)),
-            })
-          );
-
-        await manager.getEntitlements();
-      });
-
-      it('should pass VISIT_FREQUENCY_FREQUENT if reader has 3 past visits (4 total)', async () => {
-        expectGetSwgUserTokenToBeCalled();
-        const timestamps = {
-          'reader_visit': {
-            impressions: [
-              CURRENT_TIME - ONE_DAY,
-              CURRENT_TIME - 2 * ONE_DAY,
-              CURRENT_TIME - 3 * ONE_DAY,
-            ],
-            dismissals: [],
-            completions: [],
-          },
-        };
-        ctaUtils.getTimestamps.resolves(timestamps);
-
-        fetcherMock
-          .expects('fetch')
-          .withExactArgs(
-            `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&visitFrequency=VISIT_FREQUENCY_FREQUENT`,
+            `https://news.google.com/swg/_/api/v1/publication/pub1/article?locked=true&contentType=CLOSED&visitFrequency=MOCK_FREQUENCY_VALUE`,
             {
               method: 'GET',
               headers: {'Accept': 'text/plain, application/json'},
