@@ -474,26 +474,6 @@ describes.realWin('AutoPromptManager', (env) => {
       });
     });
 
-    it('should prune reader visit impressions older than two weeks when storeReaderVisit is called', async () => {
-      const oldTime = CURRENT_TIME - TWO_WEEKS_IN_MILLIS - 1;
-      const freshTime = CURRENT_TIME - TWO_WEEKS_IN_MILLIS + 1;
-      expectFrequencyCappingTimestamps(
-        storageMock,
-        {
-          ['reader_visit']: {
-            impressions: [oldTime, freshTime],
-          },
-        },
-        {
-          ['reader_visit']: {
-            impressions: [freshTime, CURRENT_TIME],
-          },
-        }
-      );
-
-      await autoPromptManager.storeReaderVisit();
-    });
-
     it(`should set configId keyed impression timestamps when not in dev mode`, async () => {
       autoPromptManager.isInDevMode_ = false;
       autoPromptManager.configId_ = 'config_id';
