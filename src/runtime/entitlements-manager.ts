@@ -61,6 +61,7 @@ import {
 import {analyticsEventToEntitlementResult} from './event-type-mapping';
 import {base64UrlEncodeFromBytes, utf8EncodeSync} from '../utils/bytes';
 import {feArgs, feUrl} from './services';
+import {getTimestamps, getVisitFrequency} from '../utils/cta-utils';
 import {hash} from '../utils/string';
 import {queryStringHasFreshGaaParams} from './extended-access';
 import {serviceUrl} from './services';
@@ -958,6 +959,10 @@ export class EntitlementsManager {
         this.encodedParams_
       );
     }
+    const timestamps = await getTimestamps(this.deps_);
+    const visitFrequency = getVisitFrequency(timestamps);
+    url = addQueryParam(url, 'visitFrequency', visitFrequency);
+
     url = serviceUrl(url);
 
     // Get entitlements.

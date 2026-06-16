@@ -32,7 +32,7 @@ import {InterventionType} from '../api/intervention-type';
 import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from '../runtime/pay-flow';
 import {ProductType, SubscriptionRequest} from '../api/subscriptions';
-import {StorageKeys} from './constants';
+import {READER_VISIT_ACTION_KEY, StorageKeys} from './constants';
 import {Toast} from '../ui/toast';
 import {feUrl} from '../runtime/services';
 import {msg} from './i18n';
@@ -357,4 +357,30 @@ export function isActionEligible(
   }
 
   return true;
+}
+
+/**
+ * Calculates the visit frequency category based on the recorded reader visits.
+ * The categories are:
+ * - New: 1 visit per week (mapped to VISIT_FREQUENCY_LOW)
+ * - Casual: 2–3 visits per week (mapped to VISIT_FREQUENCY_MEDIUM)
+ * - Frequent: 4+ visits per week (mapped to VISIT_FREQUENCY_HIGH)
+ *
+ * Since we keep track of the last 2 weeks of visits, we calculate the weekly
+ * rate by dividing the total visits (including the current visit) by 2.
+ */
+export function getVisitFrequency(timestamps: ActionsTimestamps): string {
+  const readerVisitTimestamps = timestamps[READER_VISIT_ACTION_KEY];
+  const impressions = readerVisitTimestamps?.impressions || [];
+  // Include the current visit.
+  const totalVisits = impressions.length + 1;
+  const weeklyRate = totalVisits / 2;
+
+  if (weeklyRate >= 4.0) {
+    return 'VISIT_FREQUENCY_HIGH';
+  } else if (weeklyRate >= 2.0) {
+    return 'VISIT_FREQUENCY_MEDIUM';
+  } else {
+    return 'VISIT_FREQUENCY_LOW';
+  }
 }
