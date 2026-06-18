@@ -52,6 +52,7 @@ import {assert} from '../utils/log';
 import {getTimestamps, isActionEligible} from '../utils/cta-utils';
 
 const SECOND_IN_MILLIS = 1000;
+const VISIT_COOLDOWN_MILLIS = 60 * 60 * 1000; // 1 hour
 
 const monetizationImpressionEvents = [
   AnalyticsEvent.IMPRESSION_SWG_CONTRIBUTION_MINI_PROMPT,
@@ -770,7 +771,13 @@ export class AutoPromptManager {
       dismissals: [],
       completions: [],
     };
-    actionTimestamps.impressions.push(Date.now());
+    const lastVisit =
+      actionTimestamps.impressions[actionTimestamps.impressions.length - 1];
+    const now = Date.now();
+    if (lastVisit && now - lastVisit < VISIT_COOLDOWN_MILLIS) {
+      return;
+    }
+    actionTimestamps.impressions.push(now);
     timestamps[READER_VISIT_ACTION_KEY] = actionTimestamps;
     this.setTimestamps(timestamps);
   }

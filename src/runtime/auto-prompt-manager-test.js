@@ -416,6 +416,60 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.storeReaderVisit();
     });
 
+    it('should not store reader visit if last visit was within cooldown', async () => {
+      const thirtyMinsAgo = CURRENT_TIME - 30 * 60 * 1000;
+      storageMock
+        .expects('get')
+        .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
+        .resolves(
+          JSON.stringify({
+            'reader_visit': {
+              impressions: [thirtyMinsAgo],
+              dismissals: [],
+              completions: [],
+            },
+          })
+        )
+        .once();
+      storageMock.expects('set').never();
+
+      await autoPromptManager.storeReaderVisit();
+    });
+
+    it('should store reader visit if last visit was before cooldown', async () => {
+      const seventyMinsAgo = CURRENT_TIME - 70 * 60 * 1000;
+      storageMock
+        .expects('get')
+        .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
+        .resolves(
+          JSON.stringify({
+            'reader_visit': {
+              impressions: [seventyMinsAgo],
+              dismissals: [],
+              completions: [],
+            },
+          })
+        )
+        .once();
+      storageMock
+        .expects('set')
+        .withExactArgs(
+          StorageKeys.TIMESTAMPS,
+          JSON.stringify({
+            'reader_visit': {
+              impressions: [seventyMinsAgo, CURRENT_TIME],
+              dismissals: [],
+              completions: [],
+            },
+          }),
+          /* useLocalStorage */ true
+        )
+        .resolves(null)
+        .once();
+
+      await autoPromptManager.storeReaderVisit();
+    });
+
     it('should store reader visit impression when EVENT_NO_ENTITLEMENTS event is logged', async () => {
       expectFrequencyCappingTimestamps(
         storageMock,
