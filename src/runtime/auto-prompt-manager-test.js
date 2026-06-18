@@ -391,7 +391,15 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.storeImpression('TYPE_REWARDED_SURVEY');
     });
 
-    it('should store reader visit impression when storeReaderVisit is called', async () => {
+    it('should store reader visit impression when storeReaderVisit is called and not logged in session', async () => {
+      storageMock
+        .expects('get')
+        .withExactArgs(
+          StorageKeys.READER_VISIT_LOGGED,
+          /* useLocalStorage */ false
+        )
+        .resolves(null)
+        .once();
       storageMock
         .expects('get')
         .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
@@ -412,60 +420,33 @@ describes.realWin('AutoPromptManager', (env) => {
         )
         .resolves(null)
         .once();
-
-      await autoPromptManager.storeReaderVisit();
-    });
-
-    it('should not store reader visit if last visit was within cooldown', async () => {
-      const thirtyMinsAgo = CURRENT_TIME - 30 * 60 * 1000;
-      storageMock
-        .expects('get')
-        .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
-        .resolves(
-          JSON.stringify({
-            'reader_visit': {
-              impressions: [thirtyMinsAgo],
-              dismissals: [],
-              completions: [],
-            },
-          })
-        )
-        .once();
-      storageMock.expects('set').never();
-
-      await autoPromptManager.storeReaderVisit();
-    });
-
-    it('should store reader visit if last visit was before cooldown', async () => {
-      const seventyMinsAgo = CURRENT_TIME - 70 * 60 * 1000;
-      storageMock
-        .expects('get')
-        .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
-        .resolves(
-          JSON.stringify({
-            'reader_visit': {
-              impressions: [seventyMinsAgo],
-              dismissals: [],
-              completions: [],
-            },
-          })
-        )
-        .once();
       storageMock
         .expects('set')
         .withExactArgs(
-          StorageKeys.TIMESTAMPS,
-          JSON.stringify({
-            'reader_visit': {
-              impressions: [seventyMinsAgo, CURRENT_TIME],
-              dismissals: [],
-              completions: [],
-            },
-          }),
-          /* useLocalStorage */ true
+          StorageKeys.READER_VISIT_LOGGED,
+          '1',
+          /* useLocalStorage */ false
         )
         .resolves(null)
         .once();
+
+      await autoPromptManager.storeReaderVisit();
+    });
+
+    it('should not store reader visit if already logged in session', async () => {
+      storageMock
+        .expects('get')
+        .withExactArgs(
+          StorageKeys.READER_VISIT_LOGGED,
+          /* useLocalStorage */ false
+        )
+        .resolves('1')
+        .once();
+      storageMock
+        .expects('get')
+        .withExactArgs(StorageKeys.TIMESTAMPS, true)
+        .never();
+      storageMock.expects('set').never();
 
       await autoPromptManager.storeReaderVisit();
     });
@@ -5327,6 +5308,23 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('get')
       .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
       .resolves(get);
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        StorageKeys.READER_VISIT_LOGGED,
+        /* useLocalStorage */ false
+      )
+      .resolves(null)
+      .atLeast(0);
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        StorageKeys.READER_VISIT_LOGGED,
+        '1',
+        /* useLocalStorage */ false
+      )
+      .resolves(null)
+      .atLeast(0);
     if (set != undefined) {
       set = JSON.stringify(
         Object.entries(set).reduce((acc, [key, values]) => {

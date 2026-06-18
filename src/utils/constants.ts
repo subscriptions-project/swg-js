@@ -72,6 +72,11 @@ const StorageKeys = {
    * Session storage key indicating if GIS connection happened. Used to avoid race conditions due to cached entitlements reads.
    */
   HAS_GIS_CONNECTION: 'hasgisconnection',
+
+  /**
+   * Session storage key indicating if the reader visit has been logged in the current session.
+   */
+  READER_VISIT_LOGGED: 'readervisitlogged',
 };
 
 const StorageKeysWithoutPublicationIdSuffix = {
