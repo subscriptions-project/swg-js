@@ -392,6 +392,7 @@ describes.realWin('AutoPromptManager', (env) => {
     });
 
     it('should store reader visit impression when storeReaderVisit is called and not logged in session', async () => {
+      // Given the reader has not visited the page in the current session and has no prior visit history
       storageMock
         .expects('get')
         .withExactArgs(
@@ -430,10 +431,15 @@ describes.realWin('AutoPromptManager', (env) => {
         .resolves(null)
         .once();
 
+      // When storeReaderVisit is called
       await autoPromptManager.storeReaderVisit();
+
+      // Then the current timestamp is saved to local storage, and the session flag is set
+      storageMock.verify();
     });
 
     it('should not store reader visit if already logged in session', async () => {
+      // Given the reader has already visited the page in the current session
       storageMock
         .expects('get')
         .withExactArgs(
@@ -448,7 +454,11 @@ describes.realWin('AutoPromptManager', (env) => {
         .never();
       storageMock.expects('set').never();
 
+      // When storeReaderVisit is called
       await autoPromptManager.storeReaderVisit();
+
+      // Then no new visit is stored in local storage
+      storageMock.verify();
     });
 
     it('should store reader visit impression when EVENT_NO_ENTITLEMENTS event is logged', async () => {

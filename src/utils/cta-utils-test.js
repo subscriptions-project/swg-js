@@ -932,89 +932,107 @@ describes.realWin('CTA utils', (env) => {
     const ONE_DAY = 24 * 60 * 60 * 1000;
 
     it('should return VISIT_FREQUENCY_NEW for 0 past visits (1 total)', () => {
+      // Given the reader has no past visits
+      // When the visit frequency is calculated
       const result = getVisitFrequency({}, now);
+
+      // Then it returns VISIT_FREQUENCY_NEW
       expect(result).to.equal('VISIT_FREQUENCY_NEW');
     });
 
     it('should return VISIT_FREQUENCY_CASUAL for 1 past visit (2 total)', () => {
-      const result = getVisitFrequency(
-        {
-          'reader_visit': {
-            impressions: [now - ONE_DAY],
-            dismissals: [],
-            completions: [],
-          },
+      // Given the reader has 1 past visit within the week
+      const visitHistory = {
+        'reader_visit': {
+          impressions: [now - ONE_DAY],
+          dismissals: [],
+          completions: [],
         },
-        now
-      );
+      };
+
+      // When the visit frequency is calculated
+      const result = getVisitFrequency(visitHistory, now);
+
+      // Then it returns VISIT_FREQUENCY_CASUAL
       expect(result).to.equal('VISIT_FREQUENCY_CASUAL');
     });
 
     it('should return VISIT_FREQUENCY_CASUAL for 2 past visits (3 total)', () => {
-      const result = getVisitFrequency(
-        {
-          'reader_visit': {
-            impressions: [now - ONE_DAY, now - 2 * ONE_DAY],
-            dismissals: [],
-            completions: [],
-          },
+      // Given the reader has 2 past visits within the week
+      const visitHistory = {
+        'reader_visit': {
+          impressions: [now - ONE_DAY, now - 2 * ONE_DAY],
+          dismissals: [],
+          completions: [],
         },
-        now
-      );
+      };
+
+      // When the visit frequency is calculated
+      const result = getVisitFrequency(visitHistory, now);
+
+      // Then it returns VISIT_FREQUENCY_CASUAL
       expect(result).to.equal('VISIT_FREQUENCY_CASUAL');
     });
 
     it('should return VISIT_FREQUENCY_FREQUENT for 3 past visits (4 total)', () => {
-      const result = getVisitFrequency(
-        {
-          'reader_visit': {
-            impressions: [now - ONE_DAY, now - 2 * ONE_DAY, now - 3 * ONE_DAY],
-            dismissals: [],
-            completions: [],
-          },
+      // Given the reader has 3 past visits within the week
+      const visitHistory = {
+        'reader_visit': {
+          impressions: [now - ONE_DAY, now - 2 * ONE_DAY, now - 3 * ONE_DAY],
+          dismissals: [],
+          completions: [],
         },
-        now
-      );
+      };
+
+      // When the visit frequency is calculated
+      const result = getVisitFrequency(visitHistory, now);
+
+      // Then it returns VISIT_FREQUENCY_FREQUENT
       expect(result).to.equal('VISIT_FREQUENCY_FREQUENT');
     });
 
     it('should return VISIT_FREQUENCY_FREQUENT for 6 past visits (7 total)', () => {
-      const result = getVisitFrequency(
-        {
-          'reader_visit': {
-            impressions: [
-              now - ONE_DAY,
-              now - 2 * ONE_DAY,
-              now - 3 * ONE_DAY,
-              now - 4 * ONE_DAY,
-              now - 5 * ONE_DAY,
-              now - 6 * ONE_DAY,
-            ],
-            dismissals: [],
-            completions: [],
-          },
+      // Given the reader has 6 past visits within the week
+      const visitHistory = {
+        'reader_visit': {
+          impressions: [
+            now - ONE_DAY,
+            now - 2 * ONE_DAY,
+            now - 3 * ONE_DAY,
+            now - 4 * ONE_DAY,
+            now - 5 * ONE_DAY,
+            now - 6 * ONE_DAY,
+          ],
+          dismissals: [],
+          completions: [],
         },
-        now
-      );
+      };
+
+      // When the visit frequency is calculated
+      const result = getVisitFrequency(visitHistory, now);
+
+      // Then it returns VISIT_FREQUENCY_FREQUENT
       expect(result).to.equal('VISIT_FREQUENCY_FREQUENT');
     });
 
     it('should ignore visits older than 1 week', () => {
-      const result = getVisitFrequency(
-        {
-          'reader_visit': {
-            impressions: [
-              now - ONE_DAY, // 1 fresh
-              now - 8 * ONE_DAY, // old, should be ignored
-              now - 9 * ONE_DAY, // old, should be ignored
-            ],
-            dismissals: [],
-            completions: [],
-          },
+      // Given a reader has 1 visit within the past week and 2 visits older than 1 week
+      const visitHistory = {
+        'reader_visit': {
+          impressions: [
+            now - ONE_DAY, // 1 fresh
+            now - 8 * ONE_DAY, // old, should be ignored
+            now - 9 * ONE_DAY, // old, should be ignored
+          ],
+          dismissals: [],
+          completions: [],
         },
-        now
-      );
-      // 1 fresh + 1 current = 2 visits -> CASUAL
+      };
+
+      // When the visit frequency is calculated
+      const result = getVisitFrequency(visitHistory, now);
+
+      // Then it returns VISIT_FREQUENCY_CASUAL (accounting for 1 past fresh visit + 1 current visit)
       expect(result).to.equal('VISIT_FREQUENCY_CASUAL');
     });
   });

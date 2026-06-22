@@ -2273,6 +2273,7 @@ describes.realWin('EntitlementsManager', (env) => {
       });
 
       it('should append visitFrequency parameter returned by getVisitFrequency helper to the article URL', async () => {
+        // Given the getVisitFrequency helper returns 'MOCK_FREQUENCY_VALUE'
         expectGetSwgUserTokenToBeCalled();
         ctaUtils.getVisitFrequency.returns('MOCK_FREQUENCY_VALUE');
 
@@ -2292,7 +2293,11 @@ describes.realWin('EntitlementsManager', (env) => {
             })
           );
 
+        // When the entitlements are retrieved
         await manager.getEntitlements();
+
+        // Then the visitFrequency parameter is appended to the article fetch URL
+        fetcherMock.verify();
       });
     });
   });
