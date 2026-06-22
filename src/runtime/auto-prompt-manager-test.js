@@ -391,7 +391,16 @@ describes.realWin('AutoPromptManager', (env) => {
       await autoPromptManager.storeImpression('TYPE_REWARDED_SURVEY');
     });
 
-    it('should store reader visit impression when storeReaderVisit is called', async () => {
+    it('should store reader visit impression when storeReaderVisit is called and not logged in session', async () => {
+      // Given the reader has not visited the page in the current session and has no prior visit history
+      storageMock
+        .expects('get')
+        .withExactArgs(
+          StorageKeys.READER_VISIT_LOGGED,
+          /* useLocalStorage */ false
+        )
+        .resolves(null)
+        .once();
       storageMock
         .expects('get')
         .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
@@ -412,8 +421,44 @@ describes.realWin('AutoPromptManager', (env) => {
         )
         .resolves(null)
         .once();
+      storageMock
+        .expects('set')
+        .withExactArgs(
+          StorageKeys.READER_VISIT_LOGGED,
+          '1',
+          /* useLocalStorage */ false
+        )
+        .resolves(null)
+        .once();
 
+      // When storeReaderVisit is called
       await autoPromptManager.storeReaderVisit();
+
+      // Then the current timestamp is saved to local storage, and the session flag is set
+      storageMock.verify();
+    });
+
+    it('should not store reader visit if already logged in session', async () => {
+      // Given the reader has already visited the page in the current session
+      storageMock
+        .expects('get')
+        .withExactArgs(
+          StorageKeys.READER_VISIT_LOGGED,
+          /* useLocalStorage */ false
+        )
+        .resolves('1')
+        .once();
+      storageMock
+        .expects('get')
+        .withExactArgs(StorageKeys.TIMESTAMPS, true)
+        .never();
+      storageMock.expects('set').never();
+
+      // When storeReaderVisit is called
+      await autoPromptManager.storeReaderVisit();
+
+      // Then no new visit is stored in local storage
+      storageMock.verify();
     });
 
     it('should store reader visit impression when EVENT_NO_ENTITLEMENTS event is logged', async () => {
@@ -5273,6 +5318,23 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('get')
       .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
       .resolves(get);
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        StorageKeys.READER_VISIT_LOGGED,
+        /* useLocalStorage */ false
+      )
+      .resolves(null)
+      .atLeast(0);
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        StorageKeys.READER_VISIT_LOGGED,
+        '1',
+        /* useLocalStorage */ false
+      )
+      .resolves(null)
+      .atLeast(0);
     if (set != undefined) {
       set = JSON.stringify(
         Object.entries(set).reduce((acc, [key, values]) => {

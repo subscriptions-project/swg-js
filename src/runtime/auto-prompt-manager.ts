@@ -764,6 +764,9 @@ export class AutoPromptManager {
   }
 
   async storeReaderVisit(): Promise<void> {
+    if (await this.storage_.get(StorageKeys.READER_VISIT_LOGGED, false)) {
+      return;
+    }
     const timestamps = await getTimestamps(this.deps_);
     const actionTimestamps = timestamps[READER_VISIT_ACTION_KEY] || {
       impressions: [],
@@ -772,7 +775,8 @@ export class AutoPromptManager {
     };
     actionTimestamps.impressions.push(Date.now());
     timestamps[READER_VISIT_ACTION_KEY] = actionTimestamps;
-    this.setTimestamps(timestamps);
+    await this.setTimestamps(timestamps);
+    await this.storage_.set(StorageKeys.READER_VISIT_LOGGED, '1', false);
   }
 
   async storeImpression(action: string): Promise<void> {
