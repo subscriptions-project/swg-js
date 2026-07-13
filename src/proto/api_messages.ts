@@ -44,6 +44,14 @@ export enum ActionType {
 }
 
 /** */
+export enum AddPreferredSourceStatus {
+  ADD_PREFERRED_SOURCE_STATUS_UNSPECIFIED = 0,
+  ADD_PREFERRED_SOURCE_STATUS_ALREADY_ADDED = 1,
+  ADD_PREFERRED_SOURCE_STATUS_INELIGIBLE = 2,
+  ADD_PREFERRED_SOURCE_STATUS_SUCCESS = 3,
+}
+
+/** */
 export enum AnalyticsEvent {
   UNKNOWN = 0,
   IMPRESSION_PAYWALL = 1,
@@ -106,6 +114,12 @@ export enum AnalyticsEvent {
   IMPRESSION_CONTRIBUTION_OFFERS_PURCHASE_UNAVAILABLE = 58,
   IMPRESSION_BYOE_POP_UP_OPT_IN = 59,
   IMPRESSION_BYOE_POP_UP_OPT_IN_ERROR = 60,
+  IMPRESSION_ADD_PREFERRED_SOURCES_BUTTON = 61,
+  IMPRESSION_ADD_PREFERRED_SOURCES_CONFIRMATION = 62,
+  IMPRESSION_ADD_PREFERRED_SOURCE_CONSENT_SCREEN = 63,
+  IMPRESSION_ADD_PREFERRED_SOURCE_CONSENT_SCREEN_ADD_SOURCE_BUTTON = 64,
+  IMPRESSION_ADD_PREFERRED_SOURCE_CONSENT_SCREEN_ERROR = 65,
+  IMPRESSION_ADD_PREFERRED_SOURCE_CONSENT_SCREEN_INELIGIBLE = 66,
   ACTION_SUBSCRIBE = 1000,
   ACTION_PAYMENT_COMPLETE = 1001,
   ACTION_ACCOUNT_CREATED = 1002,
@@ -199,6 +213,8 @@ export enum AnalyticsEvent {
   ACTION_BYO_CTA_BUTTON_CLICK = 1088,
   ACTION_BYO_CTA_PAGE_REFRESH = 1089,
   ACTION_BYOE_POP_UP_OPT_IN = 1092,
+  ACTION_ADD_PREFERRED_SOURCES_BUTTON_CLICK = 1093,
+  ACTION_MANAGE_PREFERRED_SOURCES = 1094,
   EVENT_PAYMENT_FAILED = 2000,
   EVENT_REGWALL_OPT_IN_FAILED = 2001,
   EVENT_NEWSLETTER_OPT_IN_FAILED = 2002,
@@ -209,6 +225,7 @@ export enum AnalyticsEvent {
   EVENT_SURVEY_COMPLETION_RECORD_FAILED = 2007,
   EVENT_SURVEY_DATA_TRANSFER_FAILED = 2008,
   EVENT_BYO_CTA_COMPLETION_RECORD_FAILED = 2009,
+  EVENT_ADD_PREFERRED_SOURCE_FAILURE = 2010,
   EVENT_CUSTOM = 3000,
   EVENT_CONFIRM_TX_ID = 3001,
   EVENT_CHANGED_TX_ID = 3002,
@@ -284,6 +301,9 @@ export enum AnalyticsEvent {
   EVENT_GIS_INTEROP_TOKEN_UPDATE_ERROR = 3072,
   EVENT_GIS_INTEROP_TOKEN_UPDATED = 3073,
   EVENT_GIS_LOGIN_ERROR = 3074,
+  EVENT_ADD_PREFERRED_SOURCE_CONSENT_SCREEN_ADD_SOURCE_BUTTON_CLICK = 3075,
+  EVENT_ADD_PREFERRED_SOURCE_SUCCESS = 3076,
+  EVENT_PREFERRED_SOURCE_ALREADY_ADDED = 3077,
   EVENT_SUBSCRIPTION_STATE = 4000,
   FREE_ACCESS_EVENT_LANDING = 5000,
   FREE_ACCESS_EVENT_FREE_ACCESS_PROGRAM = 5001,
@@ -427,6 +447,84 @@ export class ActionRequest implements Message {
 
   label(): string {
     return 'ActionRequest';
+  }
+}
+
+/** */
+export class AddPreferredSourceRequest implements Message {
+  private unused_: boolean | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.unused_ = data[base] == null ? null : (data[base] as boolean);
+  }
+
+  getUnused(): boolean | null {
+    return this.unused_;
+  }
+
+  setUnused(value: boolean): void {
+    this.unused_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.unused_, // field 1 - unused
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'AddPreferredSourceRequest';
+  }
+}
+
+/** */
+export class AddPreferredSourceResponse implements Message {
+  private status_: AddPreferredSourceStatus | null;
+  private siteName_: string | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.status_ = data[base] == null ? null : (data[base] as AddPreferredSourceStatus);
+
+    this.siteName_ = data[1 + base] == null ? null : (data[1 + base] as string);
+  }
+
+  getStatus(): AddPreferredSourceStatus | null {
+    return this.status_;
+  }
+
+  setStatus(value: AddPreferredSourceStatus): void {
+    this.status_ = value;
+  }
+
+  getSiteName(): string | null {
+    return this.siteName_;
+  }
+
+  setSiteName(value: string): void {
+    this.siteName_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.status_, // field 1 - status
+      this.siteName_, // field 2 - site_name
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'AddPreferredSourceResponse';
   }
 }
 
@@ -1400,6 +1498,9 @@ export class EventParams implements Message {
   private optInType_: OptInType | null;
   private emailValidationStatus_: EmailValidationStatus | null;
   private gisMode_: GisMode | null;
+  private addPreferredSourceStatus_: AddPreferredSourceStatus | null;
+  private canonicalUrl_: string | null;
+  private uvSiteChunk_: string | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
@@ -1434,6 +1535,12 @@ export class EventParams implements Message {
     this.emailValidationStatus_ = data[12 + base] == null ? null : (data[12 + base] as EmailValidationStatus);
 
     this.gisMode_ = data[13 + base] == null ? null : (data[13 + base] as GisMode);
+
+    this.addPreferredSourceStatus_ = data[14 + base] == null ? null : (data[14 + base] as AddPreferredSourceStatus);
+
+    this.canonicalUrl_ = data[15 + base] == null ? null : (data[15 + base] as string);
+
+    this.uvSiteChunk_ = data[16 + base] == null ? null : (data[16 + base] as string);
   }
 
   getSmartboxMessage(): string | null {
@@ -1548,6 +1655,30 @@ export class EventParams implements Message {
     this.gisMode_ = value;
   }
 
+  getAddPreferredSourceStatus(): AddPreferredSourceStatus | null {
+    return this.addPreferredSourceStatus_;
+  }
+
+  setAddPreferredSourceStatus(value: AddPreferredSourceStatus): void {
+    this.addPreferredSourceStatus_ = value;
+  }
+
+  getCanonicalUrl(): string | null {
+    return this.canonicalUrl_;
+  }
+
+  setCanonicalUrl(value: string): void {
+    this.canonicalUrl_ = value;
+  }
+
+  getUvSiteChunk(): string | null {
+    return this.uvSiteChunk_;
+  }
+
+  setUvSiteChunk(value: string): void {
+    this.uvSiteChunk_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.smartboxMessage_, // field 1 - smartbox_message
@@ -1564,6 +1695,9 @@ export class EventParams implements Message {
       this.optInType_, // field 12 - opt_in_type
       this.emailValidationStatus_, // field 13 - email_validation_status
       this.gisMode_, // field 14 - gis_mode
+      this.addPreferredSourceStatus_, // field 15 - add_preferred_source_status
+      this.canonicalUrl_, // field 16 - canonical_url
+      this.uvSiteChunk_, // field 17 - uv_site_chunk
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -2623,6 +2757,8 @@ export class ViewSubscriptionsResponse implements Message {
 const PROTO_MAP: {[key: string]: MessageConstructor} = {
   'AccountCreationRequest': AccountCreationRequest,
   'ActionRequest': ActionRequest,
+  'AddPreferredSourceRequest': AddPreferredSourceRequest,
+  'AddPreferredSourceResponse': AddPreferredSourceResponse,
   'AlreadySubscribedResponse': AlreadySubscribedResponse,
   'AnalyticsContext': AnalyticsContext,
   'AnalyticsEventMeta': AnalyticsEventMeta,

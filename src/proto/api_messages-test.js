@@ -19,7 +19,7 @@
  * Auto generated, do not edit
  */
 
-import {AccountCreationRequest, ActionRequest, ActionType, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CloseWindowRequest, CompleteAudienceActionResponse, CtaMode, Duration, ElementCoordinates, EmailValidationStatus, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, GisMode, GisSignIn, LinkSaveTokenRequest, LinkingInfoResponse, LoginButtonCoordinates, OpenDialogRequest, OptInType, ReaderSurfaceType, RewardedAdAlternateActionRequest, RewardedAdLoadAdRequest, RewardedAdLoadAdResponse, RewardedAdViewAdRequest, SkuSelectedResponse, SmartBoxMessage, StartGisSignIn, SubscribeResponse, SubscriptionLinkingCompleteResponse, SubscriptionLinkingLinkResult, SubscriptionLinkingResponse, SurveyAnswer, SurveyDataTransferRequest, SurveyDataTransferResponse, SurveyQuestion, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
+import {AccountCreationRequest, ActionRequest, ActionType, AddPreferredSourceRequest, AddPreferredSourceResponse, AddPreferredSourceStatus, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CloseWindowRequest, CompleteAudienceActionResponse, CtaMode, Duration, ElementCoordinates, EmailValidationStatus, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, GisMode, GisSignIn, LinkSaveTokenRequest, LinkingInfoResponse, LoginButtonCoordinates, OpenDialogRequest, OptInType, ReaderSurfaceType, RewardedAdAlternateActionRequest, RewardedAdLoadAdRequest, RewardedAdLoadAdResponse, RewardedAdViewAdRequest, SkuSelectedResponse, SmartBoxMessage, StartGisSignIn, SubscribeResponse, SubscriptionLinkingCompleteResponse, SubscriptionLinkingLinkResult, SubscriptionLinkingResponse, SurveyAnswer, SurveyDataTransferRequest, SurveyDataTransferResponse, SurveyQuestion, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
 
 describe('deserialize', () => {
   it('throws if deserialization fails', () => {
@@ -115,6 +115,95 @@ describe('ActionRequest', () => {
     // Verify fields.
     expect(actionrequestDeserialized.getAction()).to.deep.equal(
         actionrequest1.getAction());
+  });
+});
+
+describe('AddPreferredSourceRequest', () => {
+  it('should deserialize correctly', () => {
+    const /** !AddPreferredSourceRequest  */ addpreferredsourcerequest1 = new AddPreferredSourceRequest();
+    addpreferredsourcerequest1.setUnused(false);
+
+    let addpreferredsourcerequestDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    addpreferredsourcerequestDeserialized = deserialize(
+        addpreferredsourcerequest1.toArray(undefined));
+    expect(addpreferredsourcerequestDeserialized.toArray(undefined)).to.deep.equal(
+        addpreferredsourcerequest1.toArray(undefined));
+
+    // Verify fields.
+    expect(addpreferredsourcerequestDeserialized.getUnused()).to.deep.equal(
+        addpreferredsourcerequest1.getUnused());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    addpreferredsourcerequestDeserialized = deserialize(
+        addpreferredsourcerequest1.toArray(true));
+    expect(addpreferredsourcerequestDeserialized.toArray(true)).to.deep.equal(
+        addpreferredsourcerequest1.toArray(true));
+
+    // Verify fields.
+    expect(addpreferredsourcerequestDeserialized.getUnused()).to.deep.equal(
+        addpreferredsourcerequest1.getUnused());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    addpreferredsourcerequestDeserialized = new AddPreferredSourceRequest(addpreferredsourcerequest1.toArray(false), false);
+    expect(addpreferredsourcerequestDeserialized.toArray(false)).to.deep.equal(
+        addpreferredsourcerequest1.toArray(false));
+
+    // Verify fields.
+    expect(addpreferredsourcerequestDeserialized.getUnused()).to.deep.equal(
+        addpreferredsourcerequest1.getUnused());
+  });
+});
+
+describe('AddPreferredSourceResponse', () => {
+  it('should deserialize correctly', () => {
+    const /** !AddPreferredSourceResponse  */ addpreferredsourceresponse1 = new AddPreferredSourceResponse();
+    addpreferredsourceresponse1.setStatus(AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_UNSPECIFIED);
+    addpreferredsourceresponse1.setSiteName('');
+
+    let addpreferredsourceresponseDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    addpreferredsourceresponseDeserialized = deserialize(
+        addpreferredsourceresponse1.toArray(undefined));
+    expect(addpreferredsourceresponseDeserialized.toArray(undefined)).to.deep.equal(
+        addpreferredsourceresponse1.toArray(undefined));
+
+    // Verify fields.
+    expect(addpreferredsourceresponseDeserialized.getStatus()).to.deep.equal(
+        addpreferredsourceresponse1.getStatus());
+    expect(addpreferredsourceresponseDeserialized.getSiteName()).to.deep.equal(
+        addpreferredsourceresponse1.getSiteName());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    addpreferredsourceresponseDeserialized = deserialize(
+        addpreferredsourceresponse1.toArray(true));
+    expect(addpreferredsourceresponseDeserialized.toArray(true)).to.deep.equal(
+        addpreferredsourceresponse1.toArray(true));
+
+    // Verify fields.
+    expect(addpreferredsourceresponseDeserialized.getStatus()).to.deep.equal(
+        addpreferredsourceresponse1.getStatus());
+    expect(addpreferredsourceresponseDeserialized.getSiteName()).to.deep.equal(
+        addpreferredsourceresponse1.getSiteName());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    addpreferredsourceresponseDeserialized = new AddPreferredSourceResponse(addpreferredsourceresponse1.toArray(false), false);
+    expect(addpreferredsourceresponseDeserialized.toArray(false)).to.deep.equal(
+        addpreferredsourceresponse1.toArray(false));
+
+    // Verify fields.
+    expect(addpreferredsourceresponseDeserialized.getStatus()).to.deep.equal(
+        addpreferredsourceresponse1.getStatus());
+    expect(addpreferredsourceresponseDeserialized.getSiteName()).to.deep.equal(
+        addpreferredsourceresponse1.getSiteName());
   });
 });
 
@@ -460,6 +549,9 @@ describe('AnalyticsRequest', () => {
     eventparams1.setOptInType(OptInType.OPT_IN_TYPE_UNSPECIFIED);
     eventparams1.setEmailValidationStatus(EmailValidationStatus.EMAIL_VALIDATION_STATUS_UNSPECIFIED);
     eventparams1.setGisMode(GisMode.GIS_MODE_UNSPECIFIED);
+    eventparams1.setAddPreferredSourceStatus(AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_UNSPECIFIED);
+    eventparams1.setCanonicalUrl('');
+    eventparams1.setUvSiteChunk('');
     analyticsrequest1.setParams(eventparams1);
 
     let analyticsrequestDeserialized;
@@ -1013,6 +1105,9 @@ describe('EventParams', () => {
     eventparams1.setOptInType(OptInType.OPT_IN_TYPE_UNSPECIFIED);
     eventparams1.setEmailValidationStatus(EmailValidationStatus.EMAIL_VALIDATION_STATUS_UNSPECIFIED);
     eventparams1.setGisMode(GisMode.GIS_MODE_UNSPECIFIED);
+    eventparams1.setAddPreferredSourceStatus(AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_UNSPECIFIED);
+    eventparams1.setCanonicalUrl('');
+    eventparams1.setUvSiteChunk('');
 
     let eventparamsDeserialized;
 
@@ -1052,6 +1147,12 @@ describe('EventParams', () => {
         eventparams1.getEmailValidationStatus());
     expect(eventparamsDeserialized.getGisMode()).to.deep.equal(
         eventparams1.getGisMode());
+    expect(eventparamsDeserialized.getAddPreferredSourceStatus()).to.deep.equal(
+        eventparams1.getAddPreferredSourceStatus());
+    expect(eventparamsDeserialized.getCanonicalUrl()).to.deep.equal(
+        eventparams1.getCanonicalUrl());
+    expect(eventparamsDeserialized.getUvSiteChunk()).to.deep.equal(
+        eventparams1.getUvSiteChunk());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -1089,6 +1190,12 @@ describe('EventParams', () => {
         eventparams1.getEmailValidationStatus());
     expect(eventparamsDeserialized.getGisMode()).to.deep.equal(
         eventparams1.getGisMode());
+    expect(eventparamsDeserialized.getAddPreferredSourceStatus()).to.deep.equal(
+        eventparams1.getAddPreferredSourceStatus());
+    expect(eventparamsDeserialized.getCanonicalUrl()).to.deep.equal(
+        eventparams1.getCanonicalUrl());
+    expect(eventparamsDeserialized.getUvSiteChunk()).to.deep.equal(
+        eventparams1.getUvSiteChunk());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -1125,6 +1232,12 @@ describe('EventParams', () => {
         eventparams1.getEmailValidationStatus());
     expect(eventparamsDeserialized.getGisMode()).to.deep.equal(
         eventparams1.getGisMode());
+    expect(eventparamsDeserialized.getAddPreferredSourceStatus()).to.deep.equal(
+        eventparams1.getAddPreferredSourceStatus());
+    expect(eventparamsDeserialized.getCanonicalUrl()).to.deep.equal(
+        eventparams1.getCanonicalUrl());
+    expect(eventparamsDeserialized.getUvSiteChunk()).to.deep.equal(
+        eventparams1.getUvSiteChunk());
   });
 });
 
