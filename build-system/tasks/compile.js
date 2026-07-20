@@ -91,6 +91,20 @@ exports.compile = async (options = {}) => {
           options
         )
       ),
+    publisher: () =>
+      compileScript(
+        './src/',
+        'publisher-main.ts',
+        './dist',
+        Object.assign(
+          {
+            toName: 'publisher.max.js',
+            minifiedName: args.minifiedPublisherName || 'publisher.js',
+            wrapper: '(function(){<%= contents %>})();',
+          },
+          options
+        )
+      ),
   };
   const scripts = args.target
     ? [].concat(args.target) // Handle a single or multiple values for --target.
