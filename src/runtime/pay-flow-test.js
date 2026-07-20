@@ -1950,6 +1950,39 @@ describes.realWin('PayCompleteFlow', (env) => {
       expect(response.productType).to.equal(ProductType.UI_CONTRIBUTION);
     });
 
+    it('should log EVENT_SUBSCRIPTION_PLAN_CHANGE_COMPLETE when oldSku is present', async () => {
+      PayCompleteFlow.waitingForPayClient = true;
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(AnalyticsEvent.EVENT_CONFIRM_TX_ID, true, undefined);
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(
+          AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+          true,
+          getEventParams('', SubscriptionFlows.SUBSCRIBE)
+        );
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(
+          AnalyticsEvent.EVENT_SUBSCRIPTION_PLAN_CHANGE_COMPLETE,
+          true,
+          getEventParams('', SubscriptionFlows.SUBSCRIBE)
+        );
+
+      const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
+      data['googleTransactionId'] = runtime.analytics().getTransactionId();
+      data['paymentRequest'] = {
+        'swg': {'oldSku': 'sku_to_replace'},
+        'i': {'productType': ProductType.SUBSCRIPTION},
+      };
+      await responseCallback(Promise.resolve(data));
+      const response = await triggerPromise;
+      expect(response).to.be.instanceof(SubscribeResponse);
+      expect(response.productType).to.equal(ProductType.SUBSCRIPTION);
+      expect(response.oldSku).to.equal('sku_to_replace');
+    });
+
     it('should start flow on correct payment response w/o entitlements', async () => {
       // TODO(dvoytenko, #400): cleanup once entitlements is launched.
       callbacksMock.expects('triggerFlowCanceled').never();
