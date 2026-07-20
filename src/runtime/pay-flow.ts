@@ -286,7 +286,7 @@ export class PayCompleteFlow {
             )
           );
         } else if (response.productType == ProductType.SUBSCRIPTION) {
-          const oldSku = this.subscriptionRequest_['oldSku'];
+          const oldSku = response['oldSku'];
           const eventType =
             oldSku && oldSku.length > 0
               ? AnalyticsEvent.EVENT_SUBSCRIPTION_PLAN_CHANGE_COMPLETE
