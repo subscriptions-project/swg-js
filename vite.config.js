@@ -106,6 +106,10 @@ const builds = {
     output: args.minifiedGaaName || 'subscriptions-gaa.js',
     input: './src/gaa-main.ts',
   },
+  publisher: {
+    output: args.minifiedPublisherName || 'publisher.js',
+    input: './src/publisher-main.ts',
+  },
 };
 
 const {input, output} = builds[args.target || 'classic'];
