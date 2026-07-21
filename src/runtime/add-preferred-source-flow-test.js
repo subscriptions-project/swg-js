@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {ActivityPort} from '../components/activities';
+import {ActivityIframePort} from '../components/activities';
 import {AddPreferredSourceFlow} from './add-preferred-source-flow';
 import {ClientConfigManager} from './client-config-manager';
 import {ConfiguredRuntime} from './runtime';
@@ -37,7 +37,7 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
     runtime = new ConfiguredRuntime(win, pageConfig);
     activitiesMock = sandbox.mock(runtime.activities());
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
-    port = new ActivityPort();
+    port = sandbox.createStubInstance(ActivityIframePort);
     port.onResizeRequest = () => {};
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () =>
@@ -51,11 +51,11 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
         secureChannel: true,
       });
 
-    clientConfigManager = new ClientConfigManager(runtime.deps());
+    clientConfigManager = new ClientConfigManager(runtime);
     clientConfigManagerMock = sandbox.mock(clientConfigManager);
     sandbox.stub(runtime, 'clientConfigManager').returns(clientConfigManager);
 
-    flow = new AddPreferredSourceFlow(runtime.deps());
+    flow = new AddPreferredSourceFlow(runtime);
   });
 
   afterEach(() => {
@@ -65,21 +65,14 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
   });
 
   it('has valid AddPreferredSourceFlow construct', () => {
-    activitiesMock
-      .expects('openIframe')
-      .withExactArgs(
-        sandbox.match((arg) => arg.tagName == 'IFRAME'),
-        'https://news.google.com/swg/u/0/ui/v1/addpreferredsource?_=_',
-        {
-          source: win.location.href,
-        }
-      )
-      .returns(Promise.resolve(port));
-    flow = new AddPreferredSourceFlow(runtime.deps());
+    flow = new AddPreferredSourceFlow(runtime);
   });
 
   it('starts flow correctly', async () => {
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
+    sandbox.stub(flow.activityIframeView_, 'acceptResultAndVerify').resolves({
+      'data': [1],
+      'label': 'AddPreferredSourceResponse',
+    });
     dialogManagerMock.expects('openView').once();
     dialogManagerMock.expects('completeView').once();
 
@@ -87,8 +80,9 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
   });
 
   it('handles cancellation properly', async () => {
-    activitiesMock.expects('openIframe').returns(Promise.resolve(port));
-    port.acceptResult = () => Promise.reject(new Error('cancel'));
+    sandbox
+      .stub(flow.activityIframeView_, 'acceptResultAndVerify')
+      .rejects(new Error('cancel'));
 
     dialogManagerMock.expects('openView').once();
     dialogManagerMock.expects('completeView').once();

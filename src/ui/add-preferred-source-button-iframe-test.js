@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import {ActivityIframePort} from '../components/activities';
-import {ActivityPorts} from '../components/activities';
+import {ActivityIframePort, ActivityPorts} from '../components/activities';
 import {AddPreferredSourceButtonIframe} from './add-preferred-source-button-iframe';
 
 describes.realWin('AddPreferredSourceButtonIframe', (env) => {
