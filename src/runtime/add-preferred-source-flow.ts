@@ -42,7 +42,7 @@ export class AddPreferredSourceFlow {
         source: this.win_.location.href,
       }),
       /* titleLang */ this.deps_.clientConfigManager().getLanguage(),
-      /* shouldFadeBody */ true
+      /* shouldFadeBody */ false
     );
   }
 

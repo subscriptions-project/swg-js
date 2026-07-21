@@ -78,6 +78,8 @@ export class PublisherRuntime {
           const toast = new Toast(configuredRuntime, feUrl('/toastiframe'), {});
           toast.open();
         }
+      }).catch((reason) => {
+        // Ignore user cancellation or abortion of the flow natively.
       });
     });
   }

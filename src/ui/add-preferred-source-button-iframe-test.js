@@ -70,9 +70,25 @@ describes.realWin('AddPreferredSourceButtonIframe', (env) => {
     const iframe = container.querySelector('iframe');
     expect(iframe).to.not.be.null;
     expect(iframe.style.height).to.equal('200px'); // Resized
+    expect(iframe.getAttribute('frameborder')).to.equal('0');
+    expect(iframe.getAttribute('scrolling')).to.equal('no');
 
     expect(activityPorts.openIframe).to.have.been.calledOnce;
+    const openIframeArgs = activityPorts.openIframe.getCall(0).args;
+    expect(openIframeArgs[0]).to.equal(iframe);
+    expect(openIframeArgs[1]).to.match(/\/addpreferredsourcebuttoniframe/);
     expect(resultCalled).to.be.true;
+  });
+
+  it('should pass exact URL parameters to the iframe component', async () => {
+    await iframeComponent.attach(() => {});
+
+    expect(activityPorts.openIframe).to.have.been.calledOnce;
+    const url = activityPorts.openIframe.getCall(0).args[1];
+    
+    expect(url).to.contain('hl=en');
+    expect(url).to.contain('theme=dark');
+    expect(url).to.contain('source=' + encodeURIComponent(win.location.href));
   });
 
   it('should handle iframe rejected results silently', async () => {
