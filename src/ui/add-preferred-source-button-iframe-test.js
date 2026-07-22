@@ -85,7 +85,7 @@ describes.realWin('AddPreferredSourceButtonIframe', (env) => {
 
     expect(activityPorts.openIframe).to.have.been.calledOnce;
     const url = activityPorts.openIframe.getCall(0).args[1];
-    
+
     expect(url).to.contain('hl=en');
     expect(url).to.contain('theme=dark');
     expect(url).to.contain('source=' + encodeURIComponent(win.location.href));

@@ -66,7 +66,7 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
 
   it('has valid AddPreferredSourceFlow construct and iframe configuration', () => {
     flow = new AddPreferredSourceFlow(runtime);
-    
+
     // Assert the View is correctly configured
     expect(flow.activityIframeView_.src_).to.contain('/addpreferredsource');
     expect(flow.activityIframeView_.args_.source).to.equal(win.location.href);
@@ -82,9 +82,11 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
     dialogManagerMock.expects('completeView').once();
 
     await flow.start();
-    
-    expect(flow.activityIframeView_.acceptResultAndVerify).to.have.been.calledOnce;
-    const acceptArgs = flow.activityIframeView_.acceptResultAndVerify.getCall(0).args;
+
+    expect(flow.activityIframeView_.acceptResultAndVerify).to.have.been
+      .calledOnce;
+    const acceptArgs =
+      flow.activityIframeView_.acceptResultAndVerify.getCall(0).args;
     expect(acceptArgs[0]).to.equal('https://news.google.com'); // feOrigin()
     expect(acceptArgs[1]).to.be.true; // requireOriginVerified
     expect(acceptArgs[2]).to.be.true; // requireSecureChannel
