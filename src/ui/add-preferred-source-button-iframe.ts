@@ -1,6 +1,7 @@
 import {ActivityPorts} from '../components/activities';
 import {Deps} from '../runtime/deps';
 import {feUrl} from '../runtime/services';
+import {setStyle, setStyles} from '../utils/style';
 
 export class AddPreferredSourceButtonIframe {
   private readonly activityPorts_: ActivityPorts;
@@ -21,8 +22,10 @@ export class AddPreferredSourceButtonIframe {
 
     // Default styling so that it's invisible until loaded, or handles sizing.
     // The iframe contents should tell us its size.
-    iframe.style.width = '100%';
-    iframe.style.border = 'none';
+    setStyles(iframe, {
+      'width': '100%',
+      'border': 'none',
+    });
 
     this.container_.appendChild(iframe);
 
@@ -43,7 +46,7 @@ export class AddPreferredSourceButtonIframe {
       const port = await this.activityPorts_.openIframe(iframe, url, {});
 
       port.onResizeRequest((height) => {
-        iframe.style.height = `${height}px`;
+        setStyle(iframe, 'height', `${height}px`);
         port.resized();
       });
 
