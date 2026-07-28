@@ -286,8 +286,14 @@ export class PayCompleteFlow {
             )
           );
         } else if (response.productType == ProductType.SUBSCRIPTION) {
+          const oldSku = response['oldSku'];
+          const eventType =
+            oldSku && oldSku.length > 0
+              ? AnalyticsEvent.EVENT_SUBSCRIPTION_PLAN_CHANGE_COMPLETE
+              : AnalyticsEvent.EVENT_SUBSCRIPTION_PAYMENT_COMPLETE;
+
           eventManager.logSwgEvent(
-            AnalyticsEvent.EVENT_SUBSCRIPTION_PAYMENT_COMPLETE,
+            eventType,
             true,
             getEventParams(
               sku || '',
