@@ -37,6 +37,9 @@ describes.realWin('AddPreferredSourceButtonIframe', (env) => {
     });
     portStub.whenReady.resolves();
     portStub.acceptResult.resolves(true);
+    portStub.on.callsFake((ctor, cb) => {
+      cb({});
+    });
 
     activityPorts = sandbox.createStubInstance(ActivityPorts);
     activityPorts.openIframe.resolves(portStub);
@@ -85,14 +88,15 @@ describes.realWin('AddPreferredSourceButtonIframe', (env) => {
 
     expect(activityPorts.openIframe).to.have.been.calledOnce;
     const url = activityPorts.openIframe.getCall(0).args[1];
-    
+
     expect(url).to.contain('hl=en');
     expect(url).to.contain('theme=dark');
     expect(url).to.contain('source=' + encodeURIComponent(win.location.href));
+    expect(url).to.contain('origin=');
   });
 
   it('should handle iframe rejected results silently', async () => {
-    portStub.acceptResult.resolves(false); // Does not call onResult
+    portStub.on.callsFake(() => {}); // Does not invoke callback
     let resultCalled = false;
     await iframeComponent.attach(() => {
       resultCalled = true;

@@ -2724,6 +2724,39 @@ export class ToastCloseRequest implements Message {
 }
 
 /** */
+export class UpdateAddPreferredSourceButtonRequest implements Message {
+  private status_: AddPreferredSourceStatus | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.status_ = data[base] == null ? null : (data[base] as AddPreferredSourceStatus);
+  }
+
+  getStatus(): AddPreferredSourceStatus | null {
+    return this.status_;
+  }
+
+  setStatus(value: AddPreferredSourceStatus): void {
+    this.status_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.status_, // field 1 - status
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'UpdateAddPreferredSourceButtonRequest';
+  }
+}
+
+/** */
 export class ViewSubscriptionsResponse implements Message {
   private native_: boolean | null;
 
@@ -2797,6 +2830,7 @@ const PROTO_MAP: {[key: string]: MessageConstructor} = {
   'SurveyQuestion': SurveyQuestion,
   'Timestamp': Timestamp,
   'ToastCloseRequest': ToastCloseRequest,
+  'UpdateAddPreferredSourceButtonRequest': UpdateAddPreferredSourceButtonRequest,
   'ViewSubscriptionsResponse': ViewSubscriptionsResponse,
 };
 

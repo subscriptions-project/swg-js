@@ -19,7 +19,7 @@
  * Auto generated, do not edit
  */
 
-import {AccountCreationRequest, ActionRequest, ActionType, AddPreferredSourceRequest, AddPreferredSourceResponse, AddPreferredSourceStatus, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CloseWindowRequest, CompleteAudienceActionResponse, CtaMode, Duration, ElementCoordinates, EmailValidationStatus, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, GisMode, GisSignIn, LinkSaveTokenRequest, LinkingInfoResponse, LoginButtonCoordinates, OpenDialogRequest, OptInType, ReaderSurfaceType, RewardedAdAlternateActionRequest, RewardedAdLoadAdRequest, RewardedAdLoadAdResponse, RewardedAdViewAdRequest, SkuSelectedResponse, SmartBoxMessage, StartGisSignIn, SubscribeResponse, SubscriptionLinkingCompleteResponse, SubscriptionLinkingLinkResult, SubscriptionLinkingResponse, SurveyAnswer, SurveyDataTransferRequest, SurveyDataTransferResponse, SurveyQuestion, Timestamp, ToastCloseRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
+import {AccountCreationRequest, ActionRequest, ActionType, AddPreferredSourceRequest, AddPreferredSourceResponse, AddPreferredSourceStatus, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CloseWindowRequest, CompleteAudienceActionResponse, CtaMode, Duration, ElementCoordinates, EmailValidationStatus, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, GisMode, GisSignIn, LinkSaveTokenRequest, LinkingInfoResponse, LoginButtonCoordinates, OpenDialogRequest, OptInType, ReaderSurfaceType, RewardedAdAlternateActionRequest, RewardedAdLoadAdRequest, RewardedAdLoadAdResponse, RewardedAdViewAdRequest, SkuSelectedResponse, SmartBoxMessage, StartGisSignIn, SubscribeResponse, SubscriptionLinkingCompleteResponse, SubscriptionLinkingLinkResult, SubscriptionLinkingResponse, SurveyAnswer, SurveyDataTransferRequest, SurveyDataTransferResponse, SurveyQuestion, Timestamp, ToastCloseRequest, UpdateAddPreferredSourceButtonRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
 
 describe('deserialize', () => {
   it('throws if deserialization fails', () => {
@@ -2328,6 +2328,47 @@ describe('ToastCloseRequest', () => {
     // Verify fields.
     expect(toastcloserequestDeserialized.getClose()).to.deep.equal(
         toastcloserequest1.getClose());
+  });
+});
+
+describe('UpdateAddPreferredSourceButtonRequest', () => {
+  it('should deserialize correctly', () => {
+    const /** !UpdateAddPreferredSourceButtonRequest  */ updateaddpreferredsourcebuttonrequest1 = new UpdateAddPreferredSourceButtonRequest();
+    updateaddpreferredsourcebuttonrequest1.setStatus(AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_UNSPECIFIED);
+
+    let updateaddpreferredsourcebuttonrequestDeserialized;
+
+    // Verify includeLabel undefined
+    // Verify serialized arrays.
+    updateaddpreferredsourcebuttonrequestDeserialized = deserialize(
+        updateaddpreferredsourcebuttonrequest1.toArray(undefined));
+    expect(updateaddpreferredsourcebuttonrequestDeserialized.toArray(undefined)).to.deep.equal(
+        updateaddpreferredsourcebuttonrequest1.toArray(undefined));
+
+    // Verify fields.
+    expect(updateaddpreferredsourcebuttonrequestDeserialized.getStatus()).to.deep.equal(
+        updateaddpreferredsourcebuttonrequest1.getStatus());
+
+    // Verify includeLabel true
+    // Verify serialized arrays.
+    updateaddpreferredsourcebuttonrequestDeserialized = deserialize(
+        updateaddpreferredsourcebuttonrequest1.toArray(true));
+    expect(updateaddpreferredsourcebuttonrequestDeserialized.toArray(true)).to.deep.equal(
+        updateaddpreferredsourcebuttonrequest1.toArray(true));
+
+    // Verify fields.
+    expect(updateaddpreferredsourcebuttonrequestDeserialized.getStatus()).to.deep.equal(
+        updateaddpreferredsourcebuttonrequest1.getStatus());
+
+    // Verify includeLabel false
+    // Verify serialized arrays.
+    updateaddpreferredsourcebuttonrequestDeserialized = new UpdateAddPreferredSourceButtonRequest(updateaddpreferredsourcebuttonrequest1.toArray(false), false);
+    expect(updateaddpreferredsourcebuttonrequestDeserialized.toArray(false)).to.deep.equal(
+        updateaddpreferredsourcebuttonrequest1.toArray(false));
+
+    // Verify fields.
+    expect(updateaddpreferredsourcebuttonrequestDeserialized.getStatus()).to.deep.equal(
+        updateaddpreferredsourcebuttonrequest1.getStatus());
   });
 });
 

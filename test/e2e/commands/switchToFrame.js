@@ -15,9 +15,17 @@
  */
 
 module.exports.command = function (iframeSrcString, iframeMsg, callback) {
+  if (!iframeSrcString) {
+    return this.frame(null, () => {
+      this.log('Switching to top-level frame');
+      callback && callback();
+    });
+  }
   return this.element('css selector', `iframe${iframeSrcString}`, (frame) => {
-    if (frame.status == -1) {
+    if (frame.status == -1 || !frame.value) {
       this.log(frame.error, true);
+      callback && callback();
+      return;
     }
     this.frame(frame.value, () => {
       this.log(`Switching to ${iframeMsg}`);

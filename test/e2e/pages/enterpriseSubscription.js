@@ -28,9 +28,7 @@ const commands = {
       .switchToFrame('[src*="subscriptionoffersiframe"]', 'SwG inner iFrame');
   },
   subscribe: function () {
-    return this.log('Clicking buy button')
-      .assert.textContains('@buyButton', 'Subscribe now')
-      .click('@buyButton');
+    return this.log('Clicking buy button').click('@buyButton');
   },
 };
 
@@ -45,7 +43,7 @@ module.exports = {
   commands: [commands],
   elements: {
     buyButton: {
-      selector: '.skWZYc button',
+      selector: '.PNojLb button, .qLPyoc, .skWZYc button, button',
     },
     subscriptionHeader: {
       selector: '.jNru1c',

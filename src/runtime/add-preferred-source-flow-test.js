@@ -64,40 +64,67 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
     clientConfigManagerMock.verify();
   });
 
-  it('has valid AddPreferredSourceFlow construct and iframe configuration', () => {
-    flow = new AddPreferredSourceFlow(runtime);
-    
-    // Assert the View is correctly configured
-    expect(flow.activityIframeView_.src_).to.contain('/addpreferredsource');
-    expect(flow.activityIframeView_.args_.source).to.equal(win.location.href);
-    expect(flow.activityIframeView_.shouldFadeBody_).to.be.false;
-  });
+  it('starts flow in popup window with language parameter', async () => {
+    let onResultCallback;
+    activitiesMock
+      .expects('onResult')
+      .withExactArgs(
+        'addPreferredSource',
+        sandbox.match((arg) => {
+          onResultCallback = arg;
+          return typeof arg == 'function';
+        })
+      )
+      .once();
 
-  it('starts flow correctly', async () => {
-    sandbox.stub(flow.activityIframeView_, 'acceptResultAndVerify').resolves({
+    activitiesMock
+      .expects('open')
+      .withExactArgs(
+        'addPreferredSource',
+        sandbox.match(
+          (url) => url.includes('/addpreferredsource') && url.includes('hl=en')
+        ),
+        '_blank',
+        sandbox.match.object,
+        sandbox.match.object
+      )
+      .once();
+
+    const startPromise = flow.start();
+    onResultCallback(port);
+    const result = await startPromise;
+    expect(result).to.deep.equal({
       'data': [1],
       'label': 'AddPreferredSourceResponse',
     });
-    dialogManagerMock.expects('openView').once();
-    dialogManagerMock.expects('completeView').once();
-
-    await flow.start();
-    
-    expect(flow.activityIframeView_.acceptResultAndVerify).to.have.been.calledOnce;
-    const acceptArgs = flow.activityIframeView_.acceptResultAndVerify.getCall(0).args;
-    expect(acceptArgs[0]).to.equal('https://news.google.com'); // feOrigin()
-    expect(acceptArgs[1]).to.be.true; // requireOriginVerified
-    expect(acceptArgs[2]).to.be.true; // requireSecureChannel
   });
 
-  it('handles cancellation properly', async () => {
-    sandbox
-      .stub(flow.activityIframeView_, 'acceptResultAndVerify')
-      .rejects(new Error('cancel'));
+  it('passes custom language from clientConfigManager', async () => {
+    sandbox.stub(clientConfigManager, 'getLanguage').returns('fr-FR');
+    let onResultCallback;
+    activitiesMock
+      .expects('onResult')
+      .withExactArgs(
+        'addPreferredSource',
+        sandbox.match((arg) => {
+          onResultCallback = arg;
+          return typeof arg == 'function';
+        })
+      )
+      .once();
+    activitiesMock
+      .expects('open')
+      .withExactArgs(
+        'addPreferredSource',
+        sandbox.match((url) => url.includes('hl=fr-FR')),
+        '_blank',
+        sandbox.match.object,
+        sandbox.match.object
+      )
+      .once();
 
-    dialogManagerMock.expects('openView').once();
-    dialogManagerMock.expects('completeView').once();
-
-    await expect(flow.start()).to.be.rejectedWith('cancel');
+    const startPromise = flow.start();
+    onResultCallback(port);
+    await startPromise;
   });
 });

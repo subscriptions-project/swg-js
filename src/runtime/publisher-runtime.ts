@@ -17,29 +17,60 @@
 import {AddPreferredSourceButtonIframe} from '../ui/add-preferred-source-button-iframe';
 import {AddPreferredSourceFlow} from './add-preferred-source-flow';
 import {AddPreferredSourceStatus} from '../proto/api_messages';
+import {ClientTheme} from '../api/subscriptions';
 import {ConfiguredRuntime} from './runtime';
-import {PageConfigResolver} from '../model/page-config-resolver';
+import {PageConfig} from '../model/page-config';
+import {PreferredSourceButtonOptions} from '../api/preferred-source';
 import {Toast} from '../ui/toast';
 import {feUrl} from './services';
 
 export class PublisherRuntime {
   private readonly win_: Window;
-  private configuredRuntime_: ConfiguredRuntime | null = null;
-  private readonly configuredRuntimePromise_: Promise<ConfiguredRuntime>;
+  private configuredRuntime_?: ConfiguredRuntime;
+  private options_: PreferredSourceButtonOptions = {};
+  private readonly buttons_: AddPreferredSourceButtonIframe[] = [];
+  private currentStatus_?: AddPreferredSourceStatus;
 
   constructor(win: Window) {
     this.win_ = win;
-
-    const pageConfigResolver = new PageConfigResolver(win);
-    this.configuredRuntimePromise_ = pageConfigResolver
-      .resolveConfig()
-      .then((pageConfig) => {
-        this.configuredRuntime_ = new ConfiguredRuntime(win, pageConfig, {});
-        return this.configuredRuntime_;
-      });
   }
 
-  init(args: {theme?: string} = {}): void {
+  private getRuntime_(): ConfiguredRuntime {
+    if (!this.configuredRuntime_) {
+      const pageConfig = new PageConfig('publisher', false);
+      const lang =
+        this.options_.lang ||
+        this.win_.navigator?.language ||
+        this.win_.document.documentElement.lang ||
+        'en';
+      this.configuredRuntime_ = new ConfiguredRuntime(
+        this.win_,
+        pageConfig,
+        {},
+        undefined,
+        {
+          lang,
+          theme: this.options_.theme as ClientTheme | undefined,
+          forceLangInIframes: true,
+        }
+      );
+    }
+    return this.configuredRuntime_;
+  }
+
+  updateAllButtons(status: AddPreferredSourceStatus): void {
+    this.currentStatus_ = status;
+    for (const button of this.buttons_) {
+      button.updateStatus(status);
+    }
+  }
+
+  init(args: PreferredSourceButtonOptions = {}): void {
+    this.options_ = Object.assign({}, this.options_, args);
+    if (args.lang || args.theme) {
+      this.configuredRuntime_ = undefined;
+    }
+    const runtime = this.getRuntime_();
     const document = this.win_.document;
     const buttons = document.querySelectorAll(
       '[google-add-preferred-source-btn]:not([data-initialized])'
@@ -47,41 +78,57 @@ export class PublisherRuntime {
     for (let i = 0; i < buttons.length; i++) {
       const button = buttons[i] as HTMLElement;
       button.setAttribute('data-initialized', 'true');
-      this.configuredRuntimePromise_.then((configuredRuntime) => {
-        const buttonComponent = new AddPreferredSourceButtonIframe(
-          configuredRuntime,
-          button,
-          {
-            theme: args.theme || 'light',
-            lang: this.win_.document.documentElement.lang || 'en',
-          }
+      const buttonComponent = new AddPreferredSourceButtonIframe(
+        runtime,
+        button,
+        {
+          theme: this.options_.theme || 'light',
+          lang: runtime.clientConfigManager().getLanguage(),
+        }
+      );
+      this.buttons_.push(buttonComponent);
+      if (this.currentStatus_ !== undefined) {
+        buttonComponent.updateStatus(this.currentStatus_);
+      }
+      buttonComponent.attach(() => {
+        this.updateAllButtons(
+          AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS
         );
-        buttonComponent.attach(() => {
-          this.addPreferredSource();
-          return Promise.resolve(true);
-        });
+        this.addPreferredSource();
+        return Promise.resolve(true);
       });
     }
   }
 
   addPreferredSource(): void {
-    this.configuredRuntimePromise_.then((configuredRuntime) => {
-      const flow = new AddPreferredSourceFlow(configuredRuntime);
-      flow.start().then((response) => {
+    const runtime = this.getRuntime_();
+    const flow = new AddPreferredSourceFlow(runtime);
+    flow
+      .start()
+      .then((response) => {
         const status = response.getStatus();
         if (
           status ===
             AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS ||
           status ===
-            AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_ALREADY_ADDED
+            AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_ALREADY_ADDED ||
+          status ===
+            AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_INELIGIBLE
         ) {
-          const toast = new Toast(configuredRuntime, feUrl('/toastiframe'), {});
+          this.updateAllButtons(status);
+          const params: {[key: string]: string} = {
+            flavor: 'preferred_source',
+            sourceName: response.getSiteName() || '',
+            confirmationType: `${status}`,
+            hl: runtime.clientConfigManager().getLanguage(),
+          };
+          const toast = new Toast(runtime, feUrl('/toastiframe', params));
           toast.open();
         }
-      }).catch((reason) => {
+      })
+      .catch(() => {
         // Ignore user cancellation or abortion of the flow natively.
       });
-    });
   }
 }
 

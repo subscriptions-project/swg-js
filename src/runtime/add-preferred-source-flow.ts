@@ -14,59 +14,53 @@
  * limitations under the License.
  */
 
-import {ActivityIframeView} from '../ui/activity-iframe-view';
 import {ActivityPorts} from '../components/activities';
 import {AddPreferredSourceResponse} from '../proto/api_messages';
 import {Deps} from './deps';
-import {DialogManager} from '../components/dialog-manager';
+import {acceptPortResultData} from '../utils/activity-utils';
 import {feArgs, feOrigin, feUrl} from './services';
 
-export class AddPreferredSourceFlow {
-  openViewPromise: Promise<void> | null = null;
+export const ADD_PREFERRED_SOURCE_REQUEST_ID = 'addPreferredSource';
 
-  private readonly activityIframeView_: ActivityIframeView;
+export class AddPreferredSourceFlow {
   private readonly activityPorts_: ActivityPorts;
-  private readonly dialogManager_: DialogManager;
   private readonly win_: Window;
 
   constructor(private readonly deps_: Deps) {
     this.win_ = deps_.win();
     this.activityPorts_ = deps_.activities();
-    this.dialogManager_ = deps_.dialogManager();
-
-    this.activityIframeView_ = new ActivityIframeView(
-      this.win_,
-      this.activityPorts_,
-      feUrl('/addpreferredsource'),
-      feArgs({
-        source: this.win_.location.href,
-      }),
-      /* titleLang */ this.deps_.clientConfigManager().getLanguage(),
-      /* shouldFadeBody */ false
-    );
   }
 
   /**
-   * Starts the Add Preferred Source consent flow.
+   * Starts the Add Preferred Source consent flow in a popup window.
    */
-  async start(): Promise<AddPreferredSourceResponse> {
-    this.openViewPromise = this.dialogManager_.openView(
-      this.activityIframeView_
-    );
+  start(): Promise<AddPreferredSourceResponse> {
+    return new Promise((resolve, reject) => {
+      this.activityPorts_.onResult(ADD_PREFERRED_SOURCE_REQUEST_ID, (port) => {
+        acceptPortResultData(
+          port,
+          feOrigin(),
+          /* requireOriginVerified */ true,
+          /* requireSecureChannel */ true
+        )
+          .then((data) => {
+            resolve(data as AddPreferredSourceResponse);
+          })
+          .catch(reject);
+      });
 
-    let response: AddPreferredSourceResponse;
-    try {
-      response = (await this.activityIframeView_.acceptResultAndVerify(
-        feOrigin(),
-        /* requireOriginVerified */ true,
-        /* requireSecureChannel */ true
-      )) as AddPreferredSourceResponse;
-    } catch (reason) {
-      this.dialogManager_.completeView(this.activityIframeView_);
-      throw reason;
-    }
-
-    this.dialogManager_.completeView(this.activityIframeView_);
-    return response;
+      const queryParams: {[key: string]: string} = {
+        hl: this.deps_.clientConfigManager().getLanguage(),
+      };
+      this.activityPorts_.open(
+        ADD_PREFERRED_SOURCE_REQUEST_ID,
+        feUrl('/addpreferredsource', queryParams),
+        '_blank',
+        feArgs({
+          source: this.win_.location.href,
+        }),
+        {}
+      );
+    });
   }
 }

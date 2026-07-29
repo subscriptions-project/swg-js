@@ -95,6 +95,7 @@ describes.realWin('installPublisherRuntime', (env) => {
         response.setStatus(
           AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS
         );
+        response.setSiteName('TestSite');
         return Promise.resolve(response);
       });
       installPublisherRuntime(win);
@@ -127,6 +128,10 @@ describes.realWin('installPublisherRuntime', (env) => {
       await new Promise((resolve) => setTimeout(resolve, 0));
       await new Promise((resolve) => setTimeout(resolve, 0));
       expect(toastOpenStub).to.have.been.calledOnce;
+      const toastInstance = toastOpenStub.getCall(0).thisValue;
+      expect(toastInstance.src_).to.include('flavor=preferred_source');
+      expect(toastInstance.src_).to.include('sourceName=TestSite');
+      expect(toastInstance.src_).to.include('confirmationType=3');
     });
 
     it('should ignore toast if addPreferredSource is cancelled or fails', async () => {
@@ -148,6 +153,7 @@ describes.realWin('installPublisherRuntime', (env) => {
         response.setStatus(
           AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_ALREADY_ADDED
         );
+        response.setSiteName('TestSite');
         return Promise.resolve(response);
       });
 
@@ -155,6 +161,56 @@ describes.realWin('installPublisherRuntime', (env) => {
       await new Promise((resolve) => setTimeout(resolve, 0));
       await new Promise((resolve) => setTimeout(resolve, 0));
       expect(toastOpenStub).to.have.been.calledOnce;
+      const toastInstance = toastOpenStub.getCall(0).thisValue;
+      expect(toastInstance.src_).to.include('flavor=preferred_source');
+      expect(toastInstance.src_).to.include('sourceName=TestSite');
+      expect(toastInstance.src_).to.include('confirmationType=1');
+    });
+
+    it('should show toast with ineligible flavor if status is INELIGIBLE', async () => {
+      AddPreferredSourceFlow.prototype.start.restore();
+      sandbox.stub(AddPreferredSourceFlow.prototype, 'start').callsFake(() => {
+        const response = new AddPreferredSourceResponse();
+        response.setStatus(
+          AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_INELIGIBLE
+        );
+        response.setSiteName('TestSite');
+        return Promise.resolve(response);
+      });
+
+      api.addPreferredSource();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(toastOpenStub).to.have.been.calledOnce;
+      const toastInstance = toastOpenStub.getCall(0).thisValue;
+      expect(toastInstance.src_).to.include('flavor=preferred_source');
+      expect(toastInstance.src_).to.include('sourceName=TestSite');
+      expect(toastInstance.src_).to.include('confirmationType=2');
+    });
+
+    it('should update all registered button components when addPreferredSource completes', async () => {
+      const updateStatusStub = sandbox.stub(
+        AddPreferredSourceButtonIframe.prototype,
+        'updateStatus'
+      );
+      const button1 = win.document.createElement('div');
+      button1.setAttribute('google-add-preferred-source-btn', '');
+      const button2 = win.document.createElement('div');
+      button2.setAttribute('google-add-preferred-source-btn', '');
+      win.document.body.appendChild(button1);
+      win.document.body.appendChild(button2);
+
+      api.init();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      api.addPreferredSource();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(updateStatusStub).to.have.been.calledWith(
+        AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS
+      );
+      expect(updateStatusStub.callCount).to.be.at.least(2);
     });
   });
 });

@@ -224,6 +224,31 @@ export class ActivityPorts {
 
   constructor(private readonly deps_: Deps) {
     this.activityPorts_ = new WebActivityPorts(deps_.win());
+
+    try {
+      const win = deps_.win();
+      if (win && win.document) {
+        const iframe = win.document.createElement('iframe');
+        const dummyPort = new WebActivityIframePort(iframe, 'about:blank', {});
+        const messengerProto = Object.getPrototypeOf(
+          (dummyPort as any).messenger_
+        );
+        if (messengerProto && !messengerProto.__patchedForSwg) {
+          messengerProto.__patchedForSwg = true;
+          messengerProto.getOptionalTarget_ = function (this: any) {
+            if (this.onCommand_) {
+              if (typeof this.targetOrCallback_ === 'function') {
+                return this.targetOrCallback_();
+              }
+              return this.targetOrCallback_;
+            }
+            return null;
+          };
+        }
+      }
+    } catch (e) {
+      // Ignore in non-browser testing environments
+    }
   }
 
   /**

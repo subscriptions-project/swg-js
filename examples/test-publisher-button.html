@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Preferred Source - Local Test Page</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      line-height: 1.6;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #1a73e8;
+    }
+    .card {
+      border: 1px solid #dadce0;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 20px;
+      background: #fafafa;
+    }
+    .button-wrapper {
+      margin-top: 15px;
+    }
+  </style>
+
+  <!-- 
+    Load publisher.js (or publisher.max.js for local unminified debugging)
+  -->
+  <script src="/dist/publisher.max.js" async></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Subscribe with Google: Add Preferred Source</h1>
+    <p>This test website demonstrates the lightweight <code>publisher.js</code> runtime integration for injecting the Google "Add Preferred Source" button onto a publisher page.</p>
+
+    <div class="card">
+      <h3>Add Preferred Source Button Embed #1 (Header)</h3>
+      <p>The button below is rendered via an iframe injected into the <code>&lt;div google-add-preferred-source-btn&gt;</code> element:</p>
+      
+      <!-- Target container element parsed by PublisherRuntime -->
+      <div class="button-wrapper">
+        <div google-add-preferred-source-btn></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Add Preferred Source Button Embed #2 (Footer / Multi-Inflation Test)</h3>
+      <p>This second button verifies that <code>publisher.js</code> multi-inflates all button elements on the page and supports independent clicks on each instance:</p>
+      
+      <!-- Second target container element -->
+      <div class="button-wrapper">
+        <div google-add-preferred-source-btn></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Optional programmatic listener / initialization hook
+    (self.PREFERRED_SOURCE = self.PREFERRED_SOURCE || []).push((api) => {
+      console.log('PublisherRuntime initialized with API:', api);
+    });
+  </script>
+</body>
+</html>

@@ -19,10 +19,15 @@
  */
 module.exports.command = function (windowName) {
   return this.windowHandles(function (result) {
-    const newWindow = result.value[result.value.length - 1];
-    this.pause(1000)
-      .log(`Switching window to ${windowName}`)
-      .switchWindow(newWindow);
-    this.pause(2000);
+    const handles = Array.isArray(result)
+      ? result
+      : (result && result.value) || [];
+    if (handles.length > 0) {
+      const newWindow = handles[handles.length - 1];
+      this.pause(1000)
+        .log(`Switching window to ${windowName}`)
+        .switchWindow(newWindow);
+      this.pause(2000);
+    }
   });
 };
