@@ -266,5 +266,69 @@ describes.realWin('installPublisherRuntime', (env) => {
       );
       expect(updateStatusStub.callCount).to.be.at.least(2);
     });
+
+    it('should use lang option when specified in init options', async () => {
+      api.init({lang: 'fr'});
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      api.addPreferredSource();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(toastOpenStub).to.have.been.calledOnce;
+      const toastInstance = toastOpenStub.getCall(0).thisValue;
+      expect(toastInstance.src_).to.include('hl=fr');
+    });
+
+    it('should fallback to documentElement.lang or "en" when navigator.language is unavailable', () => {
+      sandbox.stub(win.navigator, 'language').get(() => undefined);
+      win.document.documentElement.lang = 'de';
+
+      let runtime = new PublisherRuntime(win);
+      runtime.showToast(
+        AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS
+      );
+      expect(toastOpenStub).to.have.been.calledOnce;
+      let toastInstance = toastOpenStub.getCall(0).thisValue;
+      expect(toastInstance.src_).to.include('hl=de');
+
+      win.document.documentElement.lang = '';
+      toastOpenStub.resetHistory();
+      runtime = new PublisherRuntime(win);
+      runtime.showToast(
+        AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS
+      );
+      expect(toastOpenStub).to.have.been.calledOnce;
+      toastInstance = toastOpenStub.getCall(0).thisValue;
+      expect(toastInstance.src_).to.include('hl=en');
+    });
+
+    it('should default sourceName to empty string when calling showToast without sourceName parameter', async () => {
+      const runtime = new PublisherRuntime(win);
+      runtime.showToast(
+        AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS
+      );
+      expect(toastOpenStub).to.have.been.calledOnce;
+      const toastInstance = toastOpenStub.getCall(0).thisValue;
+      expect(toastInstance.src_).to.match(/[\?&]sourceName=(&|$)/);
+    });
+
+    it('should pass empty string to showToast when response.getSiteName() is empty or undefined', async () => {
+      AddPreferredSourceFlow.prototype.start.restore();
+      sandbox.stub(AddPreferredSourceFlow.prototype, 'start').callsFake(() => {
+        const response = new AddPreferredSourceResponse();
+        response.setStatus(
+          AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS
+        );
+        return Promise.resolve(response);
+      });
+
+      api.addPreferredSource();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(toastOpenStub).to.have.been.calledOnce;
+      const toastInstance = toastOpenStub.getCall(0).thisValue;
+      expect(toastInstance.src_).to.match(/[\?&]sourceName=(&|$)/);
+    });
   });
 });
