@@ -122,6 +122,47 @@ describes.realWin('installPublisherRuntime', (env) => {
       expect(button.querySelector('iframe')).to.not.be.null; // Iframe injected
     });
 
+    it('should call updateStatus on injected buttons if currentStatus_ is already defined', async () => {
+      const updateStatusStub = sandbox.stub(
+        AddPreferredSourceButtonIframe.prototype,
+        'updateStatus'
+      );
+
+      api.addPreferredSource();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      const button = win.document.createElement('div');
+      button.setAttribute('google-add-preferred-source-btn', '');
+      win.document.body.appendChild(button);
+
+      api.init({theme: 'dark'});
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(updateStatusStub).to.have.been.calledWith(
+        AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS
+      );
+    });
+
+    it('should trigger addPreferredSource when button iframe attach callback is invoked', async () => {
+      const button = win.document.createElement('div');
+      button.setAttribute('google-add-preferred-source-btn', '');
+      win.document.body.appendChild(button);
+
+      api.init({theme: 'dark'});
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(AddPreferredSourceButtonIframe.prototype.attach).to.have.been
+        .called;
+      const onResultCallback =
+        AddPreferredSourceButtonIframe.prototype.attach.getCall(0).args[0];
+
+      AddPreferredSourceFlow.prototype.start.resetHistory();
+      const res = await onResultCallback();
+      expect(AddPreferredSourceFlow.prototype.start).to.have.been.calledOnce;
+      expect(res).to.be.true;
+    });
+
     it('should show toast when addPreferredSource is called', async () => {
       api.addPreferredSource();
 
@@ -132,6 +173,19 @@ describes.realWin('installPublisherRuntime', (env) => {
       expect(toastInstance.src_).to.include('flavor=preferred_source');
       expect(toastInstance.src_).to.include('sourceName=TestSite');
       expect(toastInstance.src_).to.include('confirmationType=3');
+    });
+
+    it('should include theme parameter in toast URL when theme option is set in init', async () => {
+      api.init({theme: 'dark'});
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      api.addPreferredSource();
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(toastOpenStub).to.have.been.calledOnce;
+      const toastInstance = toastOpenStub.getCall(0).thisValue;
+      expect(toastInstance.src_).to.include('theme=dark');
     });
 
     it('should ignore toast if addPreferredSource is cancelled or fails', async () => {

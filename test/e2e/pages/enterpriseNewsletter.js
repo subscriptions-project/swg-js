@@ -22,7 +22,7 @@ const {swgPageUrl} = require('../util');
  */
 const commands = {
   viewNewsletter: function () {
-    return this.pause(3000)
+    return this.pause(1000)
       .log('Viewing newsletter')
       .switchToFrame('[src*="about:blank"]', 'SwG outer iFrame')
       .switchToFrame('[src*="newsletteriframe"]', 'SwG inner iFrame');

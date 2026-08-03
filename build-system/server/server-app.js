@@ -60,11 +60,6 @@ app.use((req, res, next) => {
     res.set({
       'Content-Security-Policy': req.query['--CSP'],
     });
-  } else {
-    res.set({
-      'Content-Security-Policy':
-        "frame-ancestors 'self' https://*.proxy.googlers.com http://localhost:* http://127.0.0.1:*;",
-    });
   }
   // Allow COOP overrides but default to same-origin-allow-popups
   res.set({

@@ -16,6 +16,10 @@
 
 import {ActivityIframePort, ActivityPorts} from '../components/activities';
 import {AddPreferredSourceButtonIframe} from './add-preferred-source-button-iframe';
+import {
+  AddPreferredSourceStatus,
+  UpdateAddPreferredSourceButtonRequest,
+} from '../proto/api_messages';
 
 describes.realWin('AddPreferredSourceButtonIframe', (env) => {
   let win;
@@ -116,5 +120,45 @@ describes.realWin('AddPreferredSourceButtonIframe', (env) => {
     });
 
     expect(resultCalled).to.be.false; // Exception handled gracefully in attach
+  });
+
+  describe('updateStatus', () => {
+    const statuses = [
+      AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_UNSPECIFIED,
+      AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_ALREADY_ADDED,
+      AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_INELIGIBLE,
+      AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS,
+    ];
+
+    statuses.forEach((status) => {
+      it(`should send UpdateAddPreferredSourceButtonRequest for status ${status}`, async () => {
+        await iframeComponent.attach(() => {});
+        await iframeComponent.updateStatus(status);
+
+        expect(portStub.execute).to.have.been.calledOnce;
+        const msg = portStub.execute.getCall(0).args[0];
+        expect(msg).to.be.an.instanceOf(UpdateAddPreferredSourceButtonRequest);
+        expect(msg.getStatus()).to.equal(status);
+      });
+    });
+
+    it('should silently no-op when called before attach', async () => {
+      await iframeComponent.updateStatus(
+        AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS
+      );
+
+      expect(portStub.execute).to.not.have.been.called;
+    });
+
+    it('should catch and log errors if port.execute throws', async () => {
+      portStub.execute.throws(new Error('Port error'));
+      await iframeComponent.attach(() => {});
+
+      await iframeComponent.updateStatus(
+        AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS
+      );
+
+      expect(portStub.execute).to.have.been.calledOnce;
+    });
   });
 });

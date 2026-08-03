@@ -24,9 +24,7 @@ module.exports = {
       .waitForElementPresent('@swgDialog', 'Found SwG dialog')
       .waitForElementVisible('@swgDialog')
       .pause(3000)
-      .assert.screenshotIdenticalToBaseline('html', 'basic-newsletter', {
-        threshold: 0.1,
-      })
+      .assert.screenshotIdenticalToBaseline('html', 'basic-newsletter')
       .viewNewsletter()
       .assert.textContains(
         '@consentMessage',
