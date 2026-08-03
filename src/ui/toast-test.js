@@ -86,6 +86,33 @@ describes.realWin('Toast', (env) => {
     );
   });
 
+  it('should resize iframe when port emits resize request', async () => {
+    let resizeCallback;
+    port.onResizeRequest = (callback) => {
+      resizeCallback = callback;
+    };
+    port.resized = sandbox.spy();
+
+    let readyResolver;
+    port.whenReady = () =>
+      new Promise((resolve) => {
+        readyResolver = resolve;
+      });
+
+    const openPromise = toast.open();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(resizeCallback).to.be.a('function');
+
+    resizeCallback(56);
+    expect(iframe.style.height).to.equal('56px');
+    expect(port.resized).to.have.been.calledOnce;
+
+    readyResolver();
+    await openPromise;
+    // Sized height should be preserved after whenReady resolves
+    expect(iframe.style.height).to.equal('56px');
+  });
+
   it('should automatically close', async () => {
     // Instantly execute setTimeout callbacks for this test.
     win.setTimeout = (callback) => void callback();
