@@ -8,7 +8,7 @@ import {Deps} from '../runtime/deps';
 import {feUrl} from '../runtime/services';
 import {log} from '../utils/log';
 import {parseUrl} from '../utils/url';
-import {setStyle, setStyles} from '../utils/style';
+import {setStyles} from '../utils/style';
 
 export class AddPreferredSourceButtonIframe {
   private readonly activityPorts_: ActivityPorts;
@@ -25,16 +25,22 @@ export class AddPreferredSourceButtonIframe {
   async updateStatus(status: AddPreferredSourceStatus): Promise<void> {
     if (this.portPromise_) {
       try {
-        log(`[AddPreferredSourceButtonIframe] Awaiting portPromise_ for status ${status}`);
+        log(
+          `[AddPreferredSourceButtonIframe] Awaiting portPromise_ for status ${status}`
+        );
         const port = await this.portPromise_;
         const updateMsg = new UpdateAddPreferredSourceButtonRequest();
         updateMsg.setStatus(status);
         log(
           '[AddPreferredSourceButtonIframe] Updating iframe button status:',
-          status, 'on port', port
+          status,
+          'on port',
+          port
         );
         port.execute(updateMsg);
-        log(`[AddPreferredSourceButtonIframe] Successfully executed updateMsg on port for status ${status}`);
+        log(
+          `[AddPreferredSourceButtonIframe] Successfully executed updateMsg on port for status ${status}`
+        );
       } catch (reason) {
         log(
           '[AddPreferredSourceButtonIframe] Error updating status on port:',
@@ -42,7 +48,9 @@ export class AddPreferredSourceButtonIframe {
         );
       }
     } else {
-      log(`[AddPreferredSourceButtonIframe] No portPromise_ available for status ${status}`);
+      log(
+        `[AddPreferredSourceButtonIframe] No portPromise_ available for status ${status}`
+      );
     }
   }
 
@@ -54,10 +62,22 @@ export class AddPreferredSourceButtonIframe {
     iframe.setAttribute('scrolling', 'no');
     iframe.setAttribute('title', 'Add Preferred Source');
 
-    // Default styling so that it's invisible until loaded, or handles sizing.
-    // The iframe contents should tell us its size.
-    setStyles(iframe, {
+    // Style container and iframe with absolute positioning matching swg-smart-button.
+    // Setting width 100% and min-height 60px ensures safe vertical clearance.
+    setStyles(this.container_ as HTMLElement, {
+      'position': 'relative',
       'width': '100%',
+      'min-height': '60px',
+    });
+    setStyles(iframe, {
+      'opacity': '1',
+      'position': 'absolute',
+      'top': '0',
+      'bottom': '0',
+      'left': '0',
+      'right': '0',
+      'width': '100%',
+      'height': '100%',
       'border': 'none',
     });
 
@@ -84,15 +104,6 @@ export class AddPreferredSourceButtonIframe {
       log(
         '[AddPreferredSourceButtonIframe] ActivityPort connected successfully.'
       );
-
-      port.onResizeRequest((height) => {
-        log(
-          '[AddPreferredSourceButtonIframe] Resize request received:',
-          height
-        );
-        setStyle(iframe, 'height', `${height}px`);
-        port.resized();
-      });
 
       log(
         '[AddPreferredSourceButtonIframe] Registering listener for AddPreferredSourceRequest clicks...'

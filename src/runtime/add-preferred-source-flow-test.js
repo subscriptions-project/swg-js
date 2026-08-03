@@ -127,4 +127,35 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
     onResultCallback(port);
     await startPromise;
   });
+
+  it('passes window location href in source URL query param', async () => {
+    let onResultCallback;
+    activitiesMock
+      .expects('onResult')
+      .withExactArgs(
+        'addPreferredSource',
+        sandbox.match((arg) => {
+          onResultCallback = arg;
+          return typeof arg == 'function';
+        })
+      )
+      .once();
+    activitiesMock
+      .expects('open')
+      .withExactArgs(
+        'addPreferredSource',
+        sandbox.match(
+          (url) =>
+            url.includes('/addpreferredsource') && url.includes('source=')
+        ),
+        '_blank',
+        sandbox.match.object,
+        sandbox.match.object
+      )
+      .once();
+
+    const startPromise = flow.start();
+    onResultCallback(port);
+    await startPromise;
+  });
 });

@@ -44,7 +44,8 @@ export class Toast {
   constructor(
     deps: Deps,
     private readonly src_: string,
-    private readonly args_: {[key: string]: string} = {}
+    private readonly args_: {[key: string]: string} = {},
+    private readonly className_: string = 'swg-toast'
   ) {
     this.doc_ = deps.doc();
 
@@ -56,7 +57,7 @@ export class Toast {
     const iframeAttributes = {
       'frameborder': '0',
       'scrolling': 'no',
-      'class': 'swg-toast',
+      'class': this.className_,
       'title': title,
     };
 
@@ -94,8 +95,16 @@ export class Toast {
       this.src_,
       this.args_
     );
+    let hasResized = false;
+    port.onResizeRequest((height) => {
+      hasResized = true;
+      setImportantStyles(this.iframe_, {'height': `${height}px`});
+      port.resized();
+    });
     await port.whenReady();
-    resetStyles(this.iframe_, ['height']);
+    if (!hasResized) {
+      resetStyles(this.iframe_, ['height']);
+    }
 
     this.animating_ = this.animate_({
       callback: () => {

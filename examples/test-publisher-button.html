@@ -9,29 +9,52 @@
       font-family: Arial, sans-serif;
       margin: 40px;
       line-height: 1.6;
-      background-color: #f9f9f9;
-      color: #333;
+      background-color: #121212;
+      color: #e3e3e3;
     }
     .container {
       max-width: 800px;
       margin: 0 auto;
-      background: #ffffff;
+      background: #1e1e1e;
       padding: 30px;
       border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
     }
     h1 {
-      color: #1a73e8;
+      color: #8ab4f8;
+    }
+    h3 {
+      color: #e8eaed;
+    }
+    code {
+      background: #2d2d2d;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #a8c7fa;
     }
     .card {
-      border: 1px solid #dadce0;
+      border: 1px solid #3c4043;
       border-radius: 8px;
       padding: 20px;
       margin-top: 20px;
-      background: #fafafa;
+      background: #242526;
     }
     .button-wrapper {
       margin-top: 15px;
+    }
+    .custom-button {
+      background-color: #8ab4f8;
+      color: #121212;
+      border: none;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: bold;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .custom-button:hover {
+      background-color: #a8c7fa;
     }
   </style>
 
@@ -64,12 +87,34 @@
         <div google-add-preferred-source-btn></div>
       </div>
     </div>
+
+    <div class="card">
+      <h3>Add Preferred Source Embed #3 (Custom Bespoke Button via API)</h3>
+      <p>This button is a bespoke publisher-styled button that calls <code>api.addPreferredSource()</code> manually when clicked:</p>
+      
+      <div class="button-wrapper">
+        <button id="custom-add-btn" class="custom-button">Custom Add Preferred Source Button</button>
+      </div>
+    </div>
   </div>
 
   <script>
-    // Optional programmatic listener / initialization hook
+    // Initialize PublisherRuntime with dark theme and English language ('en')
     (self.PREFERRED_SOURCE = self.PREFERRED_SOURCE || []).push((api) => {
+      api.init({
+        theme: 'dark',
+        lang: 'en',
+      });
       console.log('PublisherRuntime initialized with API:', api);
+
+      document.getElementById('custom-add-btn').addEventListener('click', () => {
+        console.log('Custom button clicked! Triggering api.addPreferredSource()...');
+        api.addPreferredSource().then((status) => {
+          console.log('addPreferredSource flow completed with status:', status);
+        }).catch((err) => {
+          console.error('addPreferredSource flow failed or cancelled:', err);
+        });
+      });
     });
   </script>
 </body>

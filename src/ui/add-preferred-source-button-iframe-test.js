@@ -31,10 +31,6 @@ describes.realWin('AddPreferredSourceButtonIframe', (env) => {
     doc = env.win.document;
 
     portStub = sandbox.createStubInstance(ActivityIframePort);
-    portStub.onResizeRequest.callsFake((cb) => {
-      // simulate resize
-      cb(200);
-    });
     portStub.whenReady.resolves();
     portStub.acceptResult.resolves(true);
     portStub.on.callsFake((ctor, cb) => {
@@ -70,9 +66,15 @@ describes.realWin('AddPreferredSourceButtonIframe', (env) => {
       resultCalled = true;
     });
 
+    expect(container.style.position).to.equal('relative');
+    expect(container.style.width).to.equal('100%');
+    expect(container.style.minHeight).to.equal('60px');
+
     const iframe = container.querySelector('iframe');
     expect(iframe).to.not.be.null;
-    expect(iframe.style.height).to.equal('200px'); // Resized
+    expect(iframe.style.position).to.equal('absolute');
+    expect(iframe.style.height).to.equal('100%');
+    expect(iframe.style.width).to.equal('100%');
     expect(iframe.getAttribute('frameborder')).to.equal('0');
     expect(iframe.getAttribute('scrolling')).to.equal('no');
 

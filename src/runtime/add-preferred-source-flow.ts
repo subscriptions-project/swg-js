@@ -51,6 +51,7 @@ export class AddPreferredSourceFlow {
 
       const queryParams: {[key: string]: string} = {
         hl: this.deps_.clientConfigManager().getLanguage(),
+        source: this.win_.location.href,
       };
       this.activityPorts_.open(
         ADD_PREFERRED_SOURCE_REQUEST_ID,

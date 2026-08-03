@@ -91,13 +91,30 @@ export class PublisherRuntime {
         buttonComponent.updateStatus(this.currentStatus_);
       }
       buttonComponent.attach(() => {
-        this.updateAllButtons(
-          AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS
-        );
         this.addPreferredSource();
         return Promise.resolve(true);
       });
     }
+  }
+
+  showToast(status: AddPreferredSourceStatus, sourceName = ''): void {
+    const runtime = this.getRuntime_();
+    const params: {[key: string]: string} = {
+      flavor: 'preferred_source',
+      sourceName,
+      confirmationType: `${status}`,
+      hl: runtime.clientConfigManager().getLanguage(),
+    };
+    if (this.options_.theme) {
+      params['theme'] = this.options_.theme;
+    }
+    const toast = new Toast(
+      runtime,
+      feUrl('/toastiframe', params),
+      {},
+      'publisher-toast'
+    );
+    toast.open();
   }
 
   addPreferredSource(): void {
@@ -116,14 +133,7 @@ export class PublisherRuntime {
             AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_INELIGIBLE
         ) {
           this.updateAllButtons(status);
-          const params: {[key: string]: string} = {
-            flavor: 'preferred_source',
-            sourceName: response.getSiteName() || '',
-            confirmationType: `${status}`,
-            hl: runtime.clientConfigManager().getLanguage(),
-          };
-          const toast = new Toast(runtime, feUrl('/toastiframe', params));
-          toast.open();
+          this.showToast(status, response.getSiteName() || '');
         }
       })
       .catch(() => {

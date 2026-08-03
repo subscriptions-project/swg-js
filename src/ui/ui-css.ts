@@ -130,15 +130,25 @@ export const UI_CSS = css`
 export const DIALOG_CSS = css`
   /** Common styles across all window sizes. */
   .swg-dialog,
-  .swg-toast {
+  .swg-toast,
+  .publisher-toast {
     box-sizing: border-box;
-    background-color: rgba(255, 255, 255, 1) !important;
   }
 
   .swg-toast {
+    background-color: rgba(255, 255, 255, 1) !important;
+    max-height: 46px !important;
+  }
+
+  .publisher-toast {
+    background-color: transparent !important;
+    max-width: 360px !important;
+  }
+
+  .swg-toast,
+  .publisher-toast {
     position: fixed !important;
     bottom: 0 !important;
-    max-height: 46px !important;
     z-index: 2147483647 !important;
     border: none !important;
   }
@@ -152,7 +162,8 @@ export const DIALOG_CSS = css`
     }
 
     .swg-dialog.swg-wide-dialog,
-    .swg-toast {
+    .swg-toast,
+    .publisher-toast {
       width: 870px !important;
     }
   }
@@ -171,8 +182,15 @@ export const DIALOG_CSS = css`
         rgba(60, 64, 67, 0.15) 0 1px 4px 1px !important;
     }
 
+    .publisher-toast {
+      width: 480px !important;
+      left: -240px !important;
+      margin-inline-start: calc(100vw - 100vw / 2) !important;
+    }
+
     [dir='rtl'] .swg-dialog,
-    [dir='rtl'] .swg-toast {
+    [dir='rtl'] .swg-toast,
+    [dir='rtl'] .publisher-toast {
       margin-inline-start: calc(100vw - 100vw / 2 - 240px) !important;
     }
   }
@@ -180,7 +198,8 @@ export const DIALOG_CSS = css`
   /** Desktop/Large screen support, when width AND height are >= 641px. */
   @media (min-width: 641px) and (min-height: 641px) {
     .swg-dialog,
-    .swg-toast {
+    .swg-toast,
+    .publisher-toast {
       width: 630px !important;
     }
 
@@ -204,12 +223,18 @@ export const DIALOG_CSS = css`
         0 1px 5px 0 rgb(0 0 0 / 12%) !important;
       left: 8px !important;
     }
+
+    .publisher-toast {
+      bottom: 8px !important;
+      left: 8px !important;
+    }
   }
 
   /** Phone/Small screen support, when width is <= 480px. */
   @media (max-width: 480px) {
     .swg-dialog,
-    .swg-toast {
+    .swg-toast,
+    .publisher-toast {
       width: 100% !important;
       left: 0 !important;
       right: 0 !important;
