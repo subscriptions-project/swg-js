@@ -1,0 +1,164 @@
+/**
+ * Copyright 2024 The Subscribe with Google Authors. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS-IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import {ActivityIframePort, ActivityPorts} from '../components/activities';
+import {AddPreferredSourceButtonIframe} from './add-preferred-source-button-iframe';
+import {
+  AddPreferredSourceStatus,
+  UpdateAddPreferredSourceButtonRequest,
+} from '../proto/api_messages';
+
+describes.realWin('AddPreferredSourceButtonIframe', (env) => {
+  let win;
+  let doc;
+  let deps;
+  let activityPorts;
+  let iframeComponent;
+  let container;
+  let portStub;
+
+  beforeEach(() => {
+    win = env.win;
+    doc = env.win.document;
+
+    portStub = sandbox.createStubInstance(ActivityIframePort);
+    portStub.whenReady.resolves();
+    portStub.acceptResult.resolves(true);
+    portStub.on.callsFake((ctor, cb) => {
+      cb({});
+    });
+
+    activityPorts = sandbox.createStubInstance(ActivityPorts);
+    activityPorts.openIframe.resolves(portStub);
+
+    deps = {
+      doc: () => ({getWin: () => win}),
+      activities: () => activityPorts,
+    };
+
+    container = doc.createElement('div');
+    doc.body.appendChild(container);
+
+    iframeComponent = new AddPreferredSourceButtonIframe(deps, container, {
+      lang: 'en',
+      theme: 'dark',
+    });
+  });
+
+  afterEach(() => {
+    if (container && container.parentNode) {
+      container.parentNode.removeChild(container);
+    }
+  });
+
+  it('should attach iframe to container', async () => {
+    let resultCalled = false;
+    await iframeComponent.attach(() => {
+      resultCalled = true;
+    });
+
+    expect(container.style.position).to.equal('relative');
+    expect(container.style.width).to.equal('100%');
+    expect(container.style.minHeight).to.equal('60px');
+
+    const iframe = container.querySelector('iframe');
+    expect(iframe).to.not.be.null;
+    expect(iframe.style.position).to.equal('absolute');
+    expect(iframe.style.height).to.equal('100%');
+    expect(iframe.style.width).to.equal('100%');
+    expect(iframe.getAttribute('frameborder')).to.equal('0');
+    expect(iframe.getAttribute('scrolling')).to.equal('no');
+
+    expect(activityPorts.openIframe).to.have.been.calledOnce;
+    const openIframeArgs = activityPorts.openIframe.getCall(0).args;
+    expect(openIframeArgs[0]).to.equal(iframe);
+    expect(openIframeArgs[1]).to.match(/\/addpreferredsourcebuttoniframe/);
+    expect(resultCalled).to.be.true;
+  });
+
+  it('should pass exact URL parameters to the iframe component', async () => {
+    await iframeComponent.attach(() => {});
+
+    expect(activityPorts.openIframe).to.have.been.calledOnce;
+    const url = activityPorts.openIframe.getCall(0).args[1];
+
+    expect(url).to.contain('hl=en');
+    expect(url).to.contain('theme=dark');
+    expect(url).to.contain('source=' + encodeURIComponent(win.location.href));
+    expect(url).to.contain('origin=');
+  });
+
+  it('should handle iframe rejected results silently', async () => {
+    portStub.on.callsFake(() => {}); // Does not invoke callback
+    let resultCalled = false;
+    await iframeComponent.attach(() => {
+      resultCalled = true;
+    });
+
+    expect(resultCalled).to.be.false;
+  });
+
+  it('should gracefully handle openIframe exceptions', async () => {
+    activityPorts.openIframe.rejects(new Error('Blocked!'));
+
+    let resultCalled = false;
+    await iframeComponent.attach(() => {
+      resultCalled = true;
+    });
+
+    expect(resultCalled).to.be.false; // Exception handled gracefully in attach
+  });
+
+  describe('updateStatus', () => {
+    const statuses = [
+      AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_UNSPECIFIED,
+      AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_ALREADY_ADDED,
+      AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_INELIGIBLE,
+      AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS,
+    ];
+
+    statuses.forEach((status) => {
+      it(`should send UpdateAddPreferredSourceButtonRequest for status ${status}`, async () => {
+        await iframeComponent.attach(() => {});
+        await iframeComponent.updateStatus(status);
+
+        expect(portStub.execute).to.have.been.calledOnce;
+        const msg = portStub.execute.getCall(0).args[0];
+        expect(msg).to.be.an.instanceOf(UpdateAddPreferredSourceButtonRequest);
+        expect(msg.getStatus()).to.equal(status);
+      });
+    });
+
+    it('should silently no-op when called before attach', async () => {
+      await iframeComponent.updateStatus(
+        AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS
+      );
+
+      expect(portStub.execute).to.not.have.been.called;
+    });
+
+    it('should catch and log errors if port.execute throws', async () => {
+      portStub.execute.throws(new Error('Port error'));
+      await iframeComponent.attach(() => {});
+
+      await iframeComponent.updateStatus(
+        AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS
+      );
+
+      expect(portStub.execute).to.have.been.calledOnce;
+    });
+  });
+});
