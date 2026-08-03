@@ -236,6 +236,7 @@ export const DIALOG_CSS = css`
     .swg-toast,
     .publisher-toast {
       width: 100% !important;
+      max-width: 100% !important;
       left: 0 !important;
       right: 0 !important;
       margin-inline-start: 0 !important;

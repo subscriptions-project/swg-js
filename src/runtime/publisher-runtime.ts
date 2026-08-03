@@ -143,14 +143,14 @@ export class PublisherRuntime {
 }
 
 export function installPublisherRuntime(win: Window) {
-  const runtime = new PublisherRuntime(win);
+  // Only install the Publisher runtime once.
+  const existingProp = (win as unknown as {[key: string]: unknown})
+    .PREFERRED_SOURCE;
+  if (existingProp && !Array.isArray(existingProp)) {
+    return;
+  }
 
-  // Expose the API to the global PREFERRED_SOURCE structure
-  const globalObj = ((
-    win as unknown as {[key: string]: unknown}
-  ).PREFERRED_SOURCE =
-    (win as unknown as {[key: string]: unknown}).PREFERRED_SOURCE ||
-    []) as Function[];
+  const runtime = new PublisherRuntime(win);
 
   // Set up the API object
   const api = {
@@ -159,18 +159,25 @@ export function installPublisherRuntime(win: Window) {
   };
 
   // Flush queued callbacks
-  const waitingArgs = globalObj.slice(0);
-  globalObj.length = 0;
-  globalObj.push = (...args: Function[]): number => {
-    args.forEach((arg) => arg(api));
-    return globalObj.length;
-  };
-
-  waitingArgs.forEach((args: unknown) => {
-    if (typeof args === 'function') {
-      args(api);
+  const waitingCallbacks = ([] as unknown[]).concat(
+    Array.isArray(existingProp) ? existingProp : []
+  );
+  for (const waitingCallback of waitingCallbacks) {
+    if (typeof waitingCallback === 'function') {
+      waitingCallback(api);
     }
-  });
+  }
+
+  // Replace global array with an object so subsequent calls know it is installed
+  (win as unknown as {[key: string]: unknown}).PREFERRED_SOURCE = {
+    push: (...args: Function[]): void => {
+      args.forEach((arg) => {
+        if (typeof arg === 'function') {
+          arg(api);
+        }
+      });
+    },
+  };
 
   // Handle auto-initialization
   let autoInit = true;

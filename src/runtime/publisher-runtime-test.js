@@ -51,6 +51,13 @@ describes.realWin('installPublisherRuntime', (env) => {
     installPublisherRuntime(win);
   });
 
+  it('should only install once if called multiple times', () => {
+    installPublisherRuntime(win);
+    const firstObj = win.PREFERRED_SOURCE;
+    installPublisherRuntime(win);
+    expect(win.PREFERRED_SOURCE).to.equal(firstObj);
+  });
+
   it('should auto-init by default if no script attributes are present', () => {
     const pubInitStub = sandbox.stub(PublisherRuntime.prototype, 'init');
     const script = win.document.createElement('script');
