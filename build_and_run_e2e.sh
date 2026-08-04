@@ -4,6 +4,7 @@
 npx vite build -- --target=classic &
 npx vite build -- --target=gaa &
 npx vite build -- --target=basic &
+npx vite build -- --target=publisher &
 wait
 
 # Run E2E tests and report failures.
