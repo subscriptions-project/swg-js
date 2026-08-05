@@ -41,9 +41,14 @@ const plugins = [
   }),
   {
     name: 'inject-esm-flag',
+    transform(code, id) {
+      if (id.endsWith('src/constants.ts')) {
+        return code.replace('export const IS_ESM_BUILD = false;', 'export const IS_ESM_BUILD = __IS_ESM_BUILD__;');
+      }
+    },
     renderChunk(code, chunk, options) {
       const isEsm = options.format === 'es' || options.format === 'esm';
-      return code.replace(/IS_ESM_BUILD/g, JSON.stringify(isEsm));
+      return code.replace(/__IS_ESM_BUILD__/g, JSON.stringify(isEsm));
     },
   },
   // Wrap generated code in outer function to avoid leaking into global scope.

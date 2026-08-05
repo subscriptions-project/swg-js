@@ -28,5 +28,4 @@ export const ASSETS = '/assets';
 export const ADS_SERVER = 'https://pubads.g.doubleclick.net';
 export const EXPERIMENTS = '';
 
-declare const IS_ESM_BUILD: boolean | undefined;
-export const IS_ESM = typeof IS_ESM_BUILD !== 'undefined' && IS_ESM_BUILD;
+export const IS_ESM_BUILD = false;
