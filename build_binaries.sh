@@ -54,15 +54,21 @@ function create_binaries_for_environment() {
     shift 4
 
     for basename in "swg" "swg-basic" "swg-gaa" "publisher"; do
-        # Copy files.
-        cp dist/$basename.template.js dist/$basename$target.js
-        cp dist/$basename.template.js.map dist/$basename$target.js.map
+        for ext in "js" "mjs"; do
+            if [[ ! -f dist/$basename.template.$ext ]]; then
+                continue
+            fi
 
-        # Replace values.
-        sed -i "s|https://FRONTEND.com|$frontend|g"                dist/$basename$target*
-        sed -i "s|___PAY_ENVIRONMENT___|$pay_environment|g"        dist/$basename$target*
-        sed -i "s|___PLAY_ENVIRONMENT___|$play_environment|g"      dist/$basename$target*
-        sed -i "s|$basename.template.js.map|$basename$target.js.map|g" dist/$basename$target*
+            # Copy files.
+            cp dist/$basename.template.$ext dist/$basename$target.$ext
+            cp dist/$basename.template.$ext.map dist/$basename$target.$ext.map
+
+            # Replace values.
+            sed -i "s|https://FRONTEND.com|$frontend|g"                dist/$basename$target.$ext*
+            sed -i "s|___PAY_ENVIRONMENT___|$pay_environment|g"        dist/$basename$target.$ext*
+            sed -i "s|___PLAY_ENVIRONMENT___|$play_environment|g"      dist/$basename$target.$ext*
+            sed -i "s|$basename.template.$ext.map|$basename$target.$ext.map|g" dist/$basename$target.$ext*
+        done
     done
 }
 create_binaries_for_environment \
@@ -83,4 +89,4 @@ create_binaries_for_environment \
 wait
 
 # Remove template binaries.
-rm dist/*template.js*
+rm -f dist/*template.*js*

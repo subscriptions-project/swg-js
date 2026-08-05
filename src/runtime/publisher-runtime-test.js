@@ -52,10 +52,12 @@ describes.realWin('installPublisherRuntime', (env) => {
   });
 
   it('should only install once if called multiple times', () => {
-    installPublisherRuntime(win);
+    const firstApi = installPublisherRuntime(win);
     const firstObj = win.PREFERRED_SOURCE;
-    installPublisherRuntime(win);
+    const secondApi = installPublisherRuntime(win);
+
     expect(win.PREFERRED_SOURCE).to.equal(firstObj);
+    expect(secondApi).to.equal(firstApi);
   });
 
   it('should auto-init by default if no script attributes are present', () => {
@@ -80,6 +82,36 @@ describes.realWin('installPublisherRuntime', (env) => {
     installPublisherRuntime(win);
     expect(pubInitStub).to.not.have.been.called;
     script.remove();
+  });
+
+  it('should return the public API directly and via .ready() promise', async () => {
+    win.PREFERRED_SOURCE = undefined;
+    const api = installPublisherRuntime(win);
+    const promiseApi = await win.PREFERRED_SOURCE.ready();
+
+    expect(Object.keys(api)).to.deep.equal(['init', 'addPreferredSource']);
+    expect(api.init).to.be.a('function');
+    expect(api.addPreferredSource).to.be.a('function');
+    expect(promiseApi).to.equal(api);
+  });
+
+  it('should suppress auto-init when options.autoStart is false', () => {
+    const pubInitStub = sandbox.stub(PublisherRuntime.prototype, 'init');
+    win.PREFERRED_SOURCE = undefined;
+
+    installPublisherRuntime(win, {autoStart: false});
+
+    expect(pubInitStub).to.not.have.been.called;
+  });
+
+  it('should return defensive fallback dummy object if PREFERRED_SOURCE is initialized without an api property', () => {
+    win.PREFERRED_SOURCE = {};
+    const api = installPublisherRuntime(win);
+
+    expect(api.init).to.be.a('function');
+    expect(api.addPreferredSource).to.be.a('function');
+    expect(() => api.init()).to.not.throw();
+    expect(() => api.addPreferredSource()).to.not.throw();
   });
 
   describe('API methods', () => {

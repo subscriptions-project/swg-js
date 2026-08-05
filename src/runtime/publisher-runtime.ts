@@ -20,7 +20,10 @@ import {AddPreferredSourceStatus} from '../proto/api_messages';
 import {ClientTheme} from '../api/subscriptions';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
-import {PreferredSourceButtonOptions} from '../api/preferred-source';
+import {
+  PreferredSourceApi,
+  PreferredSourceButtonOptions,
+} from '../api/preferred-source';
 import {Toast} from '../ui/toast';
 import {feUrl} from './services';
 
@@ -142,18 +145,35 @@ export class PublisherRuntime {
   }
 }
 
-export function installPublisherRuntime(win: Window) {
+interface PublisherWindow extends Window {
+  PREFERRED_SOURCE?:
+    | unknown[]
+    | {
+        api?: PreferredSourceApi;
+        push?: (...args: Function[]) => void;
+        ready?: () => Promise<PreferredSourceApi>;
+      };
+}
+
+export function installPublisherRuntime(
+  win: Window,
+  options?: {autoStart?: boolean}
+): PreferredSourceApi {
   // Only install the Publisher runtime once.
-  const existingProp = (win as unknown as {[key: string]: unknown})
-    .PREFERRED_SOURCE;
+  const existingProp = (win as PublisherWindow).PREFERRED_SOURCE;
   if (existingProp && !Array.isArray(existingProp)) {
-    return;
+    return (
+      existingProp.api ?? {
+        init: () => {},
+        addPreferredSource: () => {},
+      }
+    );
   }
 
   const runtime = new PublisherRuntime(win);
 
   // Set up the API object
-  const api = {
+  const api: PreferredSourceApi = {
     init: runtime.init.bind(runtime),
     addPreferredSource: runtime.addPreferredSource.bind(runtime),
   };
@@ -169,7 +189,7 @@ export function installPublisherRuntime(win: Window) {
   }
 
   // Replace global array with an object so subsequent calls know it is installed
-  (win as unknown as {[key: string]: unknown}).PREFERRED_SOURCE = {
+  (win as PublisherWindow).PREFERRED_SOURCE = {
     push: (...args: Function[]): void => {
       args.forEach((arg) => {
         if (typeof arg === 'function') {
@@ -177,20 +197,26 @@ export function installPublisherRuntime(win: Window) {
         }
       });
     },
+    ready: (): Promise<PreferredSourceApi> => Promise.resolve(api),
+    api,
   };
 
-  // Handle auto-initialization
-  let autoInit = true;
-  const scripts = win.document.querySelectorAll('script');
-  for (let i = 0; i < scripts.length; i++) {
-    const script = scripts[i];
-    if (script.getAttribute('preferred-sources-control') === 'manual') {
-      autoInit = false;
-      break;
+  if (options?.autoStart !== false) {
+    // Handle auto-initialization
+    let autoInit = true;
+    const scripts = win.document.querySelectorAll('script');
+    for (let i = 0; i < scripts.length; i++) {
+      const script = scripts[i];
+      if (script.getAttribute('preferred-sources-control') === 'manual') {
+        autoInit = false;
+        break;
+      }
+    }
+
+    if (autoInit) {
+      runtime.init();
     }
   }
 
-  if (autoInit) {
-    runtime.init();
-  }
+  return api;
 }
