@@ -104,6 +104,16 @@ describes.realWin('installPublisherRuntime', (env) => {
     expect(pubInitStub).to.not.have.been.called;
   });
 
+  it('should return defensive fallback dummy object if PREFERRED_SOURCE is initialized without an api property', () => {
+    win.PREFERRED_SOURCE = {};
+    const api = installPublisherRuntime(win);
+
+    expect(api.init).to.be.a('function');
+    expect(api.addPreferredSource).to.be.a('function');
+    expect(() => api.init()).to.not.throw();
+    expect(() => api.addPreferredSource()).to.not.throw();
+  });
+
   describe('API methods', () => {
     let api;
     let toastOpenStub;
