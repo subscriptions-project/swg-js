@@ -119,18 +119,19 @@ const builds = {
   publisher: {
     output: args.minifiedPublisherName || 'publisher.js',
     input: './src/publisher-main.ts',
+    esm: true,
   },
 };
 
 const target = args.target || 'classic';
-const {input, output} = builds[target];
+const {input, output, esm} = builds[target];
 const outputs = [
   {
     format: 'iife',
     entryFileNames: output,
   },
 ];
-if (target === 'publisher') {
+if (esm) {
   outputs.push({
     format: 'es',
     entryFileNames: output.replace(/\.js$/, '.mjs'),
@@ -164,6 +165,7 @@ export default defineConfig({
 
     rollupOptions: {
       input,
+      preserveEntrySignatures: esm ? 'allow-extension' : undefined,
       output: outputs,
     },
   },
