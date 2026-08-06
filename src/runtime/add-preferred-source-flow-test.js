@@ -15,8 +15,8 @@
  */
 
 import {ActivityIframePort} from '../components/activities';
-import {AddPreferredSourceResponse} from '../proto/api_messages';
 import {AddPreferredSourceFlow} from './add-preferred-source-flow';
+import {AddPreferredSourceResponse} from '../proto/api_messages';
 import {ClientConfigManager} from './client-config-manager';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
