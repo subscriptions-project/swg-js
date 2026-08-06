@@ -15,6 +15,7 @@
  */
 
 import {ActivityIframePort} from '../components/activities';
+import {AddPreferredSourceResponse} from '../proto/api_messages';
 import {AddPreferredSourceFlow} from './add-preferred-source-flow';
 import {ClientConfigManager} from './client-config-manager';
 import {ConfiguredRuntime} from './runtime';
@@ -42,10 +43,7 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
     port.whenReady = () => Promise.resolve();
     port.acceptResult = () =>
       Promise.resolve({
-        data: {
-          'data': [1],
-          'label': 'AddPreferredSourceResponse',
-        },
+        data: [null, 1],
         origin: 'https://news.google.com',
         originVerified: true,
         secureChannel: true,
@@ -93,10 +91,9 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
     const startPromise = flow.start();
     onResultCallback(port);
     const result = await startPromise;
-    expect(result).to.deep.equal({
-      'data': [1],
-      'label': 'AddPreferredSourceResponse',
-    });
+    const expected = new AddPreferredSourceResponse();
+    expected.setStatus(1);
+    expect(result).to.deep.equal(expected);
   });
 
   it('passes custom language from clientConfigManager', async () => {

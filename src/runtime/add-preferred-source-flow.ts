@@ -44,7 +44,7 @@ export class AddPreferredSourceFlow {
           /* requireSecureChannel */ true
         )
           .then((data) => {
-            resolve(data as AddPreferredSourceResponse);
+            resolve(new AddPreferredSourceResponse(data as unknown[]));
           })
           .catch(reject);
       });
