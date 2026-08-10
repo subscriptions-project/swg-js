@@ -40,7 +40,7 @@ export class Toast {
   private readonly activityPorts_: ActivityPorts;
   private animating_: Promise<void> | null = null;
   private readonly iframe_: HTMLIFrameElement;
-  private isDesktopAnimation_ = false;
+  private isPublisherDesktopAnimation_ = false;
 
   constructor(
     deps: Deps,
@@ -85,6 +85,24 @@ export class Toast {
   }
 
   /**
+   * Returns the off-screen CSS transform string for entering and exiting the viewport.
+   */
+  private getOffscreenTransform_(): string {
+    return this.isPublisherDesktopAnimation_
+      ? 'translateX(calc(100% + 30px))'
+      : 'translateY(100%)';
+  }
+
+  /**
+   * Returns the on-screen CSS transform string when the toast is displayed.
+   */
+  private getOnscreenTransform_(): string {
+    return this.isPublisherDesktopAnimation_
+      ? 'translateX(0)'
+      : 'translateY(0)';
+  }
+
+  /**
    * Returns the iframe element.
    */
   getElement(): HTMLIFrameElement {
@@ -120,26 +138,19 @@ export class Toast {
       resetStyles(this.iframe_, ['height']);
     }
 
-    this.isDesktopAnimation_ = this.checkIsDesktopPublisherToast_();
+    this.isPublisherDesktopAnimation_ = this.checkIsDesktopPublisherToast_();
 
     this.animating_ = this.animate_({
       callback: () => {
-        const initialTransform = this.isDesktopAnimation_
-          ? 'translateX(calc(100% + 30px))'
-          : 'translateY(100%)';
-        const targetTransform = this.isDesktopAnimation_
-          ? 'translateX(0)'
-          : 'translateY(0)';
-
         setImportantStyles(this.iframe_, {
-          'transform': initialTransform,
+          'transform': this.getOffscreenTransform_(),
           'opacity': '1',
           'visibility': 'visible',
         });
         return transition(
           this.iframe_,
           {
-            'transform': targetTransform,
+            'transform': this.getOnscreenTransform_(),
             'opacity': '1',
             'visibility': 'visible',
           },
@@ -184,14 +195,10 @@ export class Toast {
           this.doc_.getBody()?.removeChild(this.iframe_);
         }, 500);
 
-        const exitTransform = this.isDesktopAnimation_
-          ? 'translateX(calc(100% + 30px))'
-          : 'translateY(100%)';
-
         return transition(
           this.iframe_,
           {
-            'transform': exitTransform,
+            'transform': this.getOffscreenTransform_(),
             'opacity': '1',
             'visibility': 'visible',
           },
