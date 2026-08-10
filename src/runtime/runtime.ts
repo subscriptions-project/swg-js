@@ -645,6 +645,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
   private readonly offersApi_: OffersApi;
   private readonly buttonApi_: ButtonApi;
   private readonly gisInteropManager_?: GisInteropManager;
+  private readonly isPublisher_: boolean;
 
   constructor(
     winOrDoc: Window | Document | DocInterface,
@@ -656,6 +657,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
           enableGoogleAnalytics?: boolean;
           enableDefaultMeteringHandler?: boolean;
           isBasic?: boolean;
+          isPublisher?: boolean;
         }
       | undefined,
     config?: Config,
@@ -667,6 +669,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     private readonly creationTimestamp_ = 0
   ) {
     integr = integr || {};
+    this.isPublisher_ = !!integr.isPublisher;
     integr.configPromise ||= Promise.resolve();
 
     this.eventManager_ = new ClientEventManager(integr.configPromise);
@@ -835,6 +838,10 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
 
   analytics(): AnalyticsService {
     return this.analyticsService_;
+  }
+
+  isPublisher(): boolean {
+    return this.isPublisher_;
   }
 
   init(): void {

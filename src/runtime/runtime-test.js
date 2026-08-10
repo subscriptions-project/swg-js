@@ -1155,6 +1155,16 @@ describes.realWin('ConfiguredRuntime', (env) => {
     expect(entitlementsManagerSpy.getCall(1).args[4]).to.be.true;
   });
 
+  it('should default isPublisher to false and set to true when passed in integr', () => {
+    runtime = new ConfiguredRuntime(win, config);
+    expect(runtime.isPublisher()).to.be.false;
+
+    runtime = new ConfiguredRuntime(win, config, {
+      isPublisher: true,
+    });
+    expect(runtime.isPublisher()).to.be.true;
+  });
+
   describe('while configuring', () => {
     let resolveConfig;
     let rejectConfig;

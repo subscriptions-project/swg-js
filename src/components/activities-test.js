@@ -115,6 +115,17 @@ describes.realWin('Activity Components', (env) => {
         );
       });
 
+      it('should include isPublisherRuntime when deps.isPublisher returns true', () => {
+        deps['isPublisher'] = () => true;
+        const expectedObject = Object.assign({}, expectedDefaults, {
+          isPublisherRuntime: true,
+        });
+
+        expect(activityPorts.addDefaultArguments()).to.deep.equal(
+          expectedObject
+        );
+      });
+
       it('should not add them to open', () => {
         let passedArgs = null;
         sandbox
