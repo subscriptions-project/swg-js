@@ -225,8 +225,9 @@ export const DIALOG_CSS = css`
     }
 
     .publisher-toast {
-      bottom: 8px !important;
-      left: 8px !important;
+      bottom: 0 !important;
+      right: 30px !important;
+      left: auto !important;
     }
   }
 
