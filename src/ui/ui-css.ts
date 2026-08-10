@@ -226,7 +226,7 @@ export const DIALOG_CSS = css`
 
     .publisher-toast {
       bottom: 8px !important;
-      left: 8px !important;
+      right: 30px !important;
     }
   }
 

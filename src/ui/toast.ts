@@ -40,6 +40,7 @@ export class Toast {
   private readonly activityPorts_: ActivityPorts;
   private animating_: Promise<void> | null = null;
   private readonly iframe_: HTMLIFrameElement;
+  private isPublisherDesktopAnimation_ = false;
 
   constructor(
     deps: Deps,
@@ -68,6 +69,37 @@ export class Toast {
     );
 
     setImportantStyles(this.iframe_, toastImportantStyles);
+  }
+
+  private isPublisherToast_(): boolean {
+    return Boolean(this.className_?.split(' ').includes('publisher-toast'));
+  }
+
+  private checkIsDesktopPublisherToast_(): boolean {
+    return (
+      this.isPublisherToast_() &&
+      this.doc_
+        .getWin()
+        .matchMedia('(min-width: 641px) and (min-height: 641px)').matches
+    );
+  }
+
+  /**
+   * Returns the off-screen CSS transform string for entering and exiting the viewport.
+   */
+  private getOffscreenTransform_(): string {
+    return this.isPublisherDesktopAnimation_
+      ? 'translateX(calc(100% + 30px))'
+      : 'translateY(100%)';
+  }
+
+  /**
+   * Returns the on-screen CSS transform string when the toast is displayed.
+   */
+  private getOnscreenTransform_(): string {
+    return this.isPublisherDesktopAnimation_
+      ? 'translateX(0)'
+      : 'translateY(0)';
   }
 
   /**
@@ -106,17 +138,19 @@ export class Toast {
       resetStyles(this.iframe_, ['height']);
     }
 
+    this.isPublisherDesktopAnimation_ = this.checkIsDesktopPublisherToast_();
+
     this.animating_ = this.animate_({
       callback: () => {
         setImportantStyles(this.iframe_, {
-          'transform': 'translateY(100%)',
+          'transform': this.getOffscreenTransform_(),
           'opacity': '1',
           'visibility': 'visible',
         });
         return transition(
           this.iframe_,
           {
-            'transform': 'translateY(0)',
+            'transform': this.getOnscreenTransform_(),
             'opacity': '1',
             'visibility': 'visible',
           },
@@ -164,7 +198,7 @@ export class Toast {
         return transition(
           this.iframe_,
           {
-            'transform': 'translateY(100%)',
+            'transform': this.getOffscreenTransform_(),
             'opacity': '1',
             'visibility': 'visible',
           },
