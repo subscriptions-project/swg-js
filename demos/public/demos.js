@@ -59,6 +59,7 @@ function createNavigation() {
     <li><a href="free-article.html">Free Article</a></li>
     <li><a href="link-subscription.html">Link Subscription</a></li>
     <li><a href="newsletter.html">Newsletter CTA</a></li>
+    <li><a href="publisher-button.html">Publisher Button</a></li>
   </ul>
   `;
 
