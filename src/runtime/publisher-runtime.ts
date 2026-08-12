@@ -40,7 +40,7 @@ export class PublisherRuntime {
 
   private getRuntime_(): ConfiguredRuntime {
     if (!this.configuredRuntime_) {
-      const pageConfig = new PageConfig('publisher', false);
+      const pageConfig = new PageConfig('publication-id-free', false);
       const lang =
         this.options_.lang ||
         this.win_.navigator?.language ||
@@ -49,7 +49,9 @@ export class PublisherRuntime {
       this.configuredRuntime_ = new ConfiguredRuntime(
         this.win_,
         pageConfig,
-        {},
+        {
+          isPublisher: true,
+        },
         undefined,
         {
           lang,
@@ -57,6 +59,9 @@ export class PublisherRuntime {
           forceLangInIframes: true,
         }
       );
+
+      this.configuredRuntime_.analytics().setReadyForLogging();
+      this.configuredRuntime_.analytics().start();
     }
     return this.configuredRuntime_;
   }

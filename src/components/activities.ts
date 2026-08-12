@@ -233,16 +233,18 @@ export class ActivityPorts {
     const deps = this.deps_;
     const pageConfig = deps.pageConfig();
     const context = deps.analytics().getContext();
-    return Object.assign(
-      {
-        'analyticsContext': context.toArray(),
-        'publicationId': pageConfig.getPublicationId(),
-        'productId': pageConfig.getProductId(),
-        '_client': `SwG ${INTERNAL_RUNTIME_VERSION}`,
-        'supportsEventManager': true,
-      },
-      args || {}
-    );
+    const isPublisherRuntime = Boolean(deps.isPublisher?.());
+    const defaults: {[key: string]: unknown} = {
+      'analyticsContext': context.toArray(),
+      'publicationId': pageConfig.getPublicationId(),
+      'productId': pageConfig.getProductId(),
+      '_client': `SwG ${INTERNAL_RUNTIME_VERSION}`,
+      'supportsEventManager': true,
+    };
+    if (isPublisherRuntime) {
+      defaults['isPublisherRuntime'] = true;
+    }
+    return Object.assign(defaults, args || {});
   }
 
   /*
