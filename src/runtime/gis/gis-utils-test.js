@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 import {GisInteropManagerStates} from './gis-interop-manager';
-import {GisMode, getGisMode} from './gis-utils';
+import {GisMode, getGisMode, mixRrmGisTokens} from './gis-utils';
 import {InterventionType} from '../../api/intervention-type';
+import {XhrFetcher} from '../fetcher';
 
 describes.realWin('gis-utils', (env) => {
   let win;
@@ -126,6 +127,85 @@ describes.realWin('gis-utils', (env) => {
           managerWithExpectedConnection
         )
       ).to.equal(GisMode.GisModeNormal);
+    });
+  });
+
+  describe('mixRrmGisTokens', () => {
+    let deps;
+    let storageMock;
+    let entitlementsManagerMock;
+    let sendPostStub;
+
+    beforeEach(() => {
+      storageMock = {
+        get: sandbox.stub().resolves('fakeSwgUserToken'),
+        set: sandbox.stub().resolves(),
+      };
+      entitlementsManagerMock = {
+        updateEntitlements: sandbox.stub().resolves(),
+      };
+      deps = {
+        win: () => win,
+        pageConfig: () => ({
+          getPublicationId: () => 'pub1',
+        }),
+        storage: () => storageMock,
+        entitlementsManager: () => entitlementsManagerMock,
+      };
+
+      sendPostStub = sandbox.stub(XhrFetcher.prototype, 'sendPost').resolves({
+        swgUserToken: 'newSwgUserToken',
+      });
+    });
+
+    it('constructs URL correctly and calls sendPost', async () => {
+      const params = {
+        idToken: 'fakeIdToken',
+        gisClientId: 'fakeClientId',
+        gisOrigin: 'fakeGisOrigin',
+      };
+
+      await mixRrmGisTokens(deps, params);
+
+      expect(sendPostStub).to.have.been.calledOnce;
+      const [url, message] = sendPostStub.firstCall.args;
+
+      expect(url).to.contain('/publication/pub1/mixrrmgistokens');
+      expect(url).to.contain('sut=fakeSwgUserToken');
+      expect(url).to.contain('id_token=fakeIdToken');
+      expect(url).to.contain('gis_client_id=fakeClientId');
+      expect(url).to.contain('gis_origin=fakeGisOrigin');
+      expect(url).to.contain('rrm_origin=');
+
+      expect(message.toArray()).to.deep.equal([]);
+      expect(message.label()).to.equal('MixRrmGisTokens');
+    });
+
+    it('updates entitlements if new token is returned', async () => {
+      const params = {
+        idToken: 'fakeIdToken',
+        gisClientId: 'fakeClientId',
+      };
+
+      const response = await mixRrmGisTokens(deps, params);
+
+      expect(response.swgUserToken).to.equal('newSwgUserToken');
+      expect(
+        entitlementsManagerMock.updateEntitlements
+      ).to.have.been.calledWith('newSwgUserToken');
+    });
+
+    it('does not update entitlements if no new token is returned', async () => {
+      sendPostStub.resolves({});
+      const params = {
+        idToken: 'fakeIdToken',
+        gisClientId: 'fakeClientId',
+      };
+
+      await mixRrmGisTokens(deps, params);
+
+      expect(entitlementsManagerMock.updateEntitlements).to.not.have.been
+        .called;
     });
   });
 });
