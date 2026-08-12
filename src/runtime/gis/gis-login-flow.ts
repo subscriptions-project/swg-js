@@ -20,13 +20,10 @@ import {
   ElementCoordinates,
   EventParams,
   GisMode as GisModeProto,
-  GisSignIn,
   LoginButtonCoordinates,
-  StartGisSignIn,
 } from '../../proto/api_messages';
 import {ClientEventManager} from '../client-event-manager';
 import {Doc} from '../../model/doc';
-import {GisInteropManager} from './gis-interop-manager';
 import {GisMode} from './gis-utils';
 import {createElement} from '../../utils/dom';
 import {setImportantStyles} from '../../utils/style';
@@ -43,7 +40,6 @@ interface ValidatedCoordinates {
 const GIS_MODE_TO_EVENT_PARAMS_MAP = {
   [GisMode.GisModeDisabled]: GisModeProto.GIS_MODE_DISABLED,
   [GisMode.GisModeOverlay]: GisModeProto.GIS_MODE_OVERLAY,
-  [GisMode.GisModeNormal]: GisModeProto.GIS_MODE_NORMAL,
 };
 
 /**
@@ -58,37 +54,30 @@ export class GisLoginFlow {
   constructor(
     private readonly doc: Doc,
     private readonly activityIframeView: ActivityIframeView,
-    private readonly gisMode: GisMode.GisModeOverlay | GisMode.GisModeNormal,
+    private readonly gisMode: GisMode.GisModeOverlay,
     private readonly eventManager: ClientEventManager,
-    private readonly gisInteropManager: GisInteropManager,
     private readonly configurationId?: string
   ) {
-    if (this.gisMode === GisMode.GisModeOverlay) {
-      this.activityIframeView.on(
-        LoginButtonCoordinates,
-        this.handleLoginButtonCoordinates.bind(this)
-      );
-      this.doc.getWin().addEventListener('resize', this.resizeHandler);
-      this.activityIframeView.onResize(this.resizeHandler);
-    } else if (this.gisMode === GisMode.GisModeNormal) {
-      this.activityIframeView.on(StartGisSignIn, this.login.bind(this));
-    }
+    this.activityIframeView.on(
+      LoginButtonCoordinates,
+      this.handleLoginButtonCoordinates.bind(this)
+    );
+    this.doc.getWin().addEventListener('resize', this.resizeHandler);
+    this.activityIframeView.onResize(this.resizeHandler);
   }
 
   /**
    * Removes all overlays.
    */
   dispose() {
-    if (this.gisMode === GisMode.GisModeOverlay) {
-      for (const overlay of this.overlays.values()) {
-        overlay.remove();
-      }
-      this.overlays.clear();
-      if (this.rafId) {
-        this.doc.getWin().cancelAnimationFrame(this.rafId);
-      }
-      this.doc.getWin().removeEventListener('resize', this.resizeHandler);
+    for (const overlay of this.overlays.values()) {
+      overlay.remove();
     }
+    this.overlays.clear();
+    if (this.rafId) {
+      this.doc.getWin().cancelAnimationFrame(this.rafId);
+    }
+    this.doc.getWin().removeEventListener('resize', this.resizeHandler);
   }
 
   private updateOverlays() {
@@ -163,15 +152,26 @@ export class GisLoginFlow {
     const overlay = createElement(this.doc.getRootNode(), 'div', {});
     setImportantStyles(overlay, {
       'position': 'absolute',
+      'opacity': '0',
       'background-color': 'transparent',
       'z-index': '2147483647',
       'pointer-events': 'auto',
       'cursor': 'pointer',
     });
-    overlay.onclick = this.overlayClick.bind(this);
+    this.renderButton(overlay);
     this.overlays.set(key, overlay);
     this.doc.getBody()?.appendChild(overlay);
     return overlay;
+  }
+
+  private renderButton(overlay: HTMLElement) {
+    this.doc.getWin().google?.accounts?.id?.renderButton(overlay, {
+      'type': 'standard',
+      'theme': 'outline',
+      'text': 'continue_with',
+      'logo_alignment': 'left',
+      'click_listener': this.overlayClick.bind(this),
+    });
   }
 
   private overlayClick() {
@@ -184,23 +184,5 @@ export class GisLoginFlow {
       /* eventTime= */ undefined,
       this.configurationId
     );
-    return this.login();
-  }
-
-  private async login() {
-    try {
-      const swgUserToken = await this.gisInteropManager.signIn();
-      const gisSignIn = new GisSignIn();
-      gisSignIn.setSwgUserToken(swgUserToken);
-      this.activityIframeView.execute(gisSignIn);
-    } catch {
-      this.eventManager.logSwgEvent(
-        AnalyticsEvent.EVENT_GIS_LOGIN_ERROR,
-        /* isFromUserAction= */ false,
-        /* eventParams= */ null,
-        /* eventTime= */ undefined,
-        this.configurationId
-      );
-    }
   }
 }

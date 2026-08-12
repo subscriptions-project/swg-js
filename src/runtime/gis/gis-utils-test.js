@@ -18,13 +18,7 @@ import {GisMode, getGisMode, mixRrmGisTokens} from './gis-utils';
 import {InterventionType} from '../../api/intervention-type';
 import {XhrFetcher} from '../fetcher';
 
-describes.realWin('gis-utils', (env) => {
-  let win;
-
-  beforeEach(() => {
-    win = env.win;
-  });
-
+describes.sandboxed('gis-utils', () => {
   describe('getGisMode', () => {
     let gisInteropManagerReady;
     let gisInteropManagerNotReady;
@@ -44,7 +38,6 @@ describes.realWin('gis-utils', (env) => {
     it('returns GisModeDisabled when gisInteropManager is not ready', () => {
       expect(
         getGisMode(
-          win,
           InterventionType.TYPE_REGISTRATION_WALL,
           gisInteropManagerNotReady
         )
@@ -54,79 +47,42 @@ describes.realWin('gis-utils', (env) => {
     it('returns GisModeDisabled when action is not TYPE_REGISTRATION_WALL', () => {
       expect(
         getGisMode(
-          win,
           InterventionType.TYPE_NEWSLETTER_SIGNUP,
           gisInteropManagerReady
         )
       ).to.equal(GisMode.GisModeDisabled);
     });
 
-    it('returns GisModeOverlay for Safari browser', () => {
-      const fakeWin = {
-        navigator: {
-          userAgent:
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15',
-        },
-      };
+    it('returns GisModeOverlay when action is TYPE_REGISTRATION_WALL and gisInteropManager is ready', () => {
       expect(
         getGisMode(
-          fakeWin,
           InterventionType.TYPE_REGISTRATION_WALL,
           gisInteropManagerReady
         )
       ).to.equal(GisMode.GisModeOverlay);
     });
 
-    it('returns GisModeNormal for non-Safari browser (Chrome)', () => {
-      const fakeWin = {
-        navigator: {
-          userAgent:
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
-        },
-      };
+    it('returns GisModeOverlay when gisInterop parameter is true, even if gisInteropManager is not ready', () => {
       expect(
         getGisMode(
-          fakeWin,
-          InterventionType.TYPE_REGISTRATION_WALL,
-          gisInteropManagerReady
-        )
-      ).to.equal(GisMode.GisModeNormal);
-    });
-
-    it('returns GisModeNormal when gisInterop parameter is true, even if gisInteropManager is not ready', () => {
-      const fakeWin = {
-        navigator: {
-          userAgent:
-            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
-        },
-      };
-      expect(
-        getGisMode(
-          fakeWin,
           InterventionType.TYPE_REGISTRATION_WALL,
           gisInteropManagerNotReady,
           true
         )
-      ).to.equal(GisMode.GisModeNormal);
+      ).to.equal(GisMode.GisModeOverlay);
     });
 
-    it('returns GisModeNormal when gisInteropManager.isConnectionExpected() is true', () => {
-      const fakeWin = {
-        navigator: {
-          userAgent: 'Chrome',
-        },
-      };
+    it('returns GisModeOverlay when gisInteropManager.isConnectionExpected() is true', () => {
       const managerWithExpectedConnection = {
         getState: () => GisInteropManagerStates.WAITING_FOR_PING,
         isConnectionExpected: () => true,
       };
       expect(
         getGisMode(
-          fakeWin,
           InterventionType.TYPE_REGISTRATION_WALL,
           managerWithExpectedConnection
         )
-      ).to.equal(GisMode.GisModeNormal);
+      ).to.equal(GisMode.GisModeOverlay);
     });
   });
 
@@ -145,7 +101,7 @@ describes.realWin('gis-utils', (env) => {
         updateEntitlements: sandbox.stub().resolves(),
       };
       deps = {
-        win: () => win,
+        win: () => globalThis,
         pageConfig: () => ({
           getPublicationId: () => 'pub1',
         }),
