@@ -315,7 +315,13 @@ describes.realWin('Activity Components', (env) => {
         expect(addDefaultArgsStub).to.have.been.calledOnce;
         expect(
           WebActivityPorts.prototype.openWithMessaging
-        ).to.have.been.calledWith('id', '/url', '_blank', {injected: true}, null);
+        ).to.have.been.calledWith(
+          'id',
+          '/url',
+          '_blank',
+          {injected: true},
+          null
+        );
       });
     });
 
