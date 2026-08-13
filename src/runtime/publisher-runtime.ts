@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
+
+import {ActivityPorts} from '../components/activities';
 import {AddPreferredSourceButtonIframe} from '../ui/add-preferred-source-button-iframe';
 import {AddPreferredSourceFlow} from './add-preferred-source-flow';
 import {AddPreferredSourceStatus} from '../proto/api_messages';
-import {ClientTheme} from '../api/subscriptions';
-import {ConfiguredRuntime} from './runtime';
-import {PageConfig} from '../model/page-config';
+import {Deps} from './deps';
 import {
   PreferredSourceApi,
   PreferredSourceButtonOptions,
 } from '../api/preferred-source';
 import {Toast} from '../ui/toast';
 import {feUrl} from './services';
-
+import {resolveDoc} from '../model/doc';
 export class PublisherRuntime {
   private readonly win_: Window;
-  private configuredRuntime_?: ConfiguredRuntime;
+  private deps_?: Deps;
   private options_: PreferredSourceButtonOptions = {};
   private readonly buttons_: AddPreferredSourceButtonIframe[] = [];
   private currentStatus_?: AddPreferredSourceStatus;
@@ -38,32 +38,42 @@ export class PublisherRuntime {
     this.win_ = win;
   }
 
-  private getRuntime_(): ConfiguredRuntime {
-    if (!this.configuredRuntime_) {
-      const pageConfig = new PageConfig('publication-id-free', false);
+  private getDeps_(): Deps {
+    if (!this.deps_) {
+      const doc = resolveDoc(this.win_);
       const lang =
         this.options_.lang ||
         this.win_.navigator?.language ||
         this.win_.document.documentElement.lang ||
         'en';
-      this.configuredRuntime_ = new ConfiguredRuntime(
-        this.win_,
-        pageConfig,
-        {
-          isPublisher: true,
-        },
-        undefined,
-        {
-          lang,
-          theme: this.options_.theme as ClientTheme | undefined,
-          forceLangInIframes: true,
-        }
-      );
-
-      this.configuredRuntime_.analytics().setReadyForLogging();
-      this.configuredRuntime_.analytics().start();
+        
+      this.deps_ = {
+        win: () => this.win_,
+        doc: () => doc,
+        activities: () => (this.deps_ as any)._activities,
+        clientConfigManager: () => ({
+          getLanguage: () => lang,
+        }),
+        storage: () => ({
+           get: () => Promise.resolve(null),
+        }),
+        pageConfig: () => ({
+           getPublicationId: () => 'publication-id-free',
+           getProductId: () => 'product-id-free'
+        }),
+        analytics: () => ({
+           getContext: () => ({ toArray: () => [] })
+        }),
+        eventManager: () => ({
+           logEvent: () => {}
+        }),
+        isPublisher: () => true
+      } as unknown as Deps;
+      
+      const activities = new ActivityPorts(this.deps_);
+      (this.deps_ as any)._activities = activities;
     }
-    return this.configuredRuntime_;
+    return this.deps_;
   }
 
   updateAllButtons(status: AddPreferredSourceStatus): void {
@@ -76,9 +86,9 @@ export class PublisherRuntime {
   init(args: PreferredSourceButtonOptions = {}): void {
     this.options_ = Object.assign({}, this.options_, args);
     if (args.lang || args.theme) {
-      this.configuredRuntime_ = undefined;
+      this.deps_ = undefined;
     }
-    const runtime = this.getRuntime_();
+    const deps = this.getDeps_();
     const document = this.win_.document;
     const buttons = document.querySelectorAll(
       '[google-add-preferred-source-btn]:not([data-initialized])'
@@ -87,11 +97,11 @@ export class PublisherRuntime {
       const button = buttons[i] as HTMLElement;
       button.setAttribute('data-initialized', 'true');
       const buttonComponent = new AddPreferredSourceButtonIframe(
-        runtime,
+        deps,
         button,
         {
           theme: this.options_.theme || 'light',
-          lang: runtime.clientConfigManager().getLanguage(),
+          lang: deps.clientConfigManager().getLanguage(),
         }
       );
       this.buttons_.push(buttonComponent);
@@ -106,18 +116,18 @@ export class PublisherRuntime {
   }
 
   showToast(status: AddPreferredSourceStatus, sourceName = ''): void {
-    const runtime = this.getRuntime_();
+    const deps = this.getDeps_();
     const params: {[key: string]: string} = {
       flavor: 'preferred_source',
       sourceName,
       confirmationType: `${status}`,
-      hl: runtime.clientConfigManager().getLanguage(),
+      hl: deps.clientConfigManager().getLanguage(),
     };
     if (this.options_.theme) {
       params['theme'] = this.options_.theme;
     }
     const toast = new Toast(
-      runtime,
+      deps,
       feUrl('/toastiframe', params),
       {},
       'publisher-toast'
@@ -126,8 +136,8 @@ export class PublisherRuntime {
   }
 
   addPreferredSource(): void {
-    const runtime = this.getRuntime_();
-    const flow = new AddPreferredSourceFlow(runtime);
+    const deps = this.getDeps_();
+    const flow = new AddPreferredSourceFlow(deps);
     flow
       .start()
       .then((response) => {
