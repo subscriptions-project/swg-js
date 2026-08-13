@@ -32,6 +32,7 @@ import {
   ActivityIframePort as WebActivityIframePort,
   ActivityPort as WebActivityPort,
   ActivityPorts as WebActivityPorts,
+  ActivityMessagingPort as WebActivityMessagingPort,
 } from 'web-activities/activity-ports';
 import {Deps} from '../runtime/deps';
 
@@ -219,6 +220,74 @@ export class ActivityIframePort implements ActivityPortDef {
   }
 }
 
+export class ActivityPopupPort implements ActivityPortDef {
+  private readonly popupPort_: WebActivityMessagingPort;
+  private readonly callbackMap_: {[key: string]: (message: Message) => void};
+
+  constructor(
+    popupPort: WebActivityMessagingPort,
+    private readonly deps_: Deps
+  ) {
+    this.popupPort_ = popupPort;
+    this.callbackMap_ = {};
+
+    // Attach a callback to receive messages after connection complete
+    this.popupPort_.onMessage((data: any) => {
+      const response = data?.['RESPONSE'];
+      if (!response) {
+        return;
+      }
+      const cb = this.callbackMap_[response[0] as string];
+      if (cb) {
+        const message = deserialize(response);
+        cb(message);
+      }
+    });
+
+    if (this.deps_ && this.deps_.eventManager()) {
+      this.on(AnalyticsRequest, (request) => {
+        this.deps_.eventManager().logEvent({
+          eventType: request.getEvent(),
+          eventOriginator: EventOriginator.SWG_SERVER,
+          isFromUserAction: request.getMeta()?.getIsFromUserAction(),
+          additionalParameters: request.getParams(),
+          configurationId: request.getMeta()?.getConfigurationId(),
+        });
+      });
+    }
+  }
+
+  /**
+   * Accepts the result when ready.
+   */
+  acceptResult(): Promise<ActivityResult> {
+    return (this.popupPort_ as unknown as WebActivityPort).acceptResult();
+  }
+
+  execute(request: Message) {
+    this.popupPort_.message({'REQUEST': request.toArray()});
+  }
+
+  on<T extends Message>(
+    message: new (data?: unknown[], includesLabel?: boolean) => T,
+    callback: (p1: T) => void
+  ) {
+    let label = null;
+    try {
+      label = getLabel(message);
+    } catch {
+      // Thrown if message is not a proto object and has no label
+      label = null;
+    }
+    if (!label) {
+      throw new Error('Invalid data type');
+    } else if (this.callbackMap_[label]) {
+      throw new Error('Invalid type or duplicate callback for ' + label);
+    }
+    this.callbackMap_[label] = callback as (p1: Message) => void;
+  }
+}
+
 export class ActivityPorts {
   activityPorts_: WebActivityPorts;
 
@@ -308,6 +377,27 @@ export class ActivityPorts {
    * request. In this case, the activity will try to fallback to the "redirect"
    * mode.
    */
+  async openPopupWithMessaging(
+    requestId: string,
+    url: string,
+    target: string,
+    args?: {} | null,
+    options?: ActivityOpenOptions | null,
+    addDefaultArguments = false
+  ): Promise<ActivityPopupPort> {
+    if (addDefaultArguments) {
+      args = this.addDefaultArguments(args);
+    }
+    const port = await this.activityPorts_.openWithMessaging(
+      requestId,
+      url,
+      target,
+      args,
+      options
+    );
+    return new ActivityPopupPort(port, this.deps_);
+  }
+
   open(
     requestId: string,
     url: string,

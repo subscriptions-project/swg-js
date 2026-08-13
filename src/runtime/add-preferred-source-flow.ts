@@ -22,11 +22,18 @@ import {feArgs, feOrigin, feUrl} from './services';
 
 export const ADD_PREFERRED_SOURCE_REQUEST_ID = 'addPreferredSource';
 
+export interface AddPreferredSourceFlowOptions {
+  language?: string;
+}
+
 export class AddPreferredSourceFlow {
   private readonly activityPorts_: ActivityPorts;
   private readonly win_: Window;
 
-  constructor(private readonly deps_: Deps) {
+  constructor(
+    private readonly deps_: Deps,
+    private readonly options_?: AddPreferredSourceFlowOptions
+  ) {
     this.win_ = deps_.win();
     this.activityPorts_ = deps_.activities();
   }
@@ -50,10 +57,10 @@ export class AddPreferredSourceFlow {
       });
 
       const queryParams: {[key: string]: string} = {
-        hl: this.deps_.clientConfigManager().getLanguage(),
+        hl: this.options_?.language || this.deps_.clientConfigManager().getLanguage(),
         source: this.win_.location.href,
       };
-      this.activityPorts_.open(
+      this.activityPorts_.openPopupWithMessaging(
         ADD_PREFERRED_SOURCE_REQUEST_ID,
         feUrl('/addpreferredsource', queryParams),
         '_blank',

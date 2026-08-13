@@ -86,16 +86,14 @@ export class PublisherRuntime {
     for (let i = 0; i < buttons.length; i++) {
       const button = buttons[i] as HTMLElement;
       button.setAttribute('data-initialized', 'true');
+      const lang = button.getAttribute('data-lang') || this.options_.lang || runtime.clientConfigManager().getLanguage();
       const buttonComponent = new AddPreferredSourceButtonIframe(
         runtime,
         button,
         {
           theme:
             button.getAttribute('data-theme') || this.options_.theme || 'light',
-          lang:
-            button.getAttribute('data-lang') ||
-            this.options_.lang ||
-            runtime.clientConfigManager().getLanguage(),
+          lang,
         }
       );
       this.buttons_.push(buttonComponent);
@@ -103,7 +101,7 @@ export class PublisherRuntime {
         buttonComponent.updateStatus(this.currentStatus_);
       }
       buttonComponent.attach(() => {
-        this.addPreferredSource();
+        this.addPreferredSource({language: lang});
         return Promise.resolve(true);
       });
     }
@@ -129,9 +127,9 @@ export class PublisherRuntime {
     toast.open();
   }
 
-  addPreferredSource(): void {
+  addPreferredSource(options?: {language?: string}): void {
     const runtime = this.getRuntime_();
-    const flow = new AddPreferredSourceFlow(runtime);
+    const flow = new AddPreferredSourceFlow(runtime, options);
     flow
       .start()
       .then((response) => {
