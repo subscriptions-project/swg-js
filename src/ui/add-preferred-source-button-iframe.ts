@@ -44,7 +44,8 @@ export class AddPreferredSourceButtonIframe {
         const updateMsg = new UpdateAddPreferredSourceButtonRequest();
         updateMsg.setStatus(status);
         port.execute(updateMsg);
-      } catch (reason) {
+      } catch (e) {
+        void e;
       }
     } else {
     }
@@ -98,10 +99,9 @@ export class AddPreferredSourceButtonIframe {
       port.on(AddPreferredSourceRequest, () => {
         onResult();
       });
-
       await port.whenReady();
-    } catch (reason) {
-      // Ignored. The user might have closed the iframe or blocked cross-domain ports.
+    } catch (e) {
+      void e;
     }
   }
 }

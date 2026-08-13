@@ -319,12 +319,12 @@ describes.realWin('installPublisherRuntime', (env) => {
       expect(toastInstance.src_).to.include('hl=fr');
     });
 
-    it('should fallback to documentElement.lang or "en" when navigator.language is unavailable', () => {
+    it('should fallback to documentElement.lang or "en" when navigator.language is unavailable', async () => {
       sandbox.stub(win.navigator, 'language').get(() => undefined);
       win.document.documentElement.lang = 'de';
 
       let runtime = new PublisherRuntime(win);
-      runtime.showToast(
+      await runtime.showToast(
         AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS
       );
       expect(toastOpenStub).to.have.been.calledOnce;
@@ -334,7 +334,7 @@ describes.realWin('installPublisherRuntime', (env) => {
       win.document.documentElement.lang = '';
       toastOpenStub.resetHistory();
       runtime = new PublisherRuntime(win);
-      runtime.showToast(
+      await runtime.showToast(
         AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS
       );
       expect(toastOpenStub).to.have.been.calledOnce;
@@ -344,7 +344,7 @@ describes.realWin('installPublisherRuntime', (env) => {
 
     it('should default sourceName to empty string when calling showToast without sourceName parameter', async () => {
       const runtime = new PublisherRuntime(win);
-      runtime.showToast(
+      await runtime.showToast(
         AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS
       );
       expect(toastOpenStub).to.have.been.calledOnce;

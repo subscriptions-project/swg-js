@@ -14,19 +14,125 @@
  * limitations under the License.
  */
 
-
 import {ActivityPorts} from '../components/activities';
 import {AddPreferredSourceButtonIframe} from '../ui/add-preferred-source-button-iframe';
 import {AddPreferredSourceFlow} from './add-preferred-source-flow';
 import {AddPreferredSourceStatus} from '../proto/api_messages';
+import {AnalyticsService} from './analytics-service';
+import {ClientConfigManager} from './client-config-manager';
+import {ClientEventManager} from './client-event-manager';
 import {Deps} from './deps';
+import {DialogManager} from '../components/dialog-manager';
+import {Doc, resolveDoc} from '../model/doc';
+import {PageConfig} from '../model/page-config';
+import {PageConfigResolver} from '../model/page-config-resolver';
 import {
   PreferredSourceApi,
   PreferredSourceButtonOptions,
 } from '../api/preferred-source';
+import {Storage} from './storage';
 import {Toast} from '../ui/toast';
+import {XhrFetcher} from './fetcher';
 import {feUrl} from './services';
-import {resolveDoc} from '../model/doc';
+
+class PublisherDeps implements Deps {
+  private readonly win_: Window;
+  private readonly doc_: Doc;
+  private readonly fetcher_: XhrFetcher;
+  private readonly eventManager_: ClientEventManager;
+  private readonly pageConfig_: PageConfig;
+  private readonly storage_: Storage;
+  private readonly activities_: ActivityPorts;
+  private readonly analytics_: AnalyticsService;
+  private readonly clientConfigManager_: ClientConfigManager;
+  private readonly dialogManager_: DialogManager;
+
+  constructor(win: Window, lang: string, pageConfig: PageConfig) {
+    this.win_ = win;
+    this.doc_ = resolveDoc(win);
+    this.fetcher_ = new XhrFetcher(win);
+    this.eventManager_ = new ClientEventManager(Promise.resolve());
+    this.pageConfig_ = pageConfig;
+
+    this.storage_ = new Storage(this.win_, this.pageConfig_);
+    this.activities_ = new ActivityPorts(this);
+    this.analytics_ = new AnalyticsService(this);
+    this.clientConfigManager_ = new ClientConfigManager(
+      this,
+      this.pageConfig_.getPublicationId(),
+      this.fetcher_,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      {lang} as any
+    );
+    this.dialogManager_ = new DialogManager(
+      this.doc_,
+      this.clientConfigManager_
+    );
+
+    this.analytics_.setReadyForLogging();
+    this.analytics_.start();
+  }
+
+  win() {
+    return this.win_;
+  }
+  doc() {
+    return this.doc_;
+  }
+  pageConfig() {
+    return this.pageConfig_;
+  }
+  activities() {
+    return this.activities_;
+  }
+  eventManager() {
+    return this.eventManager_;
+  }
+  storage() {
+    return this.storage_;
+  }
+  analytics() {
+    return this.analytics_;
+  }
+  clientConfigManager() {
+    return this.clientConfigManager_;
+  }
+  dialogManager() {
+    return this.dialogManager_;
+  }
+  isPublisher() {
+    return true;
+  }
+
+  // Stubs for functionality not available in publisher.js
+  config() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return {} as any;
+  }
+  entitlementsManager() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return {} as any;
+  }
+  callbacks() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return {} as any;
+  }
+  payClient() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return {} as any;
+  }
+  jserror() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return {} as any;
+  }
+  creationTimestamp() {
+    return 0;
+  }
+  gisInteropManager() {
+    return undefined;
+  }
+}
+
 export class PublisherRuntime {
   private readonly win_: Window;
   private deps_?: Deps;
@@ -38,40 +144,17 @@ export class PublisherRuntime {
     this.win_ = win;
   }
 
-  private getDeps_(): Deps {
+  private async getDeps_(): Promise<Deps> {
     if (!this.deps_) {
-      const doc = resolveDoc(this.win_);
       const lang =
         this.options_.lang ||
         this.win_.navigator?.language ||
         this.win_.document.documentElement.lang ||
         'en';
-        
-      this.deps_ = {
-        win: () => this.win_,
-        doc: () => doc,
-        activities: () => (this.deps_ as any)._activities,
-        clientConfigManager: () => ({
-          getLanguage: () => lang,
-        }),
-        storage: () => ({
-           get: () => Promise.resolve(null),
-        }),
-        pageConfig: () => ({
-           getPublicationId: () => 'publication-id-free',
-           getProductId: () => 'product-id-free'
-        }),
-        analytics: () => ({
-           getContext: () => ({ toArray: () => [] })
-        }),
-        eventManager: () => ({
-           logEvent: () => {}
-        }),
-        isPublisher: () => true
-      } as unknown as Deps;
-      
-      const activities = new ActivityPorts(this.deps_);
-      (this.deps_ as any)._activities = activities;
+      const pageConfig = await new PageConfigResolver(
+        this.win_
+      ).resolveConfig();
+      this.deps_ = new PublisherDeps(this.win_, lang, pageConfig);
     }
     return this.deps_;
   }
@@ -83,12 +166,12 @@ export class PublisherRuntime {
     }
   }
 
-  init(args: PreferredSourceButtonOptions = {}): void {
+  async init(args: PreferredSourceButtonOptions = {}): Promise<void> {
     this.options_ = Object.assign({}, this.options_, args);
     if (args.lang || args.theme) {
       this.deps_ = undefined;
     }
-    const deps = this.getDeps_();
+    const deps = await this.getDeps_();
     const document = this.win_.document;
     const buttons = document.querySelectorAll(
       '[google-add-preferred-source-btn]:not([data-initialized])'
@@ -96,14 +179,10 @@ export class PublisherRuntime {
     for (let i = 0; i < buttons.length; i++) {
       const button = buttons[i] as HTMLElement;
       button.setAttribute('data-initialized', 'true');
-      const buttonComponent = new AddPreferredSourceButtonIframe(
-        deps,
-        button,
-        {
-          theme: this.options_.theme || 'light',
-          lang: deps.clientConfigManager().getLanguage(),
-        }
-      );
+      const buttonComponent = new AddPreferredSourceButtonIframe(deps, button, {
+        theme: this.options_.theme || 'light',
+        lang: deps.clientConfigManager().getLanguage(),
+      });
       this.buttons_.push(buttonComponent);
       if (this.currentStatus_ !== undefined) {
         buttonComponent.updateStatus(this.currentStatus_);
@@ -115,8 +194,11 @@ export class PublisherRuntime {
     }
   }
 
-  showToast(status: AddPreferredSourceStatus, sourceName = ''): void {
-    const deps = this.getDeps_();
+  async showToast(
+    status: AddPreferredSourceStatus,
+    sourceName = ''
+  ): Promise<void> {
+    const deps = await this.getDeps_();
     const params: {[key: string]: string} = {
       flavor: 'preferred_source',
       sourceName,
@@ -135,8 +217,8 @@ export class PublisherRuntime {
     toast.open();
   }
 
-  addPreferredSource(): void {
-    const deps = this.getDeps_();
+  async addPreferredSource(): Promise<void> {
+    const deps = await this.getDeps_();
     const flow = new AddPreferredSourceFlow(deps);
     flow
       .start()
