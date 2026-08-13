@@ -96,7 +96,7 @@ export class AddPreferredSourceButtonIframe {
       this.portPromise_ = this.activityPorts_.openIframe(iframe, url, {});
       const port = await this.portPromise_;
 
-      port.on(AddPreferredSourceRequest, (request) => {
+      port.on(AddPreferredSourceRequest, () => {
         onResult();
       });
 
