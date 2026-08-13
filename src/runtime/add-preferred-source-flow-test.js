@@ -76,7 +76,7 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
       .once();
 
     activitiesMock
-      .expects('open')
+      .expects('openPopupWithMessaging')
       .withExactArgs(
         'addPreferredSource',
         sandbox.match(
@@ -110,7 +110,7 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
       )
       .once();
     activitiesMock
-      .expects('open')
+      .expects('openPopupWithMessaging')
       .withExactArgs(
         'addPreferredSource',
         sandbox.match((url) => url.includes('hl=fr-FR')),
@@ -138,7 +138,7 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
       )
       .once();
     activitiesMock
-      .expects('open')
+      .expects('openPopupWithMessaging')
       .withExactArgs(
         'addPreferredSource',
         sandbox.match(
