@@ -22,7 +22,6 @@ import {
 } from '../proto/api_messages';
 import {Deps} from '../runtime/deps';
 import {feUrl} from '../runtime/services';
-import {log} from '../utils/log';
 import {parseUrl} from '../utils/url';
 import {setStyles} from '../utils/style';
 
@@ -41,37 +40,17 @@ export class AddPreferredSourceButtonIframe {
   async updateStatus(status: AddPreferredSourceStatus): Promise<void> {
     if (this.portPromise_) {
       try {
-        log(
-          `[AddPreferredSourceButtonIframe] Awaiting portPromise_ for status ${status}`
-        );
         const port = await this.portPromise_;
         const updateMsg = new UpdateAddPreferredSourceButtonRequest();
         updateMsg.setStatus(status);
-        log(
-          '[AddPreferredSourceButtonIframe] Updating iframe button status:',
-          status,
-          'on port',
-          port
-        );
         port.execute(updateMsg);
-        log(
-          `[AddPreferredSourceButtonIframe] Successfully executed updateMsg on port for status ${status}`
-        );
-      } catch (reason) {
-        log(
-          '[AddPreferredSourceButtonIframe] Error updating status on port:',
-          reason
-        );
+      } catch (e) {
+        void e;
       }
-    } else {
-      log(
-        `[AddPreferredSourceButtonIframe] No portPromise_ available for status ${status}`
-      );
     }
   }
 
   async attach(onResult: () => void): Promise<void> {
-    log('[AddPreferredSourceButtonIframe] Attaching button iframe...');
     const doc = this.deps_.doc();
     const iframe = doc.getWin().document.createElement('iframe');
     iframe.setAttribute('frameborder', '0');
@@ -112,33 +91,18 @@ export class AddPreferredSourceButtonIframe {
     }
 
     const url = feUrl('/addpreferredsourcebuttoniframe', params);
-    log('[AddPreferredSourceButtonIframe] Opening iframe with URL:', url);
 
     try {
       this.portPromise_ = this.activityPorts_.openIframe(iframe, url, {});
       const port = await this.portPromise_;
-      log(
-        '[AddPreferredSourceButtonIframe] ActivityPort connected successfully.'
-      );
 
-      log(
-        '[AddPreferredSourceButtonIframe] Registering listener for AddPreferredSourceRequest clicks...'
-      );
       port.on(AddPreferredSourceRequest, (request) => {
-        log(
-          '[AddPreferredSourceButtonIframe] Received AddPreferredSourceRequest from iframe:',
-          request
-        );
-        log(
-          '[AddPreferredSourceButtonIframe] Triggering onResult callback (launching AddPreferredSourceFlow)...'
-        );
         onResult();
       });
 
       await port.whenReady();
-    } catch (reason) {
-      log('[AddPreferredSourceButtonIframe] Error or port closure:', reason);
-      // Ignored. The user might have closed the iframe or blocked cross-domain ports.
+    } catch (e) {
+      void e;
     }
   }
 }
