@@ -161,6 +161,56 @@ describes.realWin('installPublisherRuntime', (env) => {
       expect(button.querySelector('iframe')).to.not.be.null; // Iframe injected
     });
 
+    it('should parse data-theme and data-lang from button element', async () => {
+      const button = win.document.createElement('div');
+      button.setAttribute('google-add-preferred-source-btn', '');
+      button.setAttribute('data-theme', 'dark');
+      button.setAttribute('data-lang', 'es');
+      win.document.body.appendChild(button);
+
+      let capturedOptions;
+      AddPreferredSourceButtonIframe.prototype.attach.restore();
+      sandbox
+        .stub(AddPreferredSourceButtonIframe.prototype, 'attach')
+        .callsFake(function () {
+          capturedOptions = this.options_;
+          this.container_.appendChild(win.document.createElement('iframe'));
+          return Promise.resolve();
+        });
+
+      api.init();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(capturedOptions).to.not.be.undefined;
+      expect(capturedOptions.theme).to.equal('dark');
+      expect(capturedOptions.lang).to.equal('es');
+    });
+
+    it('should prioritize data attributes over init options', async () => {
+      const button = win.document.createElement('div');
+      button.setAttribute('google-add-preferred-source-btn', '');
+      button.setAttribute('data-theme', 'light');
+      button.setAttribute('data-lang', 'fr');
+      win.document.body.appendChild(button);
+
+      let capturedOptions;
+      AddPreferredSourceButtonIframe.prototype.attach.restore();
+      sandbox
+        .stub(AddPreferredSourceButtonIframe.prototype, 'attach')
+        .callsFake(function () {
+          capturedOptions = this.options_;
+          this.container_.appendChild(win.document.createElement('iframe'));
+          return Promise.resolve();
+        });
+
+      api.init({theme: 'dark', lang: 'en'});
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(capturedOptions).to.not.be.undefined;
+      expect(capturedOptions.theme).to.equal('light');
+      expect(capturedOptions.lang).to.equal('fr');
+    });
+
     it('should call updateStatus on injected buttons if currentStatus_ is already defined', async () => {
       const updateStatusStub = sandbox.stub(
         AddPreferredSourceButtonIframe.prototype,

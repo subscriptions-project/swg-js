@@ -90,8 +90,12 @@ export class PublisherRuntime {
         runtime,
         button,
         {
-          theme: this.options_.theme || 'light',
-          lang: runtime.clientConfigManager().getLanguage(),
+          theme:
+            button.getAttribute('data-theme') || this.options_.theme || 'light',
+          lang:
+            button.getAttribute('data-lang') ||
+            this.options_.lang ||
+            runtime.clientConfigManager().getLanguage(),
         }
       );
       this.buttons_.push(buttonComponent);
