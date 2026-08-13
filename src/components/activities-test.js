@@ -291,6 +291,32 @@ describes.realWin('Activity Components', (env) => {
         );
         expect(result instanceof ActivityPopupPort).to.be.true;
       });
+
+      it('injects default arguments if requested', async () => {
+        const dummyPort = {
+          onMessage: () => {},
+        };
+        sandbox
+          .stub(WebActivityPorts.prototype, 'openWithMessaging')
+          .returns(Promise.resolve(dummyPort));
+        const addDefaultArgsStub = sandbox
+          .stub(activityPorts, 'addDefaultArguments')
+          .returns({injected: true});
+
+        await activityPorts.openPopupWithMessaging(
+          'id',
+          '/url',
+          '_blank',
+          {},
+          null,
+          true
+        );
+
+        expect(addDefaultArgsStub).to.have.been.calledOnce;
+        expect(
+          WebActivityPorts.prototype.openWithMessaging
+        ).to.have.been.calledWith('id', '/url', '_blank', {injected: true}, null);
+      });
     });
 
     describe('openIframe', () => {
@@ -396,6 +422,29 @@ describes.realWin('Activity Components', (env) => {
     it('attaches message listener on construct', () => {
       expect(popupPortMock.onMessage).to.have.been.calledOnce;
       expect(handler).to.not.be.null;
+    });
+
+    it('safely ignores payloads lacking a RESPONSE wrapper', () => {
+      expect(() => {
+        handler(undefined);
+      }).to.not.throw();
+
+      expect(() => {
+        handler({payload: 'unknown'});
+      }).to.not.throw();
+    });
+
+    it('throws if registering invalid listener types', () => {
+      expect(() => {
+        activityPopupPort.on(null, () => {});
+      }).to.throw(/Invalid data type/);
+    });
+
+    it('throws if attempting duplicate callback registration', () => {
+      // Constructor automatically populates AnalyticsRequest, so asking for it again triggers the duplicate block
+      expect(() => {
+        activityPopupPort.on(AnalyticsRequest, () => {});
+      }).to.throw(/duplicate callback for AnalyticsRequest/);
     });
 
     it('delegates acceptResult', () => {
