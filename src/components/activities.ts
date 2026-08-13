@@ -30,9 +30,9 @@ import {
   ActivityOpenOptions,
   ActivityResult,
   ActivityIframePort as WebActivityIframePort,
+  ActivityMessagingPort as WebActivityMessagingPort,
   ActivityPort as WebActivityPort,
   ActivityPorts as WebActivityPorts,
-  ActivityMessagingPort as WebActivityMessagingPort,
 } from 'web-activities/activity-ports';
 import {Deps} from '../runtime/deps';
 
@@ -130,7 +130,7 @@ export class ActivityIframePort implements ActivityPortDef {
 
     // Attach a callback to receive messages after connection complete
     this.iframePort_.onMessage((data) => {
-      const response = data?.['RESPONSE'];
+      const response = data?.RESPONSE;
       if (!response) {
         return;
       }
@@ -232,8 +232,8 @@ export class ActivityPopupPort implements ActivityPortDef {
     this.callbackMap_ = {};
 
     // Attach a callback to receive messages after connection complete
-    this.popupPort_.onMessage((data: any) => {
-      const response = data?.['RESPONSE'];
+    this.popupPort_.onMessage((data: {RESPONSE?: unknown[]}) => {
+      const response = data?.RESPONSE;
       if (!response) {
         return;
       }

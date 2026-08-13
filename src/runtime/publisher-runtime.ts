@@ -86,7 +86,10 @@ export class PublisherRuntime {
     for (let i = 0; i < buttons.length; i++) {
       const button = buttons[i] as HTMLElement;
       button.setAttribute('data-initialized', 'true');
-      const lang = button.getAttribute('data-lang') || this.options_.lang || runtime.clientConfigManager().getLanguage();
+      const lang =
+        button.getAttribute('data-lang') ||
+        this.options_.lang ||
+        runtime.clientConfigManager().getLanguage();
       const buttonComponent = new AddPreferredSourceButtonIframe(
         runtime,
         button,

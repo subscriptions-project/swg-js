@@ -57,7 +57,9 @@ export class AddPreferredSourceFlow {
       });
 
       const queryParams: {[key: string]: string} = {
-        hl: this.options_?.language || this.deps_.clientConfigManager().getLanguage(),
+        hl:
+          this.options_?.language ||
+          this.deps_.clientConfigManager().getLanguage(),
         source: this.win_.location.href,
       };
       this.activityPorts_.openPopupWithMessaging(
