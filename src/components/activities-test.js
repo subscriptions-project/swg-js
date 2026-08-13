@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-import {ActivityIframePort, ActivityPopupPort, ActivityPorts} from './activities';
+import {
+  ActivityIframePort,
+  ActivityPopupPort,
+  ActivityPorts,
+} from './activities';
 import {
   ActivityResult,
   ActivityIframePort as WebActivityIframePort,
@@ -260,7 +264,6 @@ describes.realWin('Activity Components', (env) => {
       });
     });
 
-
     describe('openPopupWithMessaging', () => {
       it('invokes activityPorts.openWithMessaging and returns ActivityPopupPort', async () => {
         const dummyPort = {
@@ -360,7 +363,6 @@ describes.realWin('Activity Components', (env) => {
       });
     });
   });
-
 
   describe('ActivityPopupPort', () => {
     let activityPopupPort;
