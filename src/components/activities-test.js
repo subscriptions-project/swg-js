@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {ActivityIframePort, ActivityPorts} from './activities';
+import {ActivityIframePort, ActivityPopupPort, ActivityPorts} from './activities';
 import {
   ActivityResult,
   ActivityIframePort as WebActivityIframePort,
@@ -260,6 +260,36 @@ describes.realWin('Activity Components', (env) => {
       });
     });
 
+
+    describe('openPopupWithMessaging', () => {
+      it('invokes activityPorts.openWithMessaging and returns ActivityPopupPort', async () => {
+        const dummyPort = {
+          onMessage: () => {},
+        };
+        const openWithMessagingStub = sandbox
+          .stub(WebActivityPorts.prototype, 'openWithMessaging')
+          .returns(Promise.resolve(dummyPort));
+
+        const result = await activityPorts.openPopupWithMessaging(
+          'some_id',
+          '/someUrl',
+          '_blank',
+          {foo: 'bar'},
+          {width: 100}
+        );
+
+        expect(openWithMessagingStub).to.have.been.calledOnce;
+        expect(openWithMessagingStub).to.have.been.calledWith(
+          'some_id',
+          '/someUrl',
+          '_blank',
+          {foo: 'bar'},
+          {width: 100}
+        );
+        expect(result instanceof ActivityPopupPort).to.be.true;
+      });
+    });
+
     describe('openIframe', () => {
       it('adds sut and publicationId', async () => {
         const callMock = sandbox
@@ -328,6 +358,72 @@ describes.realWin('Activity Components', (env) => {
         );
         callMock.verify();
       });
+    });
+  });
+
+
+  describe('ActivityPopupPort', () => {
+    let activityPopupPort;
+    let popupPortMock;
+    let handler;
+    let analyticsRequest;
+    let serializedRequest;
+
+    beforeEach(() => {
+      handler = null;
+      popupPortMock = {
+        onMessage: (cb) => {
+          handler = cb;
+        },
+        message: sandbox.spy(),
+        acceptResult: sandbox.stub().returns('accept!'),
+      };
+
+      analyticsRequest = new AnalyticsRequest();
+      analyticsRequest.setEvent(AnalyticsEvent.UNKNOWN);
+      const meta = new AnalyticsEventMeta();
+      meta.setConfigurationId(CONFIGURATION_ID);
+      analyticsRequest.setMeta(meta);
+      serializedRequest = analyticsRequest.toArray();
+
+      sandbox.spy(popupPortMock, 'onMessage');
+
+      activityPopupPort = new ActivityPopupPort(popupPortMock, deps);
+    });
+
+    it('attaches message listener on construct', () => {
+      expect(popupPortMock.onMessage).to.have.been.calledOnce;
+      expect(handler).to.not.be.null;
+    });
+
+    it('delegates acceptResult', () => {
+      const result = activityPopupPort.acceptResult();
+      expect(popupPortMock.acceptResult).to.have.been.calledOnce;
+      expect(result).to.equal('accept!');
+    });
+
+    it('delegates execute via message', () => {
+      activityPopupPort.execute(analyticsRequest);
+      expect(popupPortMock.message).to.have.been.calledWith({
+        'REQUEST': serializedRequest,
+      });
+    });
+
+    it('auto registers logging and handles AnalyticsRequest onMessage', async () => {
+      let event = null;
+      let configurationId = null;
+      sandbox.stub(deps.eventManager(), 'logEvent').callsFake((clientEvent) => {
+        event = clientEvent.eventType;
+        configurationId = clientEvent.configurationId;
+      });
+
+      // trigger the handler directly
+      handler({
+        'RESPONSE': serializedRequest,
+      });
+
+      expect(event).to.equal(AnalyticsEvent.UNKNOWN);
+      expect(configurationId).to.equal(CONFIGURATION_ID);
     });
   });
 
