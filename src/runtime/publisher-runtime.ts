@@ -66,6 +66,18 @@ export class PublisherRuntime {
     return this.configuredRuntime_;
   }
 
+  private resolveLanguage_(override?: string | null): string {
+    return (
+      override ||
+      this.options_.lang ||
+      this.getRuntime_().clientConfigManager().getLanguage()
+    );
+  }
+
+  private resolveTheme_(override?: string | null): string {
+    return override || this.options_.theme || 'light';
+  }
+
   updateAllButtons(status: AddPreferredSourceStatus): void {
     this.currentStatus_ = status;
     for (const button of this.buttons_) {
@@ -86,16 +98,13 @@ export class PublisherRuntime {
     for (let i = 0; i < buttons.length; i++) {
       const button = buttons[i] as HTMLElement;
       button.setAttribute('data-initialized', 'true');
-      const lang =
-        button.getAttribute('data-lang') ||
-        this.options_.lang ||
-        runtime.clientConfigManager().getLanguage();
+      const lang = this.resolveLanguage_(button.getAttribute('data-lang'));
+      const theme = this.resolveTheme_(button.getAttribute('data-theme'));
       const buttonComponent = new AddPreferredSourceButtonIframe(
         runtime,
         button,
         {
-          theme:
-            button.getAttribute('data-theme') || this.options_.theme || 'light',
+          theme,
           lang,
         }
       );
@@ -104,23 +113,25 @@ export class PublisherRuntime {
         buttonComponent.updateStatus(this.currentStatus_);
       }
       buttonComponent.attach(() => {
-        this.addPreferredSource({language: lang});
+        this.addPreferredSource({language: lang, theme});
         return Promise.resolve(true);
       });
     }
   }
 
-  showToast(status: AddPreferredSourceStatus, sourceName = ''): void {
+  showToast(
+    status: AddPreferredSourceStatus,
+    sourceName = '',
+    options?: {language?: string; theme?: string}
+  ): void {
     const runtime = this.getRuntime_();
     const params: {[key: string]: string} = {
       flavor: 'preferred_source',
       sourceName,
       confirmationType: `${status}`,
-      hl: runtime.clientConfigManager().getLanguage(),
+      hl: this.resolveLanguage_(options?.language),
+      theme: this.resolveTheme_(options?.theme),
     };
-    if (this.options_.theme) {
-      params['theme'] = this.options_.theme;
-    }
     const toast = new Toast(
       runtime,
       feUrl('/toastiframe', params),
@@ -130,7 +141,7 @@ export class PublisherRuntime {
     toast.open();
   }
 
-  addPreferredSource(options?: {language?: string}): void {
+  addPreferredSource(options?: {language?: string; theme?: string}): void {
     const runtime = this.getRuntime_();
     const flow = new AddPreferredSourceFlow(runtime, options);
     flow
@@ -146,7 +157,7 @@ export class PublisherRuntime {
             AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_INELIGIBLE
         ) {
           this.updateAllButtons(status);
-          this.showToast(status, response.getSiteName() || '');
+          this.showToast(status, response.getSiteName() || '', options);
         }
       })
       .catch(() => {
