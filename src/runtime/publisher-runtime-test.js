@@ -419,5 +419,53 @@ describes.realWin('installPublisherRuntime', (env) => {
       const toastInstance = toastOpenStub.getCall(0).thisValue;
       expect(toastInstance.src_).to.match(/[\?&]sourceName=(&|$)/);
     });
+
+    it('should trigger addPreferredSource with button language and theme when attach callback is invoked', async () => {
+      const button = win.document.createElement('div');
+      button.setAttribute('google-add-preferred-source-btn', '');
+      button.setAttribute('data-lang', 'es');
+      button.setAttribute('data-theme', 'dark');
+      win.document.body.appendChild(button);
+
+      api.init();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      const onResultCallback =
+        AddPreferredSourceButtonIframe.prototype.attach.getCall(0).args[0];
+
+      toastOpenStub.resetHistory();
+      await onResultCallback();
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(toastOpenStub).to.have.been.calledOnce;
+      const toastInstance = toastOpenStub.getCall(0).thisValue;
+      expect(toastInstance.src_).to.include('hl=es');
+      expect(toastInstance.src_).to.include('theme=dark');
+    });
+
+    it('should prioritize options.language and options.theme in showToast', () => {
+      const runtime = new PublisherRuntime(win);
+      runtime.showToast(
+        AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS,
+        'Site',
+        {language: 'es', theme: 'dark'}
+      );
+      expect(toastOpenStub).to.have.been.calledOnce;
+      const toastInstance = toastOpenStub.getCall(0).thisValue;
+      expect(toastInstance.src_).to.include('hl=es');
+      expect(toastInstance.src_).to.include('theme=dark');
+    });
+
+    it('should default theme to light in showToast when none is configured', () => {
+      const runtime = new PublisherRuntime(win);
+      runtime.showToast(
+        AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS
+      );
+      expect(toastOpenStub).to.have.been.calledOnce;
+      const toastInstance = toastOpenStub.getCall(0).thisValue;
+      expect(toastInstance.src_).to.include('theme=light');
+    });
   });
 });
