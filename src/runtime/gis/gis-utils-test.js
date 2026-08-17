@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 import {GisInteropManagerStates} from './gis-interop-manager';
-import {GisMode, getGisMode, mixRrmGisTokens} from './gis-utils';
+import {
+  GisMode,
+  getGisMode,
+  mixRrmGisTokens,
+  processGisCredentialInternal,
+} from './gis-utils';
 import {InterventionType} from '../../api/intervention-type';
 import {XhrFetcher} from '../fetcher';
 
@@ -162,6 +167,145 @@ describes.sandboxed('gis-utils', () => {
 
       expect(entitlementsManagerMock.updateEntitlements).to.not.have.been
         .called;
+    });
+  });
+
+  describe('processGisCredentialInternal', () => {
+    let deps;
+    let managerMock;
+    let dialogMock;
+    let loadingViewMock;
+    let containerMock;
+    let sendPostStub;
+
+    beforeEach(() => {
+      managerMock = {
+        isRegwallClickPending: sandbox.stub().returns(false),
+        setRegwallClickPending: sandbox.stub(),
+        triggerCompleteLogin: sandbox.stub().resolves(false),
+      };
+
+      loadingViewMock = {
+        show: sandbox.stub(),
+        hide: sandbox.stub(),
+      };
+
+      containerMock = {
+        style: {
+          setProperty: sandbox.stub(),
+        },
+      };
+
+      dialogMock = {
+        getLoadingView: sandbox.stub().returns(loadingViewMock),
+        getContainer: sandbox.stub().returns(containerMock),
+      };
+
+      deps = {
+        win: () => globalThis,
+        pageConfig: () => ({
+          getPublicationId: () => 'pub1',
+        }),
+        storage: () => ({
+          get: sandbox.stub().resolves('fakeSwgUserToken'),
+          set: sandbox.stub().resolves(),
+        }),
+        entitlementsManager: () => ({
+          updateEntitlements: sandbox.stub().resolves(),
+        }),
+        gisInteropManager: sandbox.stub().returns(managerMock),
+        dialogManager: sandbox.stub().returns({
+          getDialog: sandbox.stub().returns(dialogMock),
+        }),
+      };
+
+      sendPostStub = sandbox.stub(XhrFetcher.prototype, 'sendPost').resolves({
+        swgUserToken: 'newSwgUserToken',
+      });
+    });
+
+    it('handles Regwall flow successfully', async () => {
+      managerMock.isRegwallClickPending.returns(true);
+      managerMock.triggerCompleteLogin.resolves(true);
+
+      const response = {credential: 'fakeIdToken'};
+      const params = {gisClientId: 'fakeClientId'};
+
+      const result = await processGisCredentialInternal(deps, response, params);
+
+      expect(result).to.be.true;
+      expect(loadingViewMock.show).to.have.been.calledOnce;
+      expect(containerMock.style.setProperty).to.have.been.calledWith(
+        'display',
+        'none',
+        'important'
+      );
+      expect(managerMock.setRegwallClickPending).to.have.been.calledWith(false);
+      expect(managerMock.triggerCompleteLogin).to.have.been.calledWith(
+        'newSwgUserToken'
+      );
+      // Should NOT hide loading view because keepLoading should be true
+      expect(loadingViewMock.hide).to.not.have.been.called;
+    });
+
+    it('handles Regwall flow failure in triggerCompleteLogin', async () => {
+      managerMock.isRegwallClickPending.returns(true);
+      managerMock.triggerCompleteLogin.resolves(false); // Failed to handle
+
+      const response = {credential: 'fakeIdToken'};
+      const params = {gisClientId: 'fakeClientId'};
+
+      const result = await processGisCredentialInternal(deps, response, params);
+
+      expect(result).to.be.false;
+      expect(loadingViewMock.show).to.have.been.calledOnce;
+      expect(managerMock.setRegwallClickPending).to.have.been.calledWith(false);
+      // Should hide loading view because keepLoading should be false
+      expect(loadingViewMock.hide).to.have.been.calledOnce;
+      expect(containerMock.style.setProperty).to.have.been.calledWith(
+        'display',
+        'block',
+        'important'
+      );
+    });
+
+    it('handles Non-Regwall flow', async () => {
+      managerMock.isRegwallClickPending.returns(false);
+
+      const response = {credential: 'fakeIdToken'};
+      const params = {gisClientId: 'fakeClientId'};
+
+      const result = await processGisCredentialInternal(deps, response, params);
+
+      expect(result).to.be.false;
+      expect(loadingViewMock.show).to.not.have.been.called;
+      expect(containerMock.style.setProperty).to.not.have.been.called;
+      expect(managerMock.setRegwallClickPending).to.not.have.been.called;
+      expect(managerMock.triggerCompleteLogin).to.not.have.been.called;
+      // Should NOT manipulate loading view
+      expect(loadingViewMock.hide).to.not.have.been.called;
+    });
+
+    it('cleans up UI on error', async () => {
+      managerMock.isRegwallClickPending.returns(true);
+      sendPostStub.rejects(new Error('Network error'));
+
+      const response = {credential: 'fakeIdToken'};
+      const params = {gisClientId: 'fakeClientId'};
+
+      try {
+        await processGisCredentialInternal(deps, response, params);
+      } catch (e) {
+        // Expected
+      }
+
+      // Should hide loading view and restore container
+      expect(loadingViewMock.hide).to.have.been.calledOnce;
+      expect(containerMock.style.setProperty).to.have.been.calledWith(
+        'display',
+        'block',
+        'important'
+      );
     });
   });
 });

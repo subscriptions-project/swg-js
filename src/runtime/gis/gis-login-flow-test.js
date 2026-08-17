@@ -112,6 +112,21 @@ describes.realWin('GisLoginFlow', (env) => {
       logEvent: sandbox.stub(),
       logSwgEvent: sandbox.stub(),
     };
+
+    const depsMock = {
+      doc: () => doc,
+      eventManager: () => eventManagerMock,
+      gisInteropManager: () => ({
+        setCompleteLoginCallback: sandbox.stub(),
+        setRegwallClickPending: sandbox.stub(),
+      }),
+    };
+
+    gisLoginFlow = new GisLoginFlow(
+      depsMock,
+      activityIframeView,
+      GisMode.GisModeOverlay
+    );
   });
 
   afterEach(() => {
@@ -120,15 +135,6 @@ describes.realWin('GisLoginFlow', (env) => {
   });
 
   describe('GisModeOverlay', () => {
-    beforeEach(() => {
-      gisLoginFlow = new GisLoginFlow(
-        doc,
-        activityIframeView,
-        GisMode.GisModeOverlay,
-        eventManagerMock
-      );
-    });
-
     it('listens for resize events from both window and activityIframeView', () => {
       expect(win.addEventListener).to.have.been.calledWith('resize');
       expect(activityIframeView.onResize).to.have.been.called;

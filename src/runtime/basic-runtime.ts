@@ -27,6 +27,8 @@ import {
 } from '../api/basic-subscriptions';
 import {ButtonApi, ButtonAttributeValues} from './button-api';
 import {Callbacks} from './callbacks';
+import {GisCredentialResponse} from '../api/subscriptions';
+import {processGisCredentialInternal} from './gis/gis-utils';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
 import {Config} from '../api/subscriptions';
@@ -309,6 +311,14 @@ export class BasicRuntime implements BasicSubscriptions {
   async dismissSwgUI(): Promise<void> {
     const runtime = await this.configured_(false);
     runtime.dismissSwgUI();
+  }
+
+  async processGisCredential(
+    response: GisCredentialResponse,
+    params: {gisClientId: string}
+  ): Promise<boolean> {
+    const runtime = await this.configured_(false);
+    return runtime.processGisCredential(response, params);
   }
 
   getDiagnostics(): {isGisReady: boolean} {
@@ -663,6 +673,16 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     this.dialogManager().completeAll();
   }
 
+  async processGisCredential(
+    response: GisCredentialResponse,
+    params: {gisClientId: string}
+  ): Promise<boolean> {
+    if (!response.credential) {
+      return false;
+    }
+    return processGisCredentialInternal(this, response, params);
+  }
+
   getDiagnostics(): {isGisReady: boolean} {
     const manager = this.gisInteropManager();
     return {
@@ -736,6 +756,7 @@ function createPublicBasicRuntime(
     setupAndShowAutoPrompt:
       basicRuntime.setupAndShowAutoPrompt.bind(basicRuntime),
     dismissSwgUI: basicRuntime.dismissSwgUI.bind(basicRuntime),
+    processGisCredential: basicRuntime.processGisCredential.bind(basicRuntime),
     getDiagnostics: basicRuntime.getDiagnostics.bind(basicRuntime),
   };
 }

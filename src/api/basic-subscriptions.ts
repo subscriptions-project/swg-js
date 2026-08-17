@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {ClientTheme} from './subscriptions';
+import {ClientTheme, GisCredentialResponse} from './subscriptions';
 import {Entitlements} from './entitlements';
 import {SubscribeResponse} from './subscribe-response';
 
@@ -82,6 +82,15 @@ export interface BasicSubscriptions {
    * purposes.
    */
   dismissSwgUI(): void;
+
+  /**
+   * Processes a GIS credential response.
+   * @return promise indicating whether the credential was handled as a regwall completion.
+   */
+  processGisCredential(
+    response: GisCredentialResponse,
+    params: {gisClientId: string}
+  ): Promise<boolean>;
 
   /**
    * Returns diagnostic information about the setup.

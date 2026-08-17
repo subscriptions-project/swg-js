@@ -27,7 +27,7 @@ function messageHandler(e) {
 
 function initGis() {
   google.accounts.id.initialize({
-    client_id: '365425805315-ulc9hop6lvq3blgc7ubvtcu5322t3fcn.apps.googleusercontent.com',
+    client_id: '185085492387-b0okt68p1rc83qo530a8kruou8mf5gfj.apps.googleusercontent.com',
     callback: gisCallback,
     rrm_interop: true,
     rrm_iframe_path: 'https://subscribe-qual.sandbox.google.com/swg/ui/v1/rrmgisinterop'
@@ -42,18 +42,43 @@ function initGis() {
 
 function gisCallback(response) {
   log(`gisCallback ${JSON.stringify(response)}`);
+
+  if (response.credential) {
+    (self.SWG_BASIC = self.SWG_BASIC || []).push((basicSubscriptions) => {
+      basicSubscriptions
+        .processGisCredential(response, {
+          gisClientId:
+            '185085492387-b0okt68p1rc83qo530a8kruou8mf5gfj.apps.googleusercontent.com',
+        })
+        .then((handled) => {
+          if (handled) {
+            log('Handled as Regwall completion');
+          } else {
+            log('Handled as normal login or One Tap');
+            // Publisher's custom logic here
+          }
+        });
+    });
+  }
 }
 
 function initRrm() {
   const isAccessibleForFree = document.getElementById('isAccessibleForFree').checked;
   (self.SWG_BASIC = self.SWG_BASIC || []).push((basicSubscriptions) => {
-    basicSubscriptions.setOnEntitlementsResponse((response) => {
-      log(`Entitlements response: ${JSON.stringify(response)}`);
+    basicSubscriptions.setOnEntitlementsResponse((entitlementsPromise) => {
+      entitlementsPromise
+        .then((entitlements) => {
+          log(`Entitlements response: ${JSON.stringify(entitlements.json())}`);
+          log(`Enables this: ${entitlements.enablesThis()}`);
+        })
+        .catch((error) => {
+          log(`Entitlements error: ${error}`);
+        });
     });
     basicSubscriptions.init({
       type: "NewsArticle",
       isPartOfType: ["Product"],
-      isPartOfProductId: "CAowwoSCAQ:basic",
+      isPartOfProductId: "CAowhbqJAQ:product1",
       isAccessibleForFree: isAccessibleForFree,
       clientOptions: {
         theme: "light",

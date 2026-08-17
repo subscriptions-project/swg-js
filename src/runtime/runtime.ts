@@ -86,11 +86,13 @@ import {PayClient} from './pay-client';
 import {PayCompleteFlow, PayStartFlow} from './pay-flow';
 import {Preconnect} from '../utils/preconnect';
 import {
+  GisCredentialResponse,
   ProductType,
   Subscriptions as SubscriptionsInterface,
   WindowOpenMode,
   defaultConfig,
 } from '../api/subscriptions';
+import {processGisCredentialInternal} from './gis/gis-utils';
 import {Propensity} from './propensity';
 import {PropensityApi} from '../api/propensity-api';
 import {Storage} from './storage';
@@ -598,6 +600,14 @@ export class Runtime implements SubscriptionsInterface {
   ): Promise<LinkSubscriptionResult> {
     const runtime = await this.configured_(true);
     return runtime.linkSubscription(request);
+  }
+
+  async processGisCredential(
+    response: GisCredentialResponse,
+    params: {gisClientId: string}
+  ): Promise<boolean> {
+    const runtime = await this.configured_(true);
+    return runtime.processGisCredential(response, params);
   }
 
   async linkSubscriptions(
@@ -1299,6 +1309,16 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     return new SubscriptionLinkingFlow(this).start(linkSubscriptionRequest);
   }
 
+  async processGisCredential(
+    response: GisCredentialResponse,
+    params: {gisClientId: string}
+  ): Promise<boolean> {
+    if (!response.credential) {
+      return false;
+    }
+    return processGisCredentialInternal(this, response, params);
+  }
+
   async linkSubscriptions(
     linkSubscriptionsRequest: LinkSubscriptionsRequest
   ): Promise<LinkSubscriptionsResult> {
@@ -1366,6 +1386,7 @@ function createPublicRuntime(runtime: Runtime): SubscriptionsInterface {
     showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
     setPublisherProvidedId: runtime.setPublisherProvidedId.bind(runtime),
     linkSubscription: runtime.linkSubscription.bind(runtime),
+    processGisCredential: runtime.processGisCredential.bind(runtime),
     linkSubscriptions: runtime.linkSubscriptions.bind(runtime),
     getAvailableInterventions: runtime.getAvailableInterventions.bind(runtime),
     getFreeAccess: runtime.getFreeAccess.bind(runtime),
