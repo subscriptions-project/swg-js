@@ -20,6 +20,7 @@ import {
   AnalyticsEvent,
   ElementCoordinates,
   GisMode as GisModeProto,
+  GisSignIn,
   LoginButtonCoordinates,
 } from '../../proto/api_messages';
 import {GisLoginFlow} from './gis-login-flow';
@@ -35,6 +36,8 @@ describes.realWin('GisLoginFlow', (env) => {
   let cancelAnimationFrameSpy;
   let onResizeCallback;
   let eventManagerMock;
+  let gisInteropManagerMock;
+  let depsMock;
 
   beforeEach(() => {
     const coordinates = new ElementCoordinates();
@@ -111,6 +114,19 @@ describes.realWin('GisLoginFlow', (env) => {
       logEvent: sandbox.stub(),
       logSwgEvent: sandbox.stub(),
     };
+
+    gisInteropManagerMock = {
+      setCompleteLoginCallback: sandbox.stub(),
+      setRegwallClickPending: sandbox.stub(),
+    };
+
+    depsMock = {
+      doc: () => doc,
+      eventManager: () => eventManagerMock,
+      gisInteropManager: () => gisInteropManagerMock,
+    };
+
+    gisLoginFlow = new GisLoginFlow(depsMock, activityIframeView);
   });
 
   afterEach(() => {
@@ -119,12 +135,15 @@ describes.realWin('GisLoginFlow', (env) => {
   });
 
   describe('GisModeOverlay', () => {
-    beforeEach(() => {
-      gisLoginFlow = new GisLoginFlow(
-        doc,
-        activityIframeView,
-        eventManagerMock
-      );
+    it('registers completeLogin callback on construction and cleans up on dispose', () => {
+      expect(
+        gisInteropManagerMock.setCompleteLoginCallback
+      ).to.have.been.calledWith(sandbox.match.func);
+
+      gisLoginFlow.dispose();
+      expect(
+        gisInteropManagerMock.setCompleteLoginCallback
+      ).to.have.been.calledWith(null);
     });
 
     it('listens for resize events from both window and activityIframeView', () => {
@@ -174,7 +193,7 @@ describes.realWin('GisLoginFlow', (env) => {
       expect(overlays.length).to.equal(0);
     });
 
-    it('logs event when renderButton click_listener is invoked', async () => {
+    it('logs event and marks click pending when renderButton click_listener is invoked', async () => {
       messageMap[message.label()](message);
 
       const renderButtonArgs =
@@ -184,6 +203,9 @@ describes.realWin('GisLoginFlow', (env) => {
       clickListener();
 
       expect(activityIframeView.execute).to.not.have.been.called;
+      expect(
+        gisInteropManagerMock.setRegwallClickPending
+      ).to.have.been.calledWith(true);
 
       expect(eventManagerMock.logSwgEvent).to.have.been.calledWith(
         AnalyticsEvent.ACTION_REGWALL_OPT_IN_BUTTON_CLICK,
@@ -193,6 +215,42 @@ describes.realWin('GisLoginFlow', (env) => {
         }),
         undefined,
         undefined
+      );
+    });
+
+    it('handles completeLogin callback successfully', async () => {
+      const callback =
+        gisInteropManagerMock.setCompleteLoginCallback.firstCall.args[0];
+      const result = await callback('test-token');
+
+      expect(result).to.be.true;
+      expect(activityIframeView.execute).to.have.been.calledWith(
+        sandbox.match(
+          (msg) =>
+            msg instanceof GisSignIn && msg.getSwgUserToken() === 'test-token'
+        )
+      );
+    });
+
+    it('handles completeLogin callback failure and logs error with configurationId', async () => {
+      gisLoginFlow.dispose();
+      gisLoginFlow = new GisLoginFlow(
+        depsMock,
+        activityIframeView,
+        'config123'
+      );
+      activityIframeView.execute.rejects(new Error('Execute error'));
+      const callback =
+        gisInteropManagerMock.setCompleteLoginCallback.lastCall.args[0];
+      const result = await callback('test-token');
+
+      expect(result).to.be.false;
+      expect(eventManagerMock.logSwgEvent).to.have.been.calledWith(
+        AnalyticsEvent.EVENT_GIS_LOGIN_ERROR,
+        false,
+        null,
+        undefined,
+        'config123'
       );
     });
 

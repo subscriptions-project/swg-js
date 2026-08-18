@@ -103,6 +103,10 @@ export class GisInteropManager {
   // Flag indicating if there is someone waiting for the updated token.
   private signInInProgress = false;
   private hasSessionConnection = false;
+  private regwallClickPending = false;
+  private completeLoginCallback:
+    | ((swgUserToken: string) => Promise<boolean>)
+    | null = null;
   private readonly messageHandlerBound = this.messageHandler.bind(this);
   private readonly communicationIframeEstablishedPromise: Promise<void>;
   private communicationIframeEstablishedPromiseResolve!: () => void;
@@ -137,6 +141,27 @@ export class GisInteropManager {
       this.state !== GisInteropManagerStates.WAITING_FOR_PING ||
       this.hasSessionConnection
     );
+  }
+
+  public setRegwallClickPending(value: boolean) {
+    this.regwallClickPending = value;
+  }
+
+  public isRegwallClickPending(): boolean {
+    return this.regwallClickPending;
+  }
+
+  public setCompleteLoginCallback(
+    callback: ((swgUserToken: string) => Promise<boolean>) | null
+  ) {
+    this.completeLoginCallback = callback;
+  }
+
+  public async triggerCompleteLogin(swgUserToken: string): Promise<boolean> {
+    if (this.completeLoginCallback) {
+      return await this.completeLoginCallback(swgUserToken);
+    }
+    return false;
   }
 
   public async yield() {
