@@ -1,4 +1,5 @@
 import {Deps} from '../deps';
+import {GisCredentialResponse} from '../../api/subscriptions';
 import {GisInteropManager} from './gis-interop-manager';
 import {InterventionType} from '../../api/intervention-type';
 import {Message} from '../../proto/api_messages';
@@ -6,6 +7,7 @@ import {StorageKeys} from '../../utils/constants';
 import {XhrFetcher} from '../fetcher';
 import {addQueryParam, parseUrl} from '../../utils/url';
 import {serviceUrl} from '../services';
+import {setImportantStyles} from '../../utils/style';
 
 /**
  * The mode of the GIS.
@@ -86,4 +88,54 @@ export async function mixRrmGisTokens(
   }
 
   return response;
+}
+
+/**
+ * Processes GIS credential internally, handling loading states and iframe completion.
+ */
+export async function processGisCredentialInternal(
+  deps: Deps,
+  response: GisCredentialResponse,
+  params: {gisClientId: string}
+): Promise<boolean> {
+  const manager = deps.gisInteropManager();
+  const isRegwall = manager?.isRegwallClickPending();
+
+  const dialog = deps.dialogManager().getDialog();
+  const loadingView = dialog?.getLoadingView();
+  const container = dialog?.getContainer() as HTMLElement;
+
+  if (isRegwall && loadingView && container) {
+    loadingView.show();
+    setImportantStyles(container, {'display': 'none'});
+  }
+
+  let keepLoading = false;
+  try {
+    const mixResponse = await mixRrmGisTokens(deps, {
+      idToken: response.credential!,
+      gisClientId: params.gisClientId,
+    });
+
+    const swgUserToken = mixResponse?.swgUserToken;
+
+    if (isRegwall) {
+      manager!.setRegwallClickPending(false);
+
+      if (swgUserToken) {
+        const handled = await manager!.triggerCompleteLogin(swgUserToken);
+        if (handled) {
+          keepLoading = true;
+          return true;
+        }
+      }
+    }
+
+    return false;
+  } finally {
+    if (!keepLoading && isRegwall && loadingView && container) {
+      loadingView.hide();
+      setImportantStyles(container, {'display': 'block'});
+    }
+  }
 }
