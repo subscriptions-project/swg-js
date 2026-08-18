@@ -1,5 +1,8 @@
 import {Deps} from '../deps';
-import {GisCredentialResponse} from '../../api/subscriptions';
+import {
+  GisCredentialResponse,
+  ProcessGisCredentialResult,
+} from '../../api/subscriptions';
 import {GisInteropManager} from './gis-interop-manager';
 import {InterventionType} from '../../api/intervention-type';
 import {Message} from '../../proto/api_messages';
@@ -97,7 +100,7 @@ export async function processGisCredentialInternal(
   deps: Deps,
   response: GisCredentialResponse,
   params: {gisClientId: string}
-): Promise<boolean> {
+): Promise<ProcessGisCredentialResult> {
   const manager = deps.gisInteropManager();
   const isRegwall = manager?.isRegwallClickPending();
 
@@ -126,12 +129,12 @@ export async function processGisCredentialInternal(
         const handled = await manager!.triggerCompleteLogin(swgUserToken);
         if (handled) {
           keepLoading = true;
-          return true;
+          return {fromRrm: true};
         }
       }
     }
 
-    return false;
+    return {fromRrm: false};
   } finally {
     if (!keepLoading && isRegwall && loadingView && container) {
       loadingView.hide();

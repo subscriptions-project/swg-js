@@ -63,6 +63,14 @@ import {Fetcher as FetcherInterface, XhrFetcher} from './fetcher';
 import {FreeAccess} from './free-access';
 import {FreeAccessApi} from '../api/free-access-api';
 import {GetEntitlementsParamsExternalDef} from '../api/subscriptions';
+import {
+  GisCredentialResponse,
+  ProcessGisCredentialResult,
+  ProductType,
+  Subscriptions as SubscriptionsInterface,
+  WindowOpenMode,
+  defaultConfig,
+} from '../api/subscriptions';
 import {GisInteropManager} from './gis/gis-interop-manager';
 import {GoogleAnalyticsEventListener} from './google-analytics-event-listener';
 import {JsError} from './jserror';
@@ -85,12 +93,6 @@ import {
 import {PayClient} from './pay-client';
 import {PayCompleteFlow, PayStartFlow} from './pay-flow';
 import {Preconnect} from '../utils/preconnect';
-import {
-  ProductType,
-  Subscriptions as SubscriptionsInterface,
-  WindowOpenMode,
-  defaultConfig,
-} from '../api/subscriptions';
 import {Propensity} from './propensity';
 import {PropensityApi} from '../api/propensity-api';
 import {Storage} from './storage';
@@ -108,6 +110,7 @@ import {injectStyleSheet} from '../utils/dom';
 import {isBoolean} from '../utils/types';
 import {isExperimentOn, setExperiment} from './experiments';
 import {isSecure} from '../utils/url';
+import {processGisCredentialInternal} from './gis/gis-utils';
 import {queryStringHasFreshGaaParams} from './extended-access';
 import {showcaseEventToAnalyticsEvents} from './event-type-mapping';
 import {warn} from '../utils/log';
@@ -598,6 +601,14 @@ export class Runtime implements SubscriptionsInterface {
   ): Promise<LinkSubscriptionResult> {
     const runtime = await this.configured_(true);
     return runtime.linkSubscription(request);
+  }
+
+  async processGisCredential(
+    response: GisCredentialResponse,
+    params: {gisClientId: string}
+  ): Promise<ProcessGisCredentialResult> {
+    const runtime = await this.configured_(true);
+    return runtime.processGisCredential(response, params);
   }
 
   async linkSubscriptions(
@@ -1306,6 +1317,16 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
     return new SubscriptionLinkingFlow(this).start(linkSubscriptionRequest);
   }
 
+  async processGisCredential(
+    response: GisCredentialResponse,
+    params: {gisClientId: string}
+  ): Promise<ProcessGisCredentialResult> {
+    if (!response.credential) {
+      return {fromRrm: false};
+    }
+    return processGisCredentialInternal(this, response, params);
+  }
+
   async linkSubscriptions(
     linkSubscriptionsRequest: LinkSubscriptionsRequest
   ): Promise<LinkSubscriptionsResult> {
@@ -1373,6 +1394,7 @@ function createPublicRuntime(runtime: Runtime): SubscriptionsInterface {
     showBestAudienceAction: runtime.showBestAudienceAction.bind(runtime),
     setPublisherProvidedId: runtime.setPublisherProvidedId.bind(runtime),
     linkSubscription: runtime.linkSubscription.bind(runtime),
+    processGisCredential: runtime.processGisCredential.bind(runtime),
     linkSubscriptions: runtime.linkSubscriptions.bind(runtime),
     getAvailableInterventions: runtime.getAvailableInterventions.bind(runtime),
     getFreeAccess: runtime.getFreeAccess.bind(runtime),
