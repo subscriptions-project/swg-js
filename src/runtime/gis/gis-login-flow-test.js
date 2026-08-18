@@ -20,12 +20,9 @@ import {
   AnalyticsEvent,
   ElementCoordinates,
   GisMode as GisModeProto,
-  GisSignIn,
   LoginButtonCoordinates,
-  StartGisSignIn,
 } from '../../proto/api_messages';
 import {GisLoginFlow} from './gis-login-flow';
-import {GisMode} from './gis-utils';
 import {getStyle} from '../../utils/style';
 
 describes.realWin('GisLoginFlow', (env) => {
@@ -38,7 +35,6 @@ describes.realWin('GisLoginFlow', (env) => {
   let cancelAnimationFrameSpy;
   let onResizeCallback;
   let eventManagerMock;
-  let gisInteropManagerMock;
 
   beforeEach(() => {
     const coordinates = new ElementCoordinates();
@@ -69,6 +65,7 @@ describes.realWin('GisLoginFlow', (env) => {
           initialize: (config) => {
             config.callback({credential: 'fakeIdToken'});
           },
+          renderButton: sandbox.spy(),
         },
       },
     };
@@ -114,10 +111,6 @@ describes.realWin('GisLoginFlow', (env) => {
       logEvent: sandbox.stub(),
       logSwgEvent: sandbox.stub(),
     };
-
-    gisInteropManagerMock = {
-      signIn: sandbox.stub().resolves('fakeSwgUserToken'),
-    };
   });
 
   afterEach(() => {
@@ -130,9 +123,7 @@ describes.realWin('GisLoginFlow', (env) => {
       gisLoginFlow = new GisLoginFlow(
         doc,
         activityIframeView,
-        GisMode.GisModeOverlay,
-        eventManagerMock,
-        gisInteropManagerMock
+        eventManagerMock
       );
     });
 
@@ -160,6 +151,17 @@ describes.realWin('GisLoginFlow', (env) => {
       expect(getStyle(overlays[0], 'top')).to.equal('510px');
       expect(getStyle(overlays[0], 'width')).to.equal('100px');
       expect(getStyle(overlays[0], 'height')).to.equal('30px');
+
+      expect(win.google.accounts.id.renderButton).to.have.been.calledWith(
+        overlays[0],
+        {
+          'type': 'standard',
+          'theme': 'outline',
+          'text': 'continue_with',
+          'logo_alignment': 'left',
+          'click_listener': sandbox.match.func,
+        }
+      );
     });
 
     it('ignores invalid coordinate payload', () => {
@@ -172,17 +174,16 @@ describes.realWin('GisLoginFlow', (env) => {
       expect(overlays.length).to.equal(0);
     });
 
-    it('calls login when overlay is clicked and invokes the callback', async () => {
+    it('logs event when renderButton click_listener is invoked', async () => {
       messageMap[message.label()](message);
 
-      const overlay = win.document.body.querySelector('div');
+      const renderButtonArgs =
+        win.google.accounts.id.renderButton.firstCall.args;
+      const clickListener = renderButtonArgs[1].click_listener;
 
-      await overlay.onclick();
+      clickListener();
 
-      expect(gisInteropManagerMock.signIn).to.have.been.called;
-      const gisSignIn = new GisSignIn();
-      gisSignIn.setSwgUserToken('fakeSwgUserToken');
-      expect(activityIframeView.execute).to.have.been.calledWith(gisSignIn);
+      expect(activityIframeView.execute).to.not.have.been.called;
 
       expect(eventManagerMock.logSwgEvent).to.have.been.calledWith(
         AnalyticsEvent.ACTION_REGWALL_OPT_IN_BUTTON_CLICK,
@@ -195,67 +196,12 @@ describes.realWin('GisLoginFlow', (env) => {
       );
     });
 
-    it('logs error when signIn throws', async () => {
-      gisInteropManagerMock.signIn.rejects(new Error('initialize failed'));
-
-      messageMap[message.label()](message);
-      const overlay = win.document.body.querySelector('div');
-
-      await overlay.onclick();
-
-      expect(eventManagerMock.logSwgEvent).to.have.been.calledWith(
-        AnalyticsEvent.EVENT_GIS_LOGIN_ERROR,
-        false,
-        null,
-        undefined,
-        undefined
-      );
-    });
-
     it('cancels existing requestAnimationFrame on scheduleUpdate', () => {
       messageMap[message.label()](message);
       expect(cancelAnimationFrameSpy).to.have.not.been.called;
 
       messageMap[message.label()](message);
       expect(cancelAnimationFrameSpy).to.have.been.called;
-    });
-  });
-
-  describe('GisModeNormal', () => {
-    beforeEach(() => {
-      gisLoginFlow = new GisLoginFlow(
-        doc,
-        activityIframeView,
-        GisMode.GisModeNormal,
-        eventManagerMock,
-        gisInteropManagerMock
-      );
-    });
-
-    it('does not listen for resize events on the window for normal mode', () => {
-      expect(win.addEventListener).to.not.have.been.called;
-
-      gisLoginFlow.dispose();
-
-      expect(win.removeEventListener).to.not.have.been.called;
-    });
-
-    it('listens for StartGisSignIn in normal mode', () => {
-      expect(activityIframeView.on).to.have.been.calledWith(
-        StartGisSignIn,
-        sandbox.match.any
-      );
-    });
-
-    it('calls login when StartGisSignIn is received in normal mode', async () => {
-      const startGisSignInMessage = new StartGisSignIn();
-      const startGisSignInCallback = messageMap[startGisSignInMessage.label()];
-
-      await startGisSignInCallback(startGisSignInMessage);
-
-      const gisSignIn = new GisSignIn();
-      gisSignIn.setSwgUserToken('fakeSwgUserToken');
-      expect(activityIframeView.execute).to.have.been.calledWith(gisSignIn);
     });
   });
 });

@@ -93,7 +93,7 @@ describes.realWin('AutoPromptManager', (env) => {
     deps = new MockDeps();
 
     sandbox.useFakeTimers(CURRENT_TIME);
-    win = Object.assign({}, env.win, {
+    win = Object.assign(env.win, {
       gtag: () => {},
       ga: () => {},
       dataLayer: {push: () => {}},
