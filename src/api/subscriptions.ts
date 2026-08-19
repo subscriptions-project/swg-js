@@ -672,3 +672,10 @@ export interface LinkSubscriptionsResult {
   /** The individual results of each requested link. */
   links: SubscriptionLinkResult[];
 }
+
+export interface GisCredentialResponse {
+  credential?: string;
+  // eslint-disable-next-line google-camelcase/google-camelcase
+  select_by?: string;
+  [key: string]: unknown;
+}
