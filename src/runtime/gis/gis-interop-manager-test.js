@@ -536,4 +536,30 @@ describes.realWin('GisInteropManager', (env) => {
       expect(newManager.isConnectionExpected()).to.be.true;
     });
   });
+
+  describe('regwallClickPending', () => {
+    it('defaults to false and updates via setter', () => {
+      expect(manager.isRegwallClickPending()).to.be.false;
+      manager.setRegwallClickPending(true);
+      expect(manager.isRegwallClickPending()).to.be.true;
+      manager.setRegwallClickPending(false);
+      expect(manager.isRegwallClickPending()).to.be.false;
+    });
+  });
+
+  describe('completeLoginCallback', () => {
+    it('returns false when no callback is registered', async () => {
+      const result = await manager.triggerCompleteLogin('test-token');
+      expect(result).to.be.false;
+    });
+
+    it('invokes callback when registered', async () => {
+      const callback = sandbox.stub().resolves(true);
+      manager.setCompleteLoginCallback(callback);
+
+      const result = await manager.triggerCompleteLogin('test-token');
+      expect(result).to.be.true;
+      expect(callback).to.have.been.calledWith('test-token');
+    });
+  });
 });

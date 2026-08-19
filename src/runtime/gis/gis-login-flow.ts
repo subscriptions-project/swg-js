@@ -20,9 +20,11 @@ import {
   ElementCoordinates,
   EventParams,
   GisMode as GisModeProto,
+  GisSignIn,
   LoginButtonCoordinates,
 } from '../../proto/api_messages';
 import {ClientEventManager} from '../client-event-manager';
+import {Deps} from '../deps';
 import {Doc} from '../../model/doc';
 import {createElement} from '../../utils/dom';
 import {setImportantStyles} from '../../utils/style';
@@ -45,18 +47,27 @@ export class GisLoginFlow {
   private rafId: number | null = null;
   private readonly resizeHandler = this.scheduleUpdate.bind(this);
 
+  private readonly doc: Doc;
+  private readonly eventManager: ClientEventManager;
+
   constructor(
-    private readonly doc: Doc,
+    private readonly deps: Deps,
     private readonly activityIframeView: ActivityIframeView,
-    private readonly eventManager: ClientEventManager,
     private readonly configurationId?: string
   ) {
+    this.doc = deps.doc();
+    this.eventManager = deps.eventManager();
+
     this.activityIframeView.on(
       LoginButtonCoordinates,
       this.handleLoginButtonCoordinates.bind(this)
     );
     this.doc.getWin().addEventListener('resize', this.resizeHandler);
     this.activityIframeView.onResize(this.resizeHandler);
+
+    this.deps
+      .gisInteropManager()
+      ?.setCompleteLoginCallback?.(this.completeLogin.bind(this));
   }
 
   /**
@@ -71,6 +82,7 @@ export class GisLoginFlow {
       this.doc.getWin().cancelAnimationFrame(this.rafId);
     }
     this.doc.getWin().removeEventListener('resize', this.resizeHandler);
+    this.deps.gisInteropManager()?.setCompleteLoginCallback?.(null);
   }
 
   private updateOverlays() {
@@ -177,5 +189,24 @@ export class GisLoginFlow {
       /* eventTime= */ undefined,
       this.configurationId
     );
+    this.deps.gisInteropManager()?.setRegwallClickPending?.(true);
+  }
+
+  private async completeLogin(swgUserToken: string): Promise<boolean> {
+    try {
+      const gisSignIn = new GisSignIn();
+      gisSignIn.setSwgUserToken(swgUserToken);
+      await this.activityIframeView.execute(gisSignIn);
+      return true;
+    } catch {
+      this.eventManager.logSwgEvent(
+        AnalyticsEvent.EVENT_GIS_LOGIN_ERROR,
+        /* isFromUserAction= */ false,
+        /* eventParams= */ null,
+        /* eventTime= */ undefined,
+        this.configurationId
+      );
+      return false;
+    }
   }
 }

@@ -208,9 +208,8 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     }
     if (gisMode !== GisMode.GisModeDisabled) {
       this.gisLoginFlow = new GisLoginFlow(
-        this.deps_.doc(),
+        this.deps_,
         this.activityIframeView_,
-        this.deps_.eventManager(),
         this.params_.configurationId
       );
     }
