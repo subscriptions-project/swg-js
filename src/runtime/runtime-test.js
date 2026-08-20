@@ -856,6 +856,24 @@ describes.realWin('Runtime', (env) => {
       expect(result).to.deep.equal(mockResult);
     });
 
+    it('delegates processGisCredential', async () => {
+      const mockResponse = {credential: 'token'};
+      const mockParams = {gisClientId: 'client-id'};
+      const mockResult = {fromRrm: true};
+      configuredRuntimeMock
+        .expects('processGisCredential')
+        .once()
+        .withExactArgs(mockResponse, mockParams)
+        .resolves(mockResult);
+
+      const result = await runtime.processGisCredential(
+        mockResponse,
+        mockParams
+      );
+
+      expect(result).to.deep.equal(mockResult);
+    });
+
     it('delegates getAvailableInterventions', async () => {
       const mockResult = [];
       configuredRuntimeMock
@@ -2495,6 +2513,25 @@ subscribe() method'
         const result = await runtime.getAvailableInterventions();
 
         expect(result).to.deep.equal(mockResult);
+      });
+    });
+
+    describe('processGisCredential', () => {
+      it('returns {fromRrm: false} if no credential is provided', async () => {
+        const result = await runtime.processGisCredential(
+          {},
+          {gisClientId: 'client-id'}
+        );
+        expect(result).to.deep.equal({fromRrm: false});
+      });
+
+      it('calls processGisCredentialInternal if credential is provided', async () => {
+        sandbox.stub(XhrFetcher.prototype, 'sendPost').resolves({});
+        const response = {credential: 'token'};
+        const params = {gisClientId: 'client-id'};
+
+        const result = await runtime.processGisCredential(response, params);
+        expect(result).to.deep.equal({fromRrm: false});
       });
     });
   });

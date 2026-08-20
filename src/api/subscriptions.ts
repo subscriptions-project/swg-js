@@ -229,6 +229,15 @@ export interface Subscriptions {
   ): Promise<LinkSubscriptionResult>;
 
   /**
+   * Processes a GIS credential response.
+   * @return promise indicating whether the credential was handled as a regwall completion.
+   */
+  processGisCredential(
+    response: GisCredentialResponse,
+    params: {gisClientId: string}
+  ): Promise<ProcessGisCredentialResult>;
+
+  /**
    * Starts the subscription linking flow for multiple publications.
    * @return promise indicating result of the operation
    */
@@ -678,4 +687,8 @@ export interface GisCredentialResponse {
   // eslint-disable-next-line google-camelcase/google-camelcase
   select_by?: string;
   [key: string]: unknown;
+}
+
+export interface ProcessGisCredentialResult {
+  fromRrm: boolean;
 }

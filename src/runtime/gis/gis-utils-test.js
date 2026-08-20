@@ -233,7 +233,7 @@ describes.sandboxed('gis-utils', () => {
 
       const result = await processGisCredentialInternal(deps, response, params);
 
-      expect(result).to.be.true;
+      expect(result).to.deep.equal({fromRrm: true});
       expect(loadingViewMock.show).to.have.been.calledOnce;
       expect(containerMock.style.setProperty).to.have.been.calledWith(
         'display',
@@ -257,7 +257,7 @@ describes.sandboxed('gis-utils', () => {
 
       const result = await processGisCredentialInternal(deps, response, params);
 
-      expect(result).to.be.false;
+      expect(result).to.deep.equal({fromRrm: false});
       expect(loadingViewMock.show).to.have.been.calledOnce;
       expect(managerMock.setRegwallClickPending).to.have.been.calledWith(false);
       // Should hide loading view because keepLoading should be false
@@ -278,7 +278,7 @@ describes.sandboxed('gis-utils', () => {
 
       const result = await processGisCredentialInternal(deps, response, params);
 
-      expect(result).to.be.false;
+      expect(result).to.deep.equal({fromRrm: false});
       expect(loadingViewMock.show).to.have.been.calledOnce;
       expect(managerMock.setRegwallClickPending).to.have.been.calledWith(false);
       expect(managerMock.triggerCompleteLogin).to.not.have.been.called;
@@ -293,7 +293,7 @@ describes.sandboxed('gis-utils', () => {
 
       const result = await processGisCredentialInternal(deps, response, params);
 
-      expect(result).to.be.false;
+      expect(result).to.deep.equal({fromRrm: false});
       expect(loadingViewMock.show).to.not.have.been.called;
       expect(containerMock.style.setProperty).to.not.have.been.called;
       expect(managerMock.setRegwallClickPending).to.not.have.been.called;
