@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
+import {ActivityPorts} from '../components/activities';
 import {AddPreferredSourceButtonIframe} from '../ui/add-preferred-source-button-iframe';
 import {AddPreferredSourceFlow} from './add-preferred-source-flow';
 import {AddPreferredSourceStatus} from '../proto/api_messages';
-import {ClientTheme} from '../api/subscriptions';
-import {ConfiguredRuntime} from './runtime';
+import {AnalyticsService} from './analytics-service';
+import {ClientEventManager} from './client-event-manager';
+import {Config} from '../api/subscriptions';
+import {DIALOG_CSS} from '../ui/ui-css';
+import {Deps} from './deps';
+import {Doc, resolveDoc} from '../model/doc';
 import {PageConfig} from '../model/page-config';
 import {
   PreferredSourceApi,
@@ -26,57 +31,140 @@ import {
 } from '../api/preferred-source';
 import {Toast} from '../ui/toast';
 import {feUrl} from './services';
+import {injectStyleSheet} from '../utils/dom';
+import type {Callbacks} from './callbacks';
+import type {ClientConfigManager} from './client-config-manager';
+import type {DialogManager} from '../components/dialog-manager';
+import type {EntitlementsManager} from './entitlements-manager';
+import type {GisInteropManager} from './gis/gis-interop-manager';
+import type {JsError} from './jserror';
+import type {PayClient} from './pay-client';
+import type {Storage} from './storage';
 
-export class PublisherRuntime {
+export class PublisherRuntime implements Deps {
   private readonly win_: Window;
-  private configuredRuntime_?: ConfiguredRuntime;
+  private readonly doc_: Doc;
+  private readonly pageConfig_: PageConfig;
+  private readonly eventManager_: ClientEventManager;
+  private readonly activityPorts_: ActivityPorts;
+  private readonly analyticsService_: AnalyticsService;
+  private readonly creationTimestamp_ = Date.now();
   private options_: PreferredSourceButtonOptions = {};
   private readonly buttons_: AddPreferredSourceButtonIframe[] = [];
   private currentStatus_?: AddPreferredSourceStatus;
+  private startedLogging_ = false;
 
   constructor(win: Window) {
     this.win_ = win;
+    this.doc_ = resolveDoc(win);
+    this.pageConfig_ = new PageConfig('publication-id-free', false);
+    this.eventManager_ = new ClientEventManager(Promise.resolve());
+    this.activityPorts_ = new ActivityPorts(this);
+    this.analyticsService_ = new AnalyticsService(this);
+    injectStyleSheet(this.doc_, DIALOG_CSS);
   }
 
-  private getRuntime_(): ConfiguredRuntime {
-    if (!this.configuredRuntime_) {
-      const pageConfig = new PageConfig('publication-id-free', false);
-      const lang =
-        this.options_.lang ||
-        this.win_.navigator?.language ||
-        this.win_.document.documentElement.lang ||
-        'en';
-      this.configuredRuntime_ = new ConfiguredRuntime(
-        this.win_,
-        pageConfig,
-        {
-          isPublisher: true,
-        },
-        undefined,
-        {
-          lang,
-          theme: this.options_.theme as ClientTheme | undefined,
-          forceLangInIframes: true,
-        }
-      );
+  // --- Deps Implementation ---
 
-      this.configuredRuntime_.analytics().setReadyForLogging();
-      this.configuredRuntime_.analytics().start();
+  win(): Window {
+    return this.win_;
+  }
+
+  doc(): Doc {
+    return this.doc_;
+  }
+
+  pageConfig(): PageConfig {
+    return this.pageConfig_;
+  }
+
+  activities(): ActivityPorts {
+    return this.activityPorts_;
+  }
+
+  analytics(): AnalyticsService {
+    return this.analyticsService_;
+  }
+
+  eventManager(): ClientEventManager {
+    return this.eventManager_;
+  }
+
+  creationTimestamp(): number {
+    return this.creationTimestamp_;
+  }
+
+  config(): Config {
+    return {enableSwgAnalytics: true};
+  }
+
+  isPublisher(): boolean {
+    return true;
+  }
+
+  storage(): Storage {
+    return {
+      get: () => Promise.resolve(null),
+      set: () => Promise.resolve(),
+      remove: () => Promise.resolve(),
+    } as unknown as Storage;
+  }
+
+  clientConfigManager(): ClientConfigManager {
+    return {
+      getLanguage: () => this.resolveLanguage_(),
+    } as unknown as ClientConfigManager;
+  }
+
+  entitlementsManager(): EntitlementsManager {
+    return null as unknown as EntitlementsManager;
+  }
+
+  dialogManager(): DialogManager {
+    return null as unknown as DialogManager;
+  }
+
+  jserror(): JsError {
+    return null as unknown as JsError;
+  }
+
+  payClient(): PayClient {
+    return null as unknown as PayClient;
+  }
+
+  callbacks(): Callbacks {
+    return null as unknown as Callbacks;
+  }
+
+  gisInteropManager(): GisInteropManager | undefined {
+    return undefined;
+  }
+
+  // --- Internal Lifecycle & Helpers ---
+
+  private maybeStartLogging_(): void {
+    if (!this.startedLogging_) {
+      this.startedLogging_ = true;
+      this.analyticsService_.setReadyForLogging();
+      this.analyticsService_.start();
     }
-    return this.configuredRuntime_;
   }
 
   private resolveLanguage_(override?: string | null): string {
     return (
       override ||
       this.options_.lang ||
-      this.getRuntime_().clientConfigManager().getLanguage()
+      this.win_.navigator?.language ||
+      this.win_.document?.documentElement?.lang ||
+      'en'
     );
   }
 
   private resolveTheme_(override?: string | null): string {
     return override || this.options_.theme || 'light';
   }
+
+  // --- Public API Methods ---
 
   updateAllButtons(status: AddPreferredSourceStatus): void {
     this.currentStatus_ = status;
@@ -87,10 +175,8 @@ export class PublisherRuntime {
 
   init(args: PreferredSourceButtonOptions = {}): void {
     this.options_ = Object.assign({}, this.options_, args);
-    if (args.lang || args.theme) {
-      this.configuredRuntime_ = undefined;
-    }
-    const runtime = this.getRuntime_();
+    this.maybeStartLogging_();
+
     const document = this.win_.document;
     const buttons = document.querySelectorAll(
       '[google-add-preferred-source-btn]:not([data-initialized])'
@@ -100,14 +186,10 @@ export class PublisherRuntime {
       button.setAttribute('data-initialized', 'true');
       const lang = this.resolveLanguage_(button.getAttribute('data-lang'));
       const theme = this.resolveTheme_(button.getAttribute('data-theme'));
-      const buttonComponent = new AddPreferredSourceButtonIframe(
-        runtime,
-        button,
-        {
-          theme,
-          lang,
-        }
-      );
+      const buttonComponent = new AddPreferredSourceButtonIframe(this, button, {
+        theme,
+        lang,
+      });
       this.buttons_.push(buttonComponent);
       if (this.currentStatus_ !== undefined) {
         buttonComponent.updateStatus(this.currentStatus_);
@@ -124,7 +206,7 @@ export class PublisherRuntime {
     sourceName = '',
     options?: {language?: string; theme?: string}
   ): void {
-    const runtime = this.getRuntime_();
+    this.maybeStartLogging_();
     const params: {[key: string]: string} = {
       flavor: 'preferred_source',
       sourceName,
@@ -133,7 +215,7 @@ export class PublisherRuntime {
       theme: this.resolveTheme_(options?.theme),
     };
     const toast = new Toast(
-      runtime,
+      this,
       feUrl('/toastiframe', params),
       {},
       'publisher-toast'
@@ -142,8 +224,8 @@ export class PublisherRuntime {
   }
 
   addPreferredSource(options?: {language?: string; theme?: string}): void {
-    const runtime = this.getRuntime_();
-    const flow = new AddPreferredSourceFlow(runtime, options);
+    this.maybeStartLogging_();
+    const flow = new AddPreferredSourceFlow(this, options);
     flow
       .start()
       .then((response) => {
