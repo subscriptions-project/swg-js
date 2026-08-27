@@ -182,10 +182,10 @@ export function installRuntime(
   // If any more callbacks are `push`ed to the global SwG variables,
   // they'll be queued up to receive the SwG runtime when it's ready.
   (win[RUNTIME_PROP] as {}) = (win[RUNTIME_LEGACY_PROP] as {}) = {
+    api: publicRuntime,
     push: callWhenRuntimeIsReady,
     ready: (): Promise<SubscriptionsInterface> =>
       Promise.resolve(publicRuntime),
-    api: publicRuntime,
   };
 
   // Set variable for testing.

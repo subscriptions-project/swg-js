@@ -20,9 +20,9 @@ declare global {
     SWG:
       | ((api: Subscriptions) => void)[]
       | {
+          api?: Subscriptions;
           push: (callback: (api: Subscriptions) => void) => Promise<void>;
           ready?: () => Promise<Subscriptions>;
-          api?: Subscriptions;
         };
 
     /**
@@ -34,9 +34,9 @@ declare global {
     SUBSCRIPTIONS:
       | ((api: Subscriptions) => void)[]
       | {
+          api?: Subscriptions;
           push: (callback: (api: Subscriptions) => void) => Promise<void>;
           ready?: () => Promise<Subscriptions>;
-          api?: Subscriptions;
         };
 
     /**
