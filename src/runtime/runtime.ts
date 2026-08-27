@@ -1358,12 +1358,14 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
 }
 
 function createPublicRuntime(runtime: Runtime): SubscriptionsInterface {
-  return {
+  const publicRuntime: SubscriptionsInterface = {
     init: runtime.init.bind(runtime),
     configure: runtime.configure.bind(runtime),
     start: runtime.start.bind(runtime),
     reset: runtime.reset.bind(runtime),
     clear: runtime.clear.bind(runtime),
+    ready: (): Promise<SubscriptionsInterface> =>
+      Promise.resolve(publicRuntime),
     getEntitlements: runtime.getEntitlements.bind(runtime),
     linkAccount: runtime.linkAccount.bind(runtime),
     showLoginPrompt: runtime.showLoginPrompt.bind(runtime),
@@ -1410,4 +1412,5 @@ function createPublicRuntime(runtime: Runtime): SubscriptionsInterface {
     getAvailableInterventions: runtime.getAvailableInterventions.bind(runtime),
     getFreeAccess: runtime.getFreeAccess.bind(runtime),
   };
+  return publicRuntime;
 }

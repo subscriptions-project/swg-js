@@ -217,6 +217,13 @@ describes.realWin('installRuntime', (env) => {
     const api = installRuntime(win);
     expect(api.init).to.be.a('function');
   });
+
+  it('resolves ready() promise called directly on returned Subscriptions instance', async () => {
+    const api = installRuntime(win);
+    const resolvedApi = await api.ready();
+
+    expect(resolvedApi).to.equal(api);
+  });
 });
 
 describes.realWin('Runtime', (env) => {
