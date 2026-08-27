@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {ActivityPorts} from '../components/activities';
 import {AddPreferredSourceButtonIframe} from '../ui/add-preferred-source-button-iframe';
 import {AddPreferredSourceFlow} from './add-preferred-source-flow';
 import {
   AddPreferredSourceResponse,
   AddPreferredSourceStatus,
 } from '../proto/api_messages';
-import {PageConfig} from '../model/page-config';
-import {PageConfigResolver} from '../model/page-config-resolver';
+import {AnalyticsService} from './analytics-service';
+import {ClientEventManager} from './client-event-manager';
 import {PublisherRuntime, installPublisherRuntime} from './publisher-runtime';
 import {Toast} from '../ui/toast';
 
@@ -107,11 +108,95 @@ describes.realWin('installPublisherRuntime', (env) => {
   it('should return defensive fallback dummy object if PREFERRED_SOURCE is initialized without an api property', () => {
     win.PREFERRED_SOURCE = {};
     const api = installPublisherRuntime(win);
-
+    expect(api).to.not.be.undefined;
     expect(api.init).to.be.a('function');
     expect(api.addPreferredSource).to.be.a('function');
     expect(() => api.init()).to.not.throw();
     expect(() => api.addPreferredSource()).to.not.throw();
+  });
+
+  it('should return existing api object when PREFERRED_SOURCE has api property', () => {
+    const mockApi = {
+      init: () => {},
+      addPreferredSource: () => {},
+    };
+    win.PREFERRED_SOURCE = {api: mockApi};
+    const api = installPublisherRuntime(win);
+    expect(api).to.equal(mockApi);
+  });
+
+  it('should handle non-function callbacks in initial PREFERRED_SOURCE array', () => {
+    let callbackInvoked = false;
+    win.PREFERRED_SOURCE = [
+      null,
+      123,
+      (api) => {
+        callbackInvoked = true;
+        expect(api).to.not.be.undefined;
+      },
+    ];
+    installPublisherRuntime(win);
+    expect(callbackInvoked).to.be.true;
+  });
+
+  it('should handle non-function arguments pushed after installation', () => {
+    installPublisherRuntime(win);
+    expect(() => {
+      win.PREFERRED_SOURCE.push('invalid', null, 456);
+    }).to.not.throw();
+  });
+
+  it('should execute functions pushed after installation', () => {
+    installPublisherRuntime(win);
+    let callbackInvoked = false;
+    win.PREFERRED_SOURCE.push((api) => {
+      callbackInvoked = true;
+      expect(api).to.not.be.undefined;
+    });
+    expect(callbackInvoked).to.be.true;
+  });
+
+  describe('Deps implementation', () => {
+    let runtime;
+
+    beforeEach(() => {
+      runtime = new PublisherRuntime(win);
+    });
+
+    it('implements core Deps accessors', () => {
+      expect(runtime.win()).to.equal(win);
+      expect(runtime.doc().getWin()).to.equal(win);
+      expect(runtime.pageConfig().getPublicationId()).to.equal(
+        'publication-id-free'
+      );
+      expect(runtime.activities()).to.be.an.instanceOf(ActivityPorts);
+      expect(runtime.analytics()).to.be.an.instanceOf(AnalyticsService);
+      expect(runtime.eventManager()).to.be.an.instanceOf(ClientEventManager);
+      expect(runtime.creationTimestamp()).to.be.a('number');
+      expect(runtime.config()).to.deep.equal({enableSwgAnalytics: true});
+      expect(runtime.isPublisher()).to.be.true;
+    });
+
+    it('implements storage with no-op promises', async () => {
+      const storage = runtime.storage();
+      expect(await storage.get('key')).to.be.null;
+      expect(await storage.set('key', 'value')).to.be.undefined;
+      expect(await storage.remove('key')).to.be.undefined;
+    });
+
+    it('implements clientConfigManager delegating to resolveLanguage_', () => {
+      runtime.init({lang: 'it'});
+      expect(runtime.clientConfigManager().getLanguage()).to.equal('it');
+    });
+
+    it('returns null/undefined for unused full-runtime subsystems', () => {
+      expect(runtime.entitlementsManager()).to.be.null;
+      expect(runtime.dialogManager()).to.be.null;
+      expect(runtime.jserror()).to.be.null;
+      expect(runtime.payClient()).to.be.null;
+      expect(runtime.callbacks()).to.be.null;
+      expect(runtime.gisInteropManager()).to.be.undefined;
+    });
   });
 
   describe('API methods', () => {
@@ -126,9 +211,6 @@ describes.realWin('installPublisherRuntime', (env) => {
           return Promise.resolve();
         });
       toastOpenStub = sandbox.stub(Toast.prototype, 'open').resolves();
-      sandbox
-        .stub(PageConfigResolver.prototype, 'resolveConfig')
-        .resolves(new PageConfig('pub1', true));
       sandbox.stub(AddPreferredSourceFlow.prototype, 'start').callsFake(() => {
         const response = new AddPreferredSourceResponse();
         response.setStatus(
