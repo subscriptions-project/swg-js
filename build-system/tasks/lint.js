@@ -189,7 +189,7 @@ function eslintRulesChanged() {
  */
 function setFilesToLint(files) {
   config.lintGlobs = config.lintGlobs
-    .filter((e) => e !== '**/*.js')
+    .filter((e) => e !== '**/*.{js,ts}' && e !== '**/*.js')
     .concat(files);
   if (!isCiBuild()) {
     log(green('INFO: ') + 'Running lint on the following files:');

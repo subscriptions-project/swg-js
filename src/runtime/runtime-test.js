@@ -186,6 +186,37 @@ describes.realWin('installRuntime', (env) => {
     expect(resolveStub).to.be.calledOnce;
     expect(progress).to.equal('1');
   });
+
+  it('returns public API directly and via .ready() promise', async () => {
+    const api = installRuntime(win);
+    const promiseApi = await win.SWG.ready();
+
+    expect(api.init).to.be.a('function');
+    expect(api.linkSubscription).to.be.a('function');
+    expect(api.linkSubscriptions).to.be.a('function');
+    expect(promiseApi).to.equal(api);
+    expect(win.SWG.api).to.equal(api);
+  });
+
+  it('suppresses auto-start when options.autoStart is false', () => {
+    const startFlowStub = sandbox.stub(
+      Runtime.prototype,
+      'startSubscriptionsFlowIfNeeded'
+    );
+    win.SWG = undefined;
+
+    installRuntime(win, {autoStart: false});
+
+    expect(startFlowStub).to.not.have.been.called;
+  });
+
+  it('returns fallback public runtime if existing SWG object has no api property', () => {
+    installRuntime(win);
+    win.SWG = {};
+
+    const api = installRuntime(win);
+    expect(api.init).to.be.a('function');
+  });
 });
 
 describes.realWin('Runtime', (env) => {

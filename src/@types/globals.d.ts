@@ -17,7 +17,15 @@ declare global {
      * The global `SWG` array contains client ready callbacks. Swgjs calls these when its Subscriptions API is ready.
      * https://github.com/subscriptions-project/swg-js/blob/main/docs/embed-client.md#client-ready-callback
      */
-    SWG: ((api: Subscriptions) => void)[];
+    SWG:
+      | ((api: Subscriptions) => void)[]
+      | {
+          push: (
+            callback: (api: Subscriptions) => void
+          ) => Promise<void>;
+          ready?: () => Promise<Subscriptions>;
+          api?: Subscriptions;
+        };
 
     /**
      * The global `SWG` array contains client ready callbacks. Swgjs calls these when its Subscriptions API is ready.
@@ -25,7 +33,15 @@ declare global {
      *
      * This global variable is deprecated in favor of the `window.SWG` global variable.
      */
-    SUBSCRIPTIONS: ((api: Subscriptions) => void)[];
+    SUBSCRIPTIONS:
+      | ((api: Subscriptions) => void)[]
+      | {
+          push: (
+            callback: (api: Subscriptions) => void
+          ) => Promise<void>;
+          ready?: () => Promise<Subscriptions>;
+          api?: Subscriptions;
+        };
 
     /**
      * The global `SWG_BASIC` array contains client ready callbacks. Swgjs calls these when its BasicSubscriptions API is ready.
