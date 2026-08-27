@@ -37,15 +37,19 @@ function initGis() {
     theme: 'light',
     size: 'large',
   });
+  // Testing the overlap issue between regwall and One Tap popup.
+  google.accounts.id.prompt();
   log(`Called initGis`);
 }
+
+let isEnterprise = false;
 
 function gisCallback(response) {
   log(`gisCallback ${JSON.stringify(response)}`);
 
   if (response.credential) {
-    (self.SWG_BASIC = self.SWG_BASIC || []).push((basicSubscriptions) => {
-      basicSubscriptions
+    const callback = (subscriptions) => {
+      subscriptions
         .processGisCredential(response, {
           gisClientId:
             '185085492387-b0okt68p1rc83qo530a8kruou8mf5gfj.apps.googleusercontent.com',
@@ -57,11 +61,73 @@ function gisCallback(response) {
             log('Handled as normal login or One Tap');
           }
         });
-    });
+    };
+
+    if (isEnterprise) {
+      (self.SWG = self.SWG || []).push(callback);
+    } else {
+      (self.SWG_BASIC = self.SWG_BASIC || []).push(callback);
+    }
   }
 }
 
+function initEnterprise() {
+  isEnterprise = true;
+  (self.SWG = self.SWG || []).push(async (subscriptions) => {
+    try {
+      subscriptions.configure({
+        gisInterop: true,
+      });
+      subscriptions.setOnEntitlementsResponse((entitlementsPromise) => {
+        entitlementsPromise
+          .then((entitlements) => {
+            log(`Entitlements response: ${JSON.stringify(entitlements.json())}`);
+            log(`Enables this: ${entitlements.enablesThis()}`);
+          })
+          .catch((error) => {
+            log(`Entitlements error: ${error}`);
+          });
+      });
+      subscriptions.init('CAow8vGLAQ');
+      log('Called initEnterprise with CAow8vGLAQ');
+
+      log('Fetching available interventions...');
+      const availableInterventions =
+        await subscriptions.getAvailableInterventions();
+      log(
+        `Available interventions count: ${availableInterventions ? availableInterventions.length : 'null'
+        }`
+      );
+      if (availableInterventions && availableInterventions.length > 0) {
+        availableInterventions.forEach((item, index) => {
+          log(
+            `[${index}] type=${item.type}, configurationId=${item.configurationId}`
+          );
+        });
+      }
+
+      const intervention = availableInterventions?.find(
+        (item) => item.configurationId === 'dab3eda7-3689-437d-a54b-141e10ad0c0d'
+      );
+      if (intervention) {
+        log('Displaying CTA for dab3eda7-3689-437d-a54b-141e10ad0c0d');
+        intervention.show({
+          isClosable: true,
+          onResult: (result) => {
+            log(`Intervention result: ${JSON.stringify(result)}`);
+          },
+        });
+      } else {
+        log('Intervention dab3eda7-3689-437d-a54b-141e10ad0c0d not found');
+      }
+    } catch (error) {
+      log(`Error in initEnterprise: ${error.message || error}`);
+    }
+  });
+}
+
 function initRrm() {
+  isEnterprise = false;
   const isAccessibleForFree = document.getElementById('isAccessibleForFree').checked;
   (self.SWG_BASIC = self.SWG_BASIC || []).push((basicSubscriptions) => {
     basicSubscriptions.setOnEntitlementsResponse((entitlementsPromise) => {
