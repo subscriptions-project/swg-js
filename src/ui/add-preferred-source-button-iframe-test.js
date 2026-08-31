@@ -159,6 +159,44 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     expect(textEl.textContent).to.equal('Añadir a fuentes preferidas');
   });
 
+  it('should ignore untrusted synthetic click events', async () => {
+    const button = new AddPreferredSourceButton(deps, container);
+    const clickHandler = sandbox.spy();
+
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ADD_PREFERRED_SOURCES_BUTTON,
+        false,
+        sandbox.match.any
+      )
+      .once();
+
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.ACTION_ADD_PREFERRED_SOURCES_BUTTON_CLICK,
+        true,
+        sandbox.match.any
+      )
+      .never();
+
+    button.attach(clickHandler);
+
+    const shadow = button.getShadowRoot();
+    const buttonEl = shadow.querySelector('publisher-md-outlined-button');
+
+    // 1. Synthetic DOM event (has isTrusted === false by default in JS)
+    buttonEl.dispatchEvent(new win.CustomEvent('click'));
+    expect(clickHandler).to.not.have.been.called;
+
+    // 2. Direct untrusted invocation
+    await button.handleClick({isTrusted: false});
+    expect(clickHandler).to.not.have.been.called;
+
+    eventManagerMock.verify();
+  });
+
   it('should handle click event, log analytics, and execute callback', async () => {
     const button = new AddPreferredSourceButton(deps, container);
     const clickHandler = sandbox.spy();
@@ -183,10 +221,7 @@ describes.realWin('AddPreferredSourceButton', (env) => {
 
     button.attach(clickHandler);
 
-    const shadow = button.getShadowRoot();
-    const buttonEl = shadow.querySelector('publisher-md-outlined-button');
-
-    buttonEl.dispatchEvent(new win.CustomEvent('click'));
+    await button.handleClick({isTrusted: true});
 
     expect(clickHandler).to.have.been.calledOnce;
     eventManagerMock.verify();
@@ -216,7 +251,7 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     doc.head.removeChild(canonicalLink);
   });
 
-  it('should update to soft-disabled state with aria-disabled on SUCCESS and suppress clicks', () => {
+  it('should update to soft-disabled state with aria-disabled on SUCCESS and suppress clicks', async () => {
     const button = new AddPreferredSourceButton(deps, container, {
       lang: 'en',
     });
@@ -236,11 +271,11 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     expect(buttonEl.hasAttribute('soft-disabled')).to.be.true;
 
     // Verify clicks are suppressed when soft-disabled
-    buttonEl.dispatchEvent(new win.CustomEvent('click'));
+    await button.handleClick({isTrusted: true});
     expect(clickHandler).to.not.have.been.called;
   });
 
-  it('should update to soft-disabled state with aria-disabled on ALREADY_ADDED and suppress clicks', () => {
+  it('should update to soft-disabled state with aria-disabled on ALREADY_ADDED and suppress clicks', async () => {
     const button = new AddPreferredSourceButton(deps, container, {
       lang: 'en',
     });
@@ -260,11 +295,11 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     expect(buttonEl.hasAttribute('soft-disabled')).to.be.true;
 
     // Verify clicks are suppressed
-    buttonEl.dispatchEvent(new win.CustomEvent('click'));
+    await button.handleClick({isTrusted: true});
     expect(clickHandler).to.not.have.been.called;
   });
 
-  it('should update to soft-disabled state with aria-disabled on INELIGIBLE and suppress clicks', () => {
+  it('should update to soft-disabled state with aria-disabled on INELIGIBLE and suppress clicks', async () => {
     const button = new AddPreferredSourceButton(deps, container, {
       lang: 'en',
     });
@@ -281,7 +316,7 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     expect(buttonEl.hasAttribute('soft-disabled')).to.be.true;
 
     // Verify clicks are suppressed
-    buttonEl.dispatchEvent(new win.CustomEvent('click'));
+    await button.handleClick({isTrusted: true});
     expect(clickHandler).to.not.have.been.called;
   });
 

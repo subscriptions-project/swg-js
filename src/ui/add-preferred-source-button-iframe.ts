@@ -34,6 +34,7 @@ export class AddPreferredSourceButton {
   private buttonEl_: HTMLElement | null = null;
   private textEl_: HTMLSpanElement | null = null;
   private currentStatus_?: AddPreferredSourceStatus;
+  private clickHandler_?: () => Promise<boolean>;
 
   constructor(
     private readonly deps_: Deps,
@@ -96,23 +97,37 @@ export class AddPreferredSourceButton {
       AnalyticsEvent.IMPRESSION_ADD_PREFERRED_SOURCES_BUTTON
     );
 
+    this.clickHandler_ = clickHandler;
+
     // 6. Attach click handler
-    this.buttonEl_.addEventListener('click', async (e: Event) => {
-      e.preventDefault();
-      if (
-        this.buttonEl_?.getAttribute('aria-disabled') === 'true' ||
-        this.buttonEl_?.hasAttribute('soft-disabled') ||
-        this.buttonEl_?.hasAttribute('disabled')
-      ) {
-        return;
-      }
-      this.logAnalyticsEvent_(
-        AnalyticsEvent.ACTION_ADD_PREFERRED_SOURCES_BUTTON_CLICK
-      );
-      await clickHandler();
+    this.buttonEl_.addEventListener('click', (e: Event) => {
+      this.handleClick(e);
     });
 
     this.updateStatus(this.currentStatus_);
+  }
+
+  /**
+   * Handles button click events, enforcing trusted events and state checks.
+   */
+  async handleClick(
+    e?: Event | {isTrusted?: boolean; preventDefault?: () => void}
+  ): Promise<void> {
+    if (!e?.isTrusted) {
+      return;
+    }
+    e.preventDefault?.();
+    if (
+      this.buttonEl_?.getAttribute('aria-disabled') === 'true' ||
+      this.buttonEl_?.hasAttribute('soft-disabled') ||
+      this.buttonEl_?.hasAttribute('disabled')
+    ) {
+      return;
+    }
+    this.logAnalyticsEvent_(
+      AnalyticsEvent.ACTION_ADD_PREFERRED_SOURCES_BUTTON_CLICK
+    );
+    await this.clickHandler_?.();
   }
 
   /**
