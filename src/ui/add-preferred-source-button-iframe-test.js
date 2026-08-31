@@ -320,10 +320,8 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     expect(clickHandler).to.not.have.been.called;
   });
 
-  it('should apply initial status if updateStatus is called before attach', () => {
-    const button = new AddPreferredSourceButton(deps, container, {
-      lang: 'en',
-    });
+  it('should apply initial status and fallback to default English if updateStatus is called before attach without options', () => {
+    const button = new AddPreferredSourceButton(deps, container);
     button.updateStatus(
       AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS
     );
