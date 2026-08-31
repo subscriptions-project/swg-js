@@ -26,7 +26,6 @@ interface ThemeTokens {
   hoverContainerColor: string;
   hoverOutlineColor: string;
   hoverLabelTextColor: string;
-  hoverBoxShadow: string;
   pressedContainerColor: string;
   pressedOutlineColor: string;
   pressedLabelTextColor: string;
@@ -42,8 +41,6 @@ const LIGHT_THEME: ThemeTokens = {
   hoverContainerColor: '#f8f9fa',
   hoverOutlineColor: '#c4c7c5',
   hoverLabelTextColor: '#1f1f1f',
-  hoverBoxShadow:
-    '0 1px 2px 0 rgba(60, 64, 67, 0.3), 0 1px 3px 1px rgba(60, 64, 67, 0.15)',
   pressedContainerColor: '#f1f3f4',
   pressedOutlineColor: '#c4c7c5',
   pressedLabelTextColor: '#1f1f1f',
@@ -59,7 +56,6 @@ const DARK_THEME: ThemeTokens = {
   hoverContainerColor: '#303134',
   hoverOutlineColor: '#5f6368',
   hoverLabelTextColor: '#e8eaed',
-  hoverBoxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.3)',
   pressedContainerColor: '#35363a',
   pressedOutlineColor: '#5f6368',
   pressedLabelTextColor: '#e8eaed',
@@ -70,16 +66,21 @@ const DARK_THEME: ThemeTokens = {
 
 function renderThemeProperties(tokens: ThemeTokens): string {
   return css`
+    --md-sys-color-primary: ${tokens.labelTextColor};
     --md-outlined-button-container-color: ${tokens.containerColor};
     --md-outlined-button-outline-color: ${tokens.outlineColor};
     --md-outlined-button-label-text-color: ${tokens.labelTextColor};
     --md-outlined-button-hover-container-color: ${tokens.hoverContainerColor};
     --md-outlined-button-hover-outline-color: ${tokens.hoverOutlineColor};
     --md-outlined-button-hover-label-text-color: ${tokens.hoverLabelTextColor};
-    --md-outlined-button-hover-box-shadow: ${tokens.hoverBoxShadow};
+    --md-outlined-button-hover-state-layer-color: ${tokens.labelTextColor};
+    --md-outlined-button-focus-label-text-color: ${tokens.labelTextColor};
+    --md-outlined-button-focus-outline-color: ${tokens.outlineColor};
+    --md-outlined-button-focus-state-layer-color: ${tokens.labelTextColor};
     --md-outlined-button-pressed-container-color: ${tokens.pressedContainerColor};
     --md-outlined-button-pressed-outline-color: ${tokens.pressedOutlineColor};
     --md-outlined-button-pressed-label-text-color: ${tokens.pressedLabelTextColor};
+    --md-outlined-button-pressed-state-layer-color: ${tokens.labelTextColor};
     --md-outlined-button-disabled-container-color: ${tokens.disabledContainerColor};
     --md-outlined-button-disabled-outline-color: ${tokens.disabledOutlineColor};
     --md-outlined-button-disabled-label-text-color: ${tokens.disabledLabelTextColor};

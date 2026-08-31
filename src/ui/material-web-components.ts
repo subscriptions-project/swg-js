@@ -26,10 +26,9 @@ export class PublisherOutlinedButton extends MdOutlinedButton {
       :host {
         /*
          * EXPLICIT JUSTIFICATION FOR CUSTOM OVERRIDES:
-         * 1. Container Background: Standard M3 OutlinedButton defaults to a transparent container
-         *    (--_container-color: none). We map --md-outlined-button-container-color so buttons
-         *    have opaque backgrounds on publisher pages.
-         * 2. Hover Elevation: Google brand spec requires a subtle elevation drop shadow on hover.
+         * Container Background: Standard M3 OutlinedButton defaults to a transparent container
+         * (--_container-color: none). We map --md-outlined-button-container-color so buttons
+         * have opaque backgrounds on publisher pages.
          */
         background-color: var(
           --md-outlined-button-container-color,
@@ -37,10 +36,6 @@ export class PublisherOutlinedButton extends MdOutlinedButton {
         );
         border-radius: var(--_container-shape-start-start, 20px);
         vertical-align: middle;
-        transition: box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1);
-      }
-      :host(:hover:not([disabled]):not([soft-disabled])) {
-        box-shadow: var(--md-outlined-button-hover-box-shadow, none);
       }
       :host(:is([disabled], [soft-disabled])) {
         background-color: var(
