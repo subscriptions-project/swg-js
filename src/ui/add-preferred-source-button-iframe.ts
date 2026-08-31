@@ -64,8 +64,8 @@ export class AddPreferredSourceButton {
     );
     shadow.appendChild(styleEl);
 
-    // 3. Build custom <swg-md-outlined-button> element
-    this.buttonEl_ = createElement(doc, 'swg-md-outlined-button', {});
+    // 3. Build custom <publisher-md-outlined-button> element
+    this.buttonEl_ = createElement(doc, 'publisher-md-outlined-button', {});
 
     // 4. Build Google G logo and text inside button
     const logoEl = createElement(doc, 'img', {

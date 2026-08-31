@@ -107,7 +107,7 @@ export function getButtonStyles(
       box-sizing: border-box;
       line-height: normal;
     }
-    swg-md-outlined-button {
+    publisher-md-outlined-button {
       --md-outlined-button-container-height: 40px;
       --md-outlined-button-container-shape: 20px;
       --md-outlined-button-icon-size: 22px;
@@ -129,7 +129,7 @@ export function getButtonStyles(
     ${isAuto
       ? css`
           @media (prefers-color-scheme: dark) {
-            swg-md-outlined-button {
+            publisher-md-outlined-button {
               ${renderThemeProperties(DARK_THEME)}
             }
           }

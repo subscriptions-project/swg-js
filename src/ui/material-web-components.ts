@@ -17,7 +17,7 @@
 import {CSSResultOrNative, css} from 'lit';
 import {MdOutlinedButton} from '@material/web/button/outlined-button.js';
 
-export class SwgOutlinedButton extends MdOutlinedButton {
+export class PublisherOutlinedButton extends MdOutlinedButton {
   static override styles: CSSResultOrNative[] = [
     ...(Array.isArray(MdOutlinedButton.styles)
       ? MdOutlinedButton.styles
@@ -55,6 +55,6 @@ export class SwgOutlinedButton extends MdOutlinedButton {
   ];
 }
 
-if (!customElements.get('swg-md-outlined-button')) {
-  customElements.define('swg-md-outlined-button', SwgOutlinedButton);
+if (!customElements.get('publisher-md-outlined-button')) {
+  customElements.define('publisher-md-outlined-button', PublisherOutlinedButton);
 }

@@ -67,7 +67,7 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     expect(container.getAttribute('aria-live')).to.equal('polite');
 
     const shadow = button.getShadowRoot();
-    const buttonEl = shadow.querySelector('swg-md-outlined-button');
+    const buttonEl = shadow.querySelector('publisher-md-outlined-button');
     expect(buttonEl).to.not.be.null;
     expect(buttonEl.textContent).to.include('Add to Preferred Sources');
 
@@ -184,7 +184,7 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     button.attach(clickHandler);
 
     const shadow = button.getShadowRoot();
-    const buttonEl = shadow.querySelector('swg-md-outlined-button');
+    const buttonEl = shadow.querySelector('publisher-md-outlined-button');
 
     buttonEl.dispatchEvent(new win.CustomEvent('click'));
 
@@ -229,7 +229,7 @@ describes.realWin('AddPreferredSourceButton', (env) => {
 
     const shadow = button.getShadowRoot();
     const textEl = shadow.querySelector('.publisher-btn-text');
-    const buttonEl = shadow.querySelector('swg-md-outlined-button');
+    const buttonEl = shadow.querySelector('publisher-md-outlined-button');
 
     expect(textEl.textContent).to.equal('Added to Preferred Sources');
     expect(buttonEl.getAttribute('aria-disabled')).to.equal('true');
@@ -253,7 +253,7 @@ describes.realWin('AddPreferredSourceButton', (env) => {
 
     const shadow = button.getShadowRoot();
     const textEl = shadow.querySelector('.publisher-btn-text');
-    const buttonEl = shadow.querySelector('swg-md-outlined-button');
+    const buttonEl = shadow.querySelector('publisher-md-outlined-button');
 
     expect(textEl.textContent).to.equal('Added to Preferred Sources');
     expect(buttonEl.getAttribute('aria-disabled')).to.equal('true');
@@ -276,7 +276,7 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     );
 
     const shadow = button.getShadowRoot();
-    const buttonEl = shadow.querySelector('swg-md-outlined-button');
+    const buttonEl = shadow.querySelector('publisher-md-outlined-button');
     expect(buttonEl.getAttribute('aria-disabled')).to.equal('true');
     expect(buttonEl.hasAttribute('soft-disabled')).to.be.true;
 
@@ -296,7 +296,7 @@ describes.realWin('AddPreferredSourceButton', (env) => {
 
     const shadow = button.getShadowRoot();
     const textEl = shadow.querySelector('.publisher-btn-text');
-    const buttonEl = shadow.querySelector('swg-md-outlined-button');
+    const buttonEl = shadow.querySelector('publisher-md-outlined-button');
 
     expect(textEl.textContent).to.equal('Added to Preferred Sources');
     expect(buttonEl.getAttribute('aria-disabled')).to.equal('true');
@@ -313,7 +313,7 @@ describes.realWin('AddPreferredSourceButton', (env) => {
 
     const shadow = button.getShadowRoot();
     const textEl = shadow.querySelector('.publisher-btn-text');
-    const buttonEl = shadow.querySelector('swg-md-outlined-button');
+    const buttonEl = shadow.querySelector('publisher-md-outlined-button');
 
     expect(textEl.textContent).to.equal('Add to Preferred Sources');
     expect(buttonEl.hasAttribute('aria-disabled')).to.be.false;
