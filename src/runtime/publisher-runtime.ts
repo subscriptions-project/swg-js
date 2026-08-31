@@ -15,7 +15,7 @@
  */
 
 import {ActivityPorts} from '../components/activities';
-import {AddPreferredSourceButtonIframe} from '../ui/add-preferred-source-button-iframe';
+import {AddPreferredSourceButton} from '../ui/add-preferred-source-button-iframe';
 import {AddPreferredSourceFlow} from './add-preferred-source-flow';
 import {AddPreferredSourceStatus} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
@@ -31,6 +31,7 @@ import {
 } from '../api/preferred-source';
 import {Toast} from '../ui/toast';
 import {feUrl} from './services';
+import {getLanguageCodeFromElement} from '../utils/i18n';
 import {injectStyleSheet} from '../utils/dom';
 import type {Callbacks} from './callbacks';
 import type {ClientConfigManager} from './client-config-manager';
@@ -50,7 +51,7 @@ export class PublisherRuntime implements Deps {
   private readonly analyticsService_: AnalyticsService;
   private readonly creationTimestamp_ = Date.now();
   private options_: PreferredSourceButtonOptions = {};
-  private readonly buttons_: AddPreferredSourceButtonIframe[] = [];
+  private readonly buttons_: AddPreferredSourceButton[] = [];
   private currentStatus_?: AddPreferredSourceStatus;
   private startedLogging_ = false;
 
@@ -154,14 +155,20 @@ export class PublisherRuntime implements Deps {
     return (
       override ||
       this.options_.lang ||
-      this.win_.navigator?.language ||
-      this.win_.document?.documentElement?.lang ||
-      'en'
+      getLanguageCodeFromElement(this.doc_.getRootElement())
     );
   }
 
-  private resolveTheme_(override?: string | null): string {
-    return override || this.options_.theme || 'light';
+  private resolveTheme_(override?: string | null): 'light' | 'dark' | 'auto' {
+    const theme = (override || this.options_.theme) as
+      | 'light'
+      | 'dark'
+      | 'auto'
+      | undefined;
+    if (theme === 'dark' || theme === 'light' || theme === 'auto') {
+      return theme;
+    }
+    return 'light';
   }
 
   // --- Public API Methods ---
@@ -186,7 +193,7 @@ export class PublisherRuntime implements Deps {
       button.setAttribute('data-initialized', 'true');
       const lang = this.resolveLanguage_(button.getAttribute('data-lang'));
       const theme = this.resolveTheme_(button.getAttribute('data-theme'));
-      const buttonComponent = new AddPreferredSourceButtonIframe(this, button, {
+      const buttonComponent = new AddPreferredSourceButton(this, button, {
         theme,
         lang,
       });
