@@ -2514,6 +2514,58 @@ subscribe() method'
 
         expect(result).to.deep.equal(mockResult);
       });
+
+      it('yields when no interventions are available and gisInterop is enabled', async () => {
+        // Re-instantiate runtime with gisInterop enabled
+        const customConfig = {gisInterop: true};
+        const pageConfig = new PageConfig('pub1');
+        const customRuntime = new ConfiguredRuntime(new GlobalDoc(win), pageConfig, null, customConfig);
+        
+        // We need to mock the entitlements manager on this custom runtime
+        const customEntitlementsManagerMock = sandbox.mock(customRuntime.entitlementsManager_);
+        
+        customEntitlementsManagerMock
+          .expects('getEntitlements')
+          .resolves({clone: () => null})
+          .once();
+        
+        customEntitlementsManagerMock
+          .expects('getAvailableInterventions')
+          .resolves([]) // No interventions
+          .once();
+
+        const yieldSpy = sandbox.spy(GisInteropManager.prototype, 'yield');
+
+        await customRuntime.getAvailableInterventions();
+
+        expect(yieldSpy).to.be.calledOnce;
+      });
+
+      it('does NOT yield when interventions are available and gisInterop is enabled', async () => {
+        // Re-instantiate runtime with gisInterop enabled
+        const customConfig = {gisInterop: true};
+        const pageConfig = new PageConfig('pub1');
+        const customRuntime = new ConfiguredRuntime(new GlobalDoc(win), pageConfig, null, customConfig);
+        
+        // We need to mock the entitlements manager on this custom runtime
+        const customEntitlementsManagerMock = sandbox.mock(customRuntime.entitlementsManager_);
+        
+        customEntitlementsManagerMock
+          .expects('getEntitlements')
+          .resolves({clone: () => null})
+          .once();
+        
+        customEntitlementsManagerMock
+          .expects('getAvailableInterventions')
+          .resolves([{configurationId: '123'}]) // Has intervention
+          .once();
+
+        const yieldSpy = sandbox.spy(GisInteropManager.prototype, 'yield');
+
+        await customRuntime.getAvailableInterventions();
+
+        expect(yieldSpy).to.not.have.been.called;
+      });
     });
 
     describe('processGisCredential', () => {

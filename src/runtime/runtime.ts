@@ -790,9 +790,7 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
           )
         : undefined;
 
-    if (!integr?.isBasic) {
-      this.gisInteropManager_?.yield();
-    }
+    // GIS interop yield moved to getAvailableInterventions
   }
 
   creationTimestamp(): number {
@@ -1338,7 +1336,14 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
 
   async getAvailableInterventions(): Promise<AvailableIntervention[] | null> {
     await this.getEntitlements();
-    return this.entitlementsManager().getAvailableInterventions();
+    const interventions =
+      await this.entitlementsManager().getAvailableInterventions();
+
+    if (!interventions || interventions.length === 0) {
+      this.gisInteropManager_?.yield();
+    }
+
+    return interventions;
   }
 
   async getFreeAccess(): Promise<FreeAccessApi> {
