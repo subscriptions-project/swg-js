@@ -790,7 +790,6 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
           )
         : undefined;
 
-    // GIS interop yield moved to getAvailableInterventions
   }
 
   creationTimestamp(): number {
