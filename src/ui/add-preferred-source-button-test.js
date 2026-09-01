@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AddPreferredSourceButton} from './add-preferred-source-button-iframe';
+import {AddPreferredSourceButton} from './add-preferred-source-button';
 import {AddPreferredSourceStatus, AnalyticsEvent} from '../proto/api_messages';
 import {ClientEventManager} from '../runtime/client-event-manager';
 import {resolveDoc} from '../model/doc';

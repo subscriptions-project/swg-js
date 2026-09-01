@@ -15,7 +15,7 @@
  */
 
 import {ActivityPorts} from '../components/activities';
-import {AddPreferredSourceButton} from '../ui/add-preferred-source-button-iframe';
+import {AddPreferredSourceButton} from '../ui/add-preferred-source-button';
 import {AddPreferredSourceFlow} from './add-preferred-source-flow';
 import {AddPreferredSourceStatus} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
