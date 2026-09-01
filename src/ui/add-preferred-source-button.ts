@@ -66,7 +66,10 @@ export class AddPreferredSourceButton {
     shadow.appendChild(styleEl);
 
     // 3. Build custom <publisher-md-outlined-button> element
-    this.buttonEl_ = createElement(doc, 'publisher-md-outlined-button', {});
+    this.buttonEl_ = createElement(doc, 'publisher-md-outlined-button', {
+      'title': initialText,
+      'aria-label': initialText,
+    });
 
     // 4. Build Google G logo and text inside button
     const logoEl = createElement(doc, 'img', {
@@ -154,6 +157,7 @@ export class AddPreferredSourceButton {
         lang
       );
       this.textEl_.textContent = addedText;
+      this.buttonEl_.setAttribute('title', addedText);
       this.buttonEl_.setAttribute('aria-label', addedText);
       this.buttonEl_.setAttribute('aria-disabled', 'true');
       this.buttonEl_.setAttribute('soft-disabled', '');

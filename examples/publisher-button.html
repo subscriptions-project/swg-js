@@ -35,12 +35,6 @@
     h1 {
       font-size: 26px;
       font-weight: 600;
-      margin: 0 0 8px 0;
-    }
-
-    .subtitle {
-      color: #5f6368;
-      font-size: 15px;
       margin: 0;
     }
 
@@ -56,13 +50,6 @@
     .demo-section h2 {
       font-size: 18px;
       font-weight: 600;
-      margin-top: 0;
-      margin-bottom: 8px;
-    }
-
-    .demo-section p {
-      color: #5f6368;
-      font-size: 14px;
       margin-top: 0;
       margin-bottom: 20px;
     }
@@ -164,45 +151,7 @@
       color: #3c4043;
     }
 
-    /* Section 3: Aggressive CSS Pollution Isolation Demo */
-    .pollution-container {
-      background: #fff0f0;
-      border: 2px dashed #d93025;
-      border-radius: 8px;
-      padding: 20px;
-      margin-top: 12px;
-    }
-
-    /* Host CSS targeting descendant elements */
-    .host-css-pollution * {
-      font-family: "Comic Sans MS", cursive, sans-serif !important;
-      color: #d93025 !important;
-      letter-spacing: 2px !important;
-      text-transform: uppercase !important;
-      box-shadow: inset 0 0 0 1px #d93025 !important;
-    }
-
-    .comparison-row {
-      display: flex;
-      align-items: center;
-      gap: 24px;
-      flex-wrap: wrap;
-      margin-top: 16px;
-    }
-
-    .comparison-item {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .comparison-caption {
-      font-size: 12px;
-      font-weight: 600;
-      color: #5f6368;
-    }
-
-    /* Section 4: Themes */
+    /* Section 3: Themes */
     .themes-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -243,13 +192,11 @@
   <div class="container">
     <header>
       <h1>Native Shadow DOM Preferred Sources Button</h1>
-      <p class="subtitle">Demonstrating intrinsic inline flow, CSS encapsulation, auto-sizing across languages, and theme adaptivity.</p>
     </header>
 
     <!-- SECTION 1: INLINE FLOW & FIT-CONTENT PARTICIPATION -->
     <div class="demo-section">
       <h2>1. Inline Action Bar Flow & Intrinsic Sizing</h2>
-      <p>Proves that the button participates naturally in inline-flex / flexbox containers with <code>width: fit-content</code> alongside other publisher UI elements (previously broken by fixed-width / 100% width iframes).</p>
 
       <div class="article-header">
         <div class="article-title">Exploring the Deep Cosmos: New Discoveries in Observational Astronomy</div>
@@ -273,7 +220,6 @@
     <!-- SECTION 2: MULTILINGUAL INTRINSIC AUTO-SIZING -->
     <div class="demo-section">
       <h2>2. Dynamic Multilingual Intrinsic Sizing</h2>
-      <p>Proves that text across various languages with differing string lengths renders without horizontal clipping, artificial fixed widths, or cross-origin sizing postMessage delays.</p>
 
       <div class="multilingual-grid">
         <div class="lang-row">
@@ -306,7 +252,6 @@
     <!-- SECTION 3: THEMES -->
     <div class="demo-section">
       <h2>3. Theme Configurations (Light, Dark, & OS-Adaptive)</h2>
-      <p>Explicit <code>data-theme="light"</code>, <code>data-theme="dark"</code>, and <code>data-theme="auto"</code> (which dynamically adapts to the user's OS color scheme via <code>@media (prefers-color-scheme: dark)</code>).</p>
 
       <div class="themes-grid">
         <div class="theme-card">

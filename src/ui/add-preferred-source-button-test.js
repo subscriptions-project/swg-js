@@ -69,6 +69,10 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     const buttonEl = shadow.querySelector('publisher-md-outlined-button');
     expect(buttonEl).to.not.be.null;
     expect(buttonEl.textContent).to.include('Add to Preferred Sources');
+    expect(buttonEl.getAttribute('title')).to.equal('Add to Preferred Sources');
+    expect(buttonEl.getAttribute('aria-label')).to.equal(
+      'Add to Preferred Sources'
+    );
 
     const logoEl = shadow.querySelector('.publisher-logo');
     expect(logoEl).to.not.be.null;
@@ -266,6 +270,12 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     const buttonEl = shadow.querySelector('publisher-md-outlined-button');
 
     expect(textEl.textContent).to.equal('Added to Preferred Sources');
+    expect(buttonEl.getAttribute('title')).to.equal(
+      'Added to Preferred Sources'
+    );
+    expect(buttonEl.getAttribute('aria-label')).to.equal(
+      'Added to Preferred Sources'
+    );
     expect(buttonEl.getAttribute('aria-disabled')).to.equal('true');
     expect(buttonEl.hasAttribute('soft-disabled')).to.be.true;
 
@@ -290,6 +300,12 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     const buttonEl = shadow.querySelector('publisher-md-outlined-button');
 
     expect(textEl.textContent).to.equal('Added to Preferred Sources');
+    expect(buttonEl.getAttribute('title')).to.equal(
+      'Added to Preferred Sources'
+    );
+    expect(buttonEl.getAttribute('aria-label')).to.equal(
+      'Added to Preferred Sources'
+    );
     expect(buttonEl.getAttribute('aria-disabled')).to.equal('true');
     expect(buttonEl.hasAttribute('soft-disabled')).to.be.true;
 
