@@ -19,9 +19,7 @@ import {MdOutlinedButton} from '@material/web/button/outlined-button.js';
 
 export class PublisherOutlinedButton extends MdOutlinedButton {
   static override styles: CSSResultOrNative[] = [
-    ...(Array.isArray(MdOutlinedButton.styles)
-      ? MdOutlinedButton.styles
-      : [MdOutlinedButton.styles]),
+    ...(MdOutlinedButton.styles as CSSResultOrNative[]),
     css`
       :host {
         /*
@@ -51,5 +49,8 @@ export class PublisherOutlinedButton extends MdOutlinedButton {
 }
 
 if (!customElements.get('publisher-md-outlined-button')) {
-  customElements.define('publisher-md-outlined-button', PublisherOutlinedButton);
+  customElements.define(
+    'publisher-md-outlined-button',
+    PublisherOutlinedButton
+  );
 }
