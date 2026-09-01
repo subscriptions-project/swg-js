@@ -19,10 +19,14 @@
  * The entry point for runtime (swg.js).
  */
 
-import {INTERNAL_RUNTIME_VERSION} from './constants';
+import {INTERNAL_RUNTIME_VERSION, IS_ESM_BUILD} from './constants';
 import {installRuntime} from './runtime/runtime';
 import {log} from './utils/log';
 
 log(`Subscriptions Runtime: ${INTERNAL_RUNTIME_VERSION}`);
 
-installRuntime(self);
+const subscriptions = installRuntime(self, {
+  autoStart: !IS_ESM_BUILD,
+});
+
+export {subscriptions};
