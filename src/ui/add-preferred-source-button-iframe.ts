@@ -181,15 +181,16 @@ export class AddPreferredSourceButton {
       if (canonicalUrl) {
         params.setCanonicalUrl(canonicalUrl);
       }
-      this.deps_.eventManager().logSwgEvent(
-        eventType,
-        eventType ===
-          AnalyticsEvent.ACTION_ADD_PREFERRED_SOURCES_BUTTON_CLICK,
-        params
-      );
+      this.deps_
+        .eventManager()
+        .logSwgEvent(
+          eventType,
+          eventType ===
+            AnalyticsEvent.ACTION_ADD_PREFERRED_SOURCES_BUTTON_CLICK,
+          params
+        );
     } catch (e) {
       void e;
     }
   }
 }
-

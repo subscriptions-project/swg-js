@@ -15,10 +15,7 @@
  */
 
 import {AddPreferredSourceButton} from './add-preferred-source-button-iframe';
-import {
-  AddPreferredSourceStatus,
-  AnalyticsEvent,
-} from '../proto/api_messages';
+import {AddPreferredSourceStatus, AnalyticsEvent} from '../proto/api_messages';
 import {ClientEventManager} from '../runtime/client-event-manager';
 import {resolveDoc} from '../model/doc';
 
@@ -56,11 +53,13 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     const button = new AddPreferredSourceButton(deps, container);
     const clickHandler = sandbox.spy();
 
-    eventManagerMock.expects('logSwgEvent').withExactArgs(
-      AnalyticsEvent.IMPRESSION_ADD_PREFERRED_SOURCES_BUTTON,
-      false,
-      sandbox.match.any
-    );
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ADD_PREFERRED_SOURCES_BUTTON,
+        false,
+        sandbox.match.any
+      );
 
     button.attach(clickHandler);
 
@@ -363,5 +362,3 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     }).to.not.throw();
   });
 });
-
-

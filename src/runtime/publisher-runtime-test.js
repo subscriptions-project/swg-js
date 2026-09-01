@@ -578,4 +578,3 @@ describes.realWin('installPublisherRuntime', (env) => {
     });
   });
 });
-
