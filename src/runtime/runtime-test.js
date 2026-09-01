@@ -2519,16 +2519,23 @@ subscribe() method'
         // Re-instantiate runtime with gisInterop enabled
         const customConfig = {gisInterop: true};
         const pageConfig = new PageConfig('pub1');
-        const customRuntime = new ConfiguredRuntime(new GlobalDoc(win), pageConfig, null, customConfig);
-        
+        const customRuntime = new ConfiguredRuntime(
+          new GlobalDoc(win),
+          pageConfig,
+          null,
+          customConfig
+        );
+
         // We need to mock the entitlements manager on this custom runtime
-        const customEntitlementsManagerMock = sandbox.mock(customRuntime.entitlementsManager_);
-        
+        const customEntitlementsManagerMock = sandbox.mock(
+          customRuntime.entitlementsManager_
+        );
+
         customEntitlementsManagerMock
           .expects('getEntitlements')
           .resolves({clone: () => null})
           .once();
-        
+
         customEntitlementsManagerMock
           .expects('getAvailableInterventions')
           .resolves([]) // No interventions
@@ -2545,16 +2552,23 @@ subscribe() method'
         // Re-instantiate runtime with gisInterop enabled
         const customConfig = {gisInterop: true};
         const pageConfig = new PageConfig('pub1');
-        const customRuntime = new ConfiguredRuntime(new GlobalDoc(win), pageConfig, null, customConfig);
-        
+        const customRuntime = new ConfiguredRuntime(
+          new GlobalDoc(win),
+          pageConfig,
+          null,
+          customConfig
+        );
+
         // We need to mock the entitlements manager on this custom runtime
-        const customEntitlementsManagerMock = sandbox.mock(customRuntime.entitlementsManager_);
-        
+        const customEntitlementsManagerMock = sandbox.mock(
+          customRuntime.entitlementsManager_
+        );
+
         customEntitlementsManagerMock
           .expects('getEntitlements')
           .resolves({clone: () => null})
           .once();
-        
+
         customEntitlementsManagerMock
           .expects('getAvailableInterventions')
           .resolves([{configurationId: '123'}]) // Has intervention
