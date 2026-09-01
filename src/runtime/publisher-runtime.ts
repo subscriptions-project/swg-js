@@ -31,7 +31,6 @@ import {
 } from '../api/preferred-source';
 import {Toast} from '../ui/toast';
 import {feUrl} from './services';
-import {getLanguageCodeFromElement} from '../utils/i18n';
 import {injectStyleSheet} from '../utils/dom';
 import type {Callbacks} from './callbacks';
 import type {ClientConfigManager} from './client-config-manager';
@@ -155,7 +154,9 @@ export class PublisherRuntime implements Deps {
     return (
       override ||
       this.options_.lang ||
-      getLanguageCodeFromElement(this.doc_.getRootElement())
+      this.win_.navigator?.language ||
+      this.win_.document?.documentElement?.lang ||
+      'en'
     );
   }
 

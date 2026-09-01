@@ -450,7 +450,19 @@ describes.realWin('installPublisherRuntime', (env) => {
       expect(toastInstance.src_).to.include('hl=fr');
     });
 
-    it('should fallback to documentElement.lang or "en" when no language is specified', () => {
+    it('should use navigator.language when no explicit language option is given', () => {
+      sandbox.stub(win.navigator, 'language').get(() => 'ja');
+      const runtime = new PublisherRuntime(win);
+      runtime.showToast(
+        AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS
+      );
+      expect(toastOpenStub).to.have.been.calledOnce;
+      const toastInstance = toastOpenStub.getCall(0).thisValue;
+      expect(toastInstance.src_).to.include('hl=ja');
+    });
+
+    it('should fallback to documentElement.lang or "en" when navigator.language is unavailable', () => {
+      sandbox.stub(win.navigator, 'language').get(() => undefined);
       win.document.documentElement.lang = 'de';
 
       let runtime = new PublisherRuntime(win);
@@ -560,7 +572,8 @@ describes.realWin('installPublisherRuntime', (env) => {
       expect(toastInstance.src_).to.include('theme=light');
     });
 
-    it('should fallback to en when documentElement has no lang attribute', () => {
+    it('should fallback to en when documentElement has no lang attribute and navigator.language is unavailable', () => {
+      sandbox.stub(win.navigator, 'language').get(() => undefined);
       win.document.documentElement.removeAttribute('lang');
 
       const runtime = new PublisherRuntime(win);
