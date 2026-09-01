@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import {ActivityPorts} from '../components/activities';
-import {AddPreferredSourceButtonIframe} from '../ui/add-preferred-source-button-iframe';
+import {AddPreferredSourceButton} from '../ui/add-preferred-source-button-iframe';
 import {AddPreferredSourceFlow} from './add-preferred-source-flow';
 import {
   AddPreferredSourceResponse,
@@ -205,7 +205,7 @@ describes.realWin('installPublisherRuntime', (env) => {
 
     beforeEach(async () => {
       sandbox
-        .stub(AddPreferredSourceButtonIframe.prototype, 'attach')
+        .stub(AddPreferredSourceButton.prototype, 'attach')
         .callsFake(function () {
           this.container_.appendChild(win.document.createElement('iframe'));
           return Promise.resolve();
@@ -251,9 +251,9 @@ describes.realWin('installPublisherRuntime', (env) => {
       win.document.body.appendChild(button);
 
       let capturedOptions;
-      AddPreferredSourceButtonIframe.prototype.attach.restore();
+      AddPreferredSourceButton.prototype.attach.restore();
       sandbox
-        .stub(AddPreferredSourceButtonIframe.prototype, 'attach')
+        .stub(AddPreferredSourceButton.prototype, 'attach')
         .callsFake(function () {
           capturedOptions = this.options_;
           this.container_.appendChild(win.document.createElement('iframe'));
@@ -276,9 +276,9 @@ describes.realWin('installPublisherRuntime', (env) => {
       win.document.body.appendChild(button);
 
       let capturedOptions;
-      AddPreferredSourceButtonIframe.prototype.attach.restore();
+      AddPreferredSourceButton.prototype.attach.restore();
       sandbox
-        .stub(AddPreferredSourceButtonIframe.prototype, 'attach')
+        .stub(AddPreferredSourceButton.prototype, 'attach')
         .callsFake(function () {
           capturedOptions = this.options_;
           this.container_.appendChild(win.document.createElement('iframe'));
@@ -295,7 +295,7 @@ describes.realWin('installPublisherRuntime', (env) => {
 
     it('should call updateStatus on injected buttons if currentStatus_ is already defined', async () => {
       const updateStatusStub = sandbox.stub(
-        AddPreferredSourceButtonIframe.prototype,
+        AddPreferredSourceButton.prototype,
         'updateStatus'
       );
 
@@ -323,10 +323,9 @@ describes.realWin('installPublisherRuntime', (env) => {
       api.init({theme: 'dark'});
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(AddPreferredSourceButtonIframe.prototype.attach).to.have.been
-        .called;
+      expect(AddPreferredSourceButton.prototype.attach).to.have.been.called;
       const onResultCallback =
-        AddPreferredSourceButtonIframe.prototype.attach.getCall(0).args[0];
+        AddPreferredSourceButton.prototype.attach.getCall(0).args[0];
 
       AddPreferredSourceFlow.prototype.start.resetHistory();
       const res = await onResultCallback();
@@ -415,7 +414,7 @@ describes.realWin('installPublisherRuntime', (env) => {
 
     it('should update all registered button components when addPreferredSource completes', async () => {
       const updateStatusStub = sandbox.stub(
-        AddPreferredSourceButtonIframe.prototype,
+        AddPreferredSourceButton.prototype,
         'updateStatus'
       );
       const button1 = win.document.createElement('div');
@@ -449,6 +448,17 @@ describes.realWin('installPublisherRuntime', (env) => {
       expect(toastOpenStub).to.have.been.calledOnce;
       const toastInstance = toastOpenStub.getCall(0).thisValue;
       expect(toastInstance.src_).to.include('hl=fr');
+    });
+
+    it('should use navigator.language when no explicit language option is given', () => {
+      sandbox.stub(win.navigator, 'language').get(() => 'ja');
+      const runtime = new PublisherRuntime(win);
+      runtime.showToast(
+        AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS
+      );
+      expect(toastOpenStub).to.have.been.calledOnce;
+      const toastInstance = toastOpenStub.getCall(0).thisValue;
+      expect(toastInstance.src_).to.include('hl=ja');
     });
 
     it('should fallback to documentElement.lang or "en" when navigator.language is unavailable', () => {
@@ -513,7 +523,7 @@ describes.realWin('installPublisherRuntime', (env) => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       const onResultCallback =
-        AddPreferredSourceButtonIframe.prototype.attach.getCall(0).args[0];
+        AddPreferredSourceButton.prototype.attach.getCall(0).args[0];
 
       toastOpenStub.resetHistory();
       await onResultCallback();
@@ -548,6 +558,36 @@ describes.realWin('installPublisherRuntime', (env) => {
       expect(toastOpenStub).to.have.been.calledOnce;
       const toastInstance = toastOpenStub.getCall(0).thisValue;
       expect(toastInstance.src_).to.include('theme=light');
+    });
+
+    it('should default theme to light when invalid theme string is provided', () => {
+      const runtime = new PublisherRuntime(win);
+      runtime.showToast(
+        AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS,
+        'Site',
+        {theme: 'invalid-theme'}
+      );
+      expect(toastOpenStub).to.have.been.calledOnce;
+      const toastInstance = toastOpenStub.getCall(0).thisValue;
+      expect(toastInstance.src_).to.include('theme=light');
+    });
+
+    it('should fallback to en when documentElement has no lang attribute and navigator.language is unavailable', () => {
+      sandbox.stub(win.navigator, 'language').get(() => undefined);
+      win.document.documentElement.removeAttribute('lang');
+
+      const runtime = new PublisherRuntime(win);
+      runtime.showToast(
+        AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS
+      );
+      expect(toastOpenStub).to.have.been.calledOnce;
+      const toastInstance = toastOpenStub.getCall(0).thisValue;
+      expect(toastInstance.src_).to.include('hl=en');
+    });
+
+    it('should allow init to be called with no arguments', () => {
+      const runtime = new PublisherRuntime(win);
+      expect(() => runtime.init()).to.not.throw();
     });
   });
 });

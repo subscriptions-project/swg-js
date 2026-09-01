@@ -25,6 +25,7 @@
     "postinstall": "npm audit --omit=dev --omit=optional || true"
   },
   "dependencies": {
+    "@material/web": "^2.5.0",
     "web-activities": "1.24.0"
   },
   "devDependencies": {
