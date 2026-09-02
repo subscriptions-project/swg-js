@@ -184,6 +184,29 @@
       margin: 0;
       font-size: 15px;
     }
+
+    /* Section 4: Constrained Sizes */
+    .constrained-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .constrained-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 8px 12px;
+      background: var(--bg-color);
+      border-radius: 8px;
+    }
+
+    .constrained-label {
+      width: 160px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #3c4043;
+    }
   </style>
   <link rel="canonical" href="https://example.com/demo/preferred-sources-article">
   <script async defer src="/examples/sample-pub/redirect-to/publisher.js"></script>
@@ -265,6 +288,26 @@
         <div class="theme-card">
           <h3>OS-Adaptive (data-theme="auto")</h3>
           <div google-add-preferred-source-btn data-lang="en" data-theme="auto"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 4: CONSTRAINED SIZES -->
+    <div class="demo-section">
+      <h2>4. Constrained Sizes</h2>
+
+      <div class="constrained-grid">
+        <div class="constrained-row">
+          <div class="constrained-label">Unconstrained</div>
+          <div google-add-preferred-source-btn data-lang="en"></div>
+        </div>
+        <div class="constrained-row">
+          <div class="constrained-label">Width: 180px</div>
+          <div style="width: 180px;" google-add-preferred-source-btn data-lang="en"></div>
+        </div>
+        <div class="constrained-row">
+          <div class="constrained-label">Width: 140px (Floor)</div>
+          <div style="width: 140px;" google-add-preferred-source-btn data-lang="en"></div>
         </div>
       </div>
     </div>
