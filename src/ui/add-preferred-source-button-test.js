@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import {AddPreferredSourceButton} from './add-preferred-source-button-iframe';
+import {AddPreferredSourceButton} from './add-preferred-source-button';
 import {AddPreferredSourceStatus, AnalyticsEvent} from '../proto/api_messages';
 import {ClientEventManager} from '../runtime/client-event-manager';
 import {resolveDoc} from '../model/doc';
@@ -69,6 +69,10 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     const buttonEl = shadow.querySelector('publisher-md-outlined-button');
     expect(buttonEl).to.not.be.null;
     expect(buttonEl.textContent).to.include('Add to Preferred Sources');
+    expect(buttonEl.getAttribute('title')).to.equal('Add to Preferred Sources');
+    expect(buttonEl.getAttribute('aria-label')).to.equal(
+      'Add to Preferred Sources'
+    );
 
     const logoEl = shadow.querySelector('.publisher-logo');
     expect(logoEl).to.not.be.null;
@@ -81,12 +85,15 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     );
   });
 
-  it('should return null for getShadowRoot before attach, and ShadowRoot after attach', () => {
+  it('should return null for getShadowRoot before attach, and open ShadowRoot on container after attach', () => {
     const button = new AddPreferredSourceButton(deps, container);
     expect(button.getShadowRoot()).to.be.null;
+    expect(container.shadowRoot).to.be.null;
 
     button.attach(sandbox.spy());
     expect(button.getShadowRoot()).to.not.be.null;
+    expect(container.shadowRoot).to.equal(button.getShadowRoot());
+    expect(container.shadowRoot.mode).to.equal('open');
   });
 
   it('should fallback to global document if container has no ownerDocument', () => {
@@ -97,7 +104,7 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     };
     const button = new AddPreferredSourceButton(deps, fakeContainer);
     button.attach(sandbox.spy());
-    expect(fakeContainer.attachShadow).to.have.been.calledOnce;
+    expect(fakeContainer.attachShadow).to.have.been.calledWith({mode: 'open'});
     expect(fakeContainer.setAttribute).to.have.been.calledWith(
       'aria-live',
       'polite'
@@ -266,6 +273,12 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     const buttonEl = shadow.querySelector('publisher-md-outlined-button');
 
     expect(textEl.textContent).to.equal('Added to Preferred Sources');
+    expect(buttonEl.getAttribute('title')).to.equal(
+      'Added to Preferred Sources'
+    );
+    expect(buttonEl.getAttribute('aria-label')).to.equal(
+      'Added to Preferred Sources'
+    );
     expect(buttonEl.getAttribute('aria-disabled')).to.equal('true');
     expect(buttonEl.hasAttribute('soft-disabled')).to.be.true;
 
@@ -290,6 +303,12 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     const buttonEl = shadow.querySelector('publisher-md-outlined-button');
 
     expect(textEl.textContent).to.equal('Added to Preferred Sources');
+    expect(buttonEl.getAttribute('title')).to.equal(
+      'Added to Preferred Sources'
+    );
+    expect(buttonEl.getAttribute('aria-label')).to.equal(
+      'Added to Preferred Sources'
+    );
     expect(buttonEl.getAttribute('aria-disabled')).to.equal('true');
     expect(buttonEl.hasAttribute('soft-disabled')).to.be.true;
 
@@ -331,6 +350,12 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     const buttonEl = shadow.querySelector('publisher-md-outlined-button');
 
     expect(textEl.textContent).to.equal('Added to Preferred Sources');
+    expect(buttonEl.getAttribute('title')).to.equal(
+      'Added to Preferred Sources'
+    );
+    expect(buttonEl.getAttribute('aria-label')).to.equal(
+      'Added to Preferred Sources'
+    );
     expect(buttonEl.getAttribute('aria-disabled')).to.equal('true');
     expect(buttonEl.hasAttribute('soft-disabled')).to.be.true;
   });
@@ -348,6 +373,10 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     const buttonEl = shadow.querySelector('publisher-md-outlined-button');
 
     expect(textEl.textContent).to.equal('Add to Preferred Sources');
+    expect(buttonEl.getAttribute('title')).to.equal('Add to Preferred Sources');
+    expect(buttonEl.getAttribute('aria-label')).to.equal(
+      'Add to Preferred Sources'
+    );
     expect(buttonEl.hasAttribute('aria-disabled')).to.be.false;
     expect(buttonEl.hasAttribute('soft-disabled')).to.be.false;
   });

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 import {ActivityPorts} from '../components/activities';
-import {AddPreferredSourceButton} from '../ui/add-preferred-source-button-iframe';
+import {AddPreferredSourceButton} from '../ui/add-preferred-source-button';
 import {AddPreferredSourceFlow} from './add-preferred-source-flow';
 import {
   AddPreferredSourceResponse,

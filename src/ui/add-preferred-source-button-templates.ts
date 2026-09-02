@@ -107,8 +107,12 @@ export function getButtonStyles(
       vertical-align: middle;
       box-sizing: border-box;
       line-height: normal;
+      max-width: 100%;
+      min-width: 140px;
     }
     publisher-md-outlined-button {
+      max-width: 100%;
+      min-width: 140px;
       --md-outlined-button-container-height: 40px;
       --md-outlined-button-container-shape: 20px;
       --md-outlined-button-icon-size: 22px;
@@ -146,6 +150,11 @@ export function getButtonStyles(
     .publisher-btn-text {
       line-height: 20px;
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: inline-block;
+      max-width: 100%;
+      vertical-align: middle;
     }
   `;
 }

@@ -2,40 +2,315 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Publisher Button Example</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Preferred Sources Button Demo</title>
   <style>
+    :root {
+      --bg-color: #f8f9fa;
+      --text-color: #202124;
+      --card-bg: #ffffff;
+      --border-color: #dadce0;
+    }
+
     body {
       font-family: Arial, sans-serif;
-      padding: 20px;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 32px 24px;
+      line-height: 1.5;
     }
-    .demo-container {
-      margin-bottom: 40px;
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 36px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 26px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .demo-section {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 32px;
+      box-shadow: 0 1px 3px rgba(60, 64, 67, 0.08);
+    }
+
+    .demo-section h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
+
+    /* Section 1: Article Byline & Action Bar Demo */
+    .article-header {
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+      background: #ffffff;
+    }
+
+    .article-title {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+
+    .byline-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .author-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .author-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #1a73e8;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    .author-text {
+      font-size: 14px;
+    }
+
+    .action-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .publisher-action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 40px;
+      padding: 0 16px;
+      border-radius: 20px;
+      border: 1px solid #dadce0;
+      background: #ffffff;
+      color: #3c4043;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      box-sizing: border-box;
+      transition: background-color 0.2s;
+    }
+
+    .publisher-action-btn:hover {
+      background-color: #f1f3f4;
+    }
+
+    /* Section 2: Multilingual Row */
+    .multilingual-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .lang-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 8px 12px;
+      background: var(--bg-color);
+      border-radius: 8px;
+    }
+
+    .lang-label {
+      width: 160px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #3c4043;
+    }
+
+    /* Section 3: Themes */
+    .themes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .theme-card {
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .theme-card.dark-preview {
+      background: #1e1f20;
+      color: #e3e3e3;
+      border-color: #444746;
+    }
+
+    .theme-card.dark-preview h3 {
+      color: #ffffff;
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .theme-card h3 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    /* Section 4: Constrained Sizes */
+    .constrained-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .constrained-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 8px 12px;
+      background: var(--bg-color);
+      border-radius: 8px;
+    }
+
+    .constrained-label {
+      width: 160px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #3c4043;
     }
   </style>
+  <link rel="canonical" href="https://example.com/demo/preferred-sources-article">
   <script async defer src="/examples/sample-pub/redirect-to/publisher.js"></script>
 </head>
 <body>
-  <h1>Publisher Button Examples</h1>
-  
-  <div class="demo-container">
-    <h2>1. English, Light Theme (Default)</h2>
-    <div google-add-preferred-source-btn data-lang="en"></div>
-  </div>
+  <div class="container">
+    <header>
+      <h1>Preferred Sources Button</h1>
+    </header>
 
-  <div class="demo-container">
-    <h2>2. Spanish, Dark Theme</h2>
-    <div google-add-preferred-source-btn data-lang="es" data-theme="dark"></div>
-  </div>
+    <!-- SECTION 1: INLINE FLOW & FIT-CONTENT PARTICIPATION -->
+    <div class="demo-section">
+      <h2>1. Inline Action Bar Flow & Intrinsic Sizing</h2>
 
-  <div class="demo-container">
-    <h2>3. German (DE), Light Theme (Default)</h2>
-    <div google-add-preferred-source-btn data-lang="de"></div>
-  </div>
+      <div class="article-header">
+        <div class="article-title">Exploring the Deep Cosmos: New Discoveries in Observational Astronomy</div>
+        <div class="byline-bar">
+          <div class="author-info">
+            <div class="author-avatar">SC</div>
+            <div class="author-text">
+              <strong>Dr. Sarah Connor</strong><br>
+              <span style="color: #5f6368; font-size: 12px;">Published 2 hours ago • 5 min read</span>
+            </div>
+          </div>
+          <div class="action-group">
+            <button class="publisher-action-btn" type="button">Follow Author</button>
+            <div google-add-preferred-source-btn data-lang="en"></div>
+            <button class="publisher-action-btn" type="button">Share</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  <div class="demo-container">
-    <h2>4. French (FR), Dark Theme</h2>
-    <div google-add-preferred-source-btn data-lang="fr" data-theme="dark"></div>
-  </div>
+    <!-- SECTION 2: MULTILINGUAL INTRINSIC AUTO-SIZING -->
+    <div class="demo-section">
+      <h2>2. Dynamic Multilingual Intrinsic Sizing</h2>
 
+      <div class="multilingual-grid">
+        <div class="lang-row">
+          <div class="lang-label">English (en)</div>
+          <div google-add-preferred-source-btn data-lang="en"></div>
+        </div>
+        <div class="lang-row">
+          <div class="lang-label">Spanish (es)</div>
+          <div google-add-preferred-source-btn data-lang="es"></div>
+        </div>
+        <div class="lang-row">
+          <div class="lang-label">German (de)</div>
+          <div google-add-preferred-source-btn data-lang="de"></div>
+        </div>
+        <div class="lang-row">
+          <div class="lang-label">French (fr)</div>
+          <div google-add-preferred-source-btn data-lang="fr"></div>
+        </div>
+        <div class="lang-row">
+          <div class="lang-label">Japanese (ja)</div>
+          <div google-add-preferred-source-btn data-lang="ja"></div>
+        </div>
+        <div class="lang-row">
+          <div class="lang-label">Simplified Chinese (zh-cn)</div>
+          <div google-add-preferred-source-btn data-lang="zh-cn"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: THEMES -->
+    <div class="demo-section">
+      <h2>3. Theme Configurations (Light, Dark, & OS-Adaptive)</h2>
+
+      <div class="themes-grid">
+        <div class="theme-card">
+          <h3>Light Theme (data-theme="light")</h3>
+          <div google-add-preferred-source-btn data-lang="en" data-theme="light"></div>
+        </div>
+        <div class="theme-card dark-preview">
+          <h3>Dark Theme (data-theme="dark")</h3>
+          <div google-add-preferred-source-btn data-lang="en" data-theme="dark"></div>
+        </div>
+        <div class="theme-card">
+          <h3>OS-Adaptive (data-theme="auto")</h3>
+          <div google-add-preferred-source-btn data-lang="en" data-theme="auto"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 4: CONSTRAINED SIZES -->
+    <div class="demo-section">
+      <h2>4. Constrained Sizes</h2>
+
+      <div class="constrained-grid">
+        <div class="constrained-row">
+          <div class="constrained-label">Unconstrained</div>
+          <div google-add-preferred-source-btn data-lang="en"></div>
+        </div>
+        <div class="constrained-row">
+          <div class="constrained-label">Width: 180px</div>
+          <div style="width: 180px;" google-add-preferred-source-btn data-lang="en"></div>
+        </div>
+        <div class="constrained-row">
+          <div class="constrained-label">Width: 140px (Floor)</div>
+          <div style="width: 140px;" google-add-preferred-source-btn data-lang="en"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
