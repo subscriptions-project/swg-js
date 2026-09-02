@@ -85,12 +85,15 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     );
   });
 
-  it('should return null for getShadowRoot before attach, and ShadowRoot after attach', () => {
+  it('should return null for getShadowRoot before attach, and open ShadowRoot on container after attach', () => {
     const button = new AddPreferredSourceButton(deps, container);
     expect(button.getShadowRoot()).to.be.null;
+    expect(container.shadowRoot).to.be.null;
 
     button.attach(sandbox.spy());
     expect(button.getShadowRoot()).to.not.be.null;
+    expect(container.shadowRoot).to.equal(button.getShadowRoot());
+    expect(container.shadowRoot.mode).to.equal('open');
   });
 
   it('should fallback to global document if container has no ownerDocument', () => {
@@ -101,7 +104,7 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     };
     const button = new AddPreferredSourceButton(deps, fakeContainer);
     button.attach(sandbox.spy());
-    expect(fakeContainer.attachShadow).to.have.been.calledOnce;
+    expect(fakeContainer.attachShadow).to.have.been.calledWith({mode: 'open'});
     expect(fakeContainer.setAttribute).to.have.been.calledWith(
       'aria-live',
       'polite'

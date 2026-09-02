@@ -47,7 +47,7 @@ export class AddPreferredSourceButton {
    */
   attach(clickHandler: () => Promise<boolean>): void {
     const doc = this.container_.ownerDocument || document;
-    const shadow = this.container_.attachShadow({mode: 'closed'});
+    const shadow = this.container_.attachShadow({mode: 'open'});
     this.shadow_ = shadow;
 
     const lang = this.options_.lang || 'en';
