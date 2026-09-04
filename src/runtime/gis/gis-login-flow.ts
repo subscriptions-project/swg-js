@@ -46,6 +46,9 @@ export class GisLoginFlow {
   private readonly positions = new Map<string, ValidatedCoordinates>();
   private rafId: number | null = null;
   private readonly resizeHandler = this.scheduleUpdate.bind(this);
+  private resizeObserver: ResizeObserver | null = null;
+
+  private observedFrameElement: HTMLIFrameElement | null = null;
 
   private readonly doc: Doc;
   private readonly eventManager: ClientEventManager;
@@ -63,7 +66,29 @@ export class GisLoginFlow {
       this.handleLoginButtonCoordinates.bind(this)
     );
     this.doc.getWin().addEventListener('resize', this.resizeHandler);
+    this.doc.getWin().addEventListener('scroll', this.resizeHandler, {
+      passive: true,
+    });
     this.activityIframeView.onResize(this.resizeHandler);
+
+    const iframe = this.activityIframeView.getElement();
+    const win = this.doc.getWin();
+    const ResizeObserverClass = (
+      win as unknown as {ResizeObserver?: typeof ResizeObserver}
+    ).ResizeObserver;
+    if (ResizeObserverClass && iframe) {
+      this.resizeObserver = new ResizeObserverClass(() => {
+        win.setTimeout(() => {
+          this.scheduleUpdate();
+        }, 0);
+      });
+      this.resizeObserver.observe(iframe);
+      const frameElement = this.getFrameElement(iframe);
+      if (frameElement) {
+        this.resizeObserver.observe(frameElement);
+        this.observedFrameElement = frameElement;
+      }
+    }
 
     this.deps
       .gisInteropManager()
@@ -74,28 +99,82 @@ export class GisLoginFlow {
    * Removes all overlays.
    */
   dispose() {
+    this.resizeObserver?.disconnect();
+    this.observedFrameElement = null;
     for (const overlay of this.overlays.values()) {
       overlay.remove();
     }
     this.overlays.clear();
     if (this.rafId) {
       this.doc.getWin().cancelAnimationFrame(this.rafId);
+      this.rafId = null;
     }
     this.doc.getWin().removeEventListener('resize', this.resizeHandler);
+    this.doc.getWin().removeEventListener('scroll', this.resizeHandler);
     this.deps.gisInteropManager()?.setCompleteLoginCallback?.(null);
+  }
+
+  private getFrameOffset(element: HTMLIFrameElement): {
+    left: number;
+    top: number;
+  } {
+    let left = 0;
+    let top = 0;
+    let currentWin: Window | null = null;
+    try {
+      currentWin = element.ownerDocument?.defaultView || null;
+    } catch {
+      return {left: 0, top: 0};
+    }
+
+    const rootWin = this.doc.getWin();
+    while (currentWin && currentWin !== rootWin) {
+      try {
+        const frame = currentWin.frameElement as HTMLIFrameElement | null;
+        if (!frame) {
+          break;
+        }
+        const rect = frame.getBoundingClientRect();
+        left += rect.left;
+        top += rect.top;
+        currentWin = frame.ownerDocument?.defaultView || null;
+      } catch {
+        break;
+      }
+    }
+    return {left, top};
+  }
+
+  private getFrameElement(
+    element: HTMLIFrameElement
+  ): HTMLIFrameElement | null {
+    try {
+      const win = element.ownerDocument?.defaultView;
+      if (win === this.doc.getWin()) {
+        return null;
+      }
+      return (win?.frameElement || null) as HTMLIFrameElement | null;
+    } catch {
+      return null;
+    }
   }
 
   private updateOverlays() {
     this.positions.forEach((p, id) => {
       const iframe = this.activityIframeView.getElement();
-      const iframeBoundingBox = iframe.getBoundingClientRect();
-      const iframeHeight = iframeBoundingBox.height;
-      const iframeWidth = iframeBoundingBox.width;
-      const windowWidth = this.doc.getWin()./*OK*/ innerWidth;
-      const windowHeight = this.doc.getWin()./*OK*/ innerHeight;
+      if (this.resizeObserver && !this.observedFrameElement) {
+        const frameElement = this.getFrameElement(iframe);
+        if (frameElement) {
+          this.resizeObserver.observe(frameElement);
+          this.observedFrameElement = frameElement;
+        }
+      }
 
-      const offsetLeft = (windowWidth - iframeWidth) / 2 + p.left;
-      const offsetTop = windowHeight - (iframeHeight - p.top);
+      const frameOffset = this.getFrameOffset(iframe);
+      const innerRect = iframe.getBoundingClientRect();
+
+      const offsetLeft = frameOffset.left + innerRect.left + p.left;
+      const offsetTop = frameOffset.top + innerRect.top + p.top;
 
       const overlay = this.overlays.get(id)!;
       setImportantStyles(overlay, {
@@ -156,16 +235,21 @@ export class GisLoginFlow {
   private createOverlay(key: string) {
     const overlay = createElement(this.doc.getRootNode(), 'div', {});
     setImportantStyles(overlay, {
-      'position': 'absolute',
+      'position': 'fixed',
+      'box-sizing': 'border-box',
+      'border': 'none',
+      'margin': '0',
+      'padding': '0',
+      'overflow': 'hidden',
       'opacity': '0',
       'background-color': 'transparent',
       'z-index': '2147483647',
       'pointer-events': 'auto',
       'cursor': 'pointer',
     });
-    this.renderButton(overlay);
     this.overlays.set(key, overlay);
     this.doc.getBody()?.appendChild(overlay);
+    this.renderButton(overlay);
     return overlay;
   }
 

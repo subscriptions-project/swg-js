@@ -38,6 +38,7 @@ describes.realWin('GisLoginFlow', (env) => {
   let eventManagerMock;
   let gisInteropManagerMock;
   let depsMock;
+  let friendlyIframe;
 
   beforeEach(() => {
     const coordinates = new ElementCoordinates();
@@ -80,7 +81,20 @@ describes.realWin('GisLoginFlow', (env) => {
       getHead: () => win.document.head,
     };
 
-    const el = win.document.createElement('iframe');
+    friendlyIframe = win.document.createElement('iframe');
+    win.document.body.appendChild(friendlyIframe);
+    sandbox.stub(friendlyIframe, 'getBoundingClientRect').returns({
+      width: 500,
+      height: 500,
+      left: 250,
+      top: 500,
+      right: 750,
+      bottom: 1000,
+    });
+
+    const iframeDoc = friendlyIframe.contentDocument;
+    const el = iframeDoc.createElement('iframe');
+    iframeDoc.body.appendChild(el);
     sandbox.stub(el, 'getBoundingClientRect').returns({
       width: 500,
       height: 500,
@@ -131,6 +145,7 @@ describes.realWin('GisLoginFlow', (env) => {
 
   afterEach(() => {
     gisLoginFlow?.dispose();
+    friendlyIframe?.remove();
     delete self.google;
   });
 
@@ -155,6 +170,47 @@ describes.realWin('GisLoginFlow', (env) => {
       expect(win.requestAnimationFrame).to.have.been.called;
     });
 
+    it('observes iframe resize with ResizeObserver and disconnects on dispose', () => {
+      let observerCallback;
+      const observeSpy = sandbox.spy();
+      const disconnectSpy = sandbox.spy();
+
+      class MockResizeObserver {
+        constructor(callback) {
+          observerCallback = callback;
+        }
+        observe = observeSpy;
+        disconnect = disconnectSpy;
+      }
+
+      win.ResizeObserver = MockResizeObserver;
+
+      gisLoginFlow.dispose();
+      gisLoginFlow = new GisLoginFlow(depsMock, activityIframeView);
+
+      expect(observeSpy).to.have.been.calledWith(
+        activityIframeView.getElement()
+      );
+      expect(observeSpy).to.have.been.calledWith(friendlyIframe);
+
+      // Trigger resize callback and verify scheduleUpdate is called after timeout
+      const setTimeoutStub = sandbox
+        .stub(win, 'setTimeout')
+        .callsFake((cb) => cb());
+      observerCallback();
+      expect(setTimeoutStub).to.have.been.called;
+
+      gisLoginFlow.dispose();
+      expect(disconnectSpy).to.have.been.called;
+    });
+
+    it('does not observe iframe when ResizeObserver is undefined', () => {
+      delete win.ResizeObserver;
+      gisLoginFlow.dispose();
+      gisLoginFlow = new GisLoginFlow(depsMock, activityIframeView);
+      gisLoginFlow.dispose();
+    });
+
     it('creates an overlay bounds on message and styles it appropriately', () => {
       win.innerWidth = 1000;
       win.innerHeight = 1000;
@@ -166,6 +222,7 @@ describes.realWin('GisLoginFlow', (env) => {
       // iframe is 500x500. Inner window is 1000x1000.
       // offsetLeft = (1000 - 500) / 2 + 10 = 250 + 10 = 260
       // offsetTop = 1000 - (500 - 10) = 1000 - 490 = 510
+      expect(getStyle(overlays[0], 'position')).to.equal('fixed');
       expect(getStyle(overlays[0], 'left')).to.equal('260px');
       expect(getStyle(overlays[0], 'top')).to.equal('510px');
       expect(getStyle(overlays[0], 'width')).to.equal('100px');
@@ -180,6 +237,62 @@ describes.realWin('GisLoginFlow', (env) => {
           'logo_alignment': 'left',
           'click_listener': sandbox.match.func,
         }
+      );
+    });
+
+    it('correctly calculates overlay position when outer dialog is center-positioned', () => {
+      friendlyIframe.getBoundingClientRect.returns({
+        width: 500,
+        height: 500,
+        left: 200,
+        top: 150,
+        right: 700,
+        bottom: 650,
+      });
+
+      messageMap[message.label()](message);
+
+      const overlays = win.document.body.querySelectorAll('div');
+      expect(overlays.length).to.equal(1);
+      // dialogRect.left = 200, innerRect.left = 0, p.left = 10 => 210px
+      // dialogRect.top = 150, innerRect.top = 0, p.top = 10 => 160px
+      expect(getStyle(overlays[0], 'left')).to.equal('210px');
+      expect(getStyle(overlays[0], 'top')).to.equal('160px');
+    });
+
+    it('falls back to element bounding rect when element is not inside a friendly iframe', () => {
+      const standaloneEl = win.document.createElement('iframe');
+      sandbox.stub(standaloneEl, 'getBoundingClientRect').returns({
+        width: 400,
+        height: 300,
+        left: 50,
+        top: 60,
+        right: 450,
+        bottom: 360,
+      });
+      activityIframeView.getElement.returns(standaloneEl);
+
+      messageMap[message.label()](message);
+
+      const overlays = win.document.body.querySelectorAll('div');
+      expect(overlays.length).to.equal(1);
+      // innerRect.left = 50, p.left = 10 => 60px
+      // innerRect.top = 60, p.top = 10 => 70px
+      expect(getStyle(overlays[0], 'left')).to.equal('60px');
+      expect(getStyle(overlays[0], 'top')).to.equal('70px');
+    });
+
+    it('listens for scroll events from window and cleans up on dispose', () => {
+      expect(win.addEventListener).to.have.been.calledWith(
+        'scroll',
+        sandbox.match.func,
+        {passive: true}
+      );
+
+      gisLoginFlow.dispose();
+      expect(win.removeEventListener).to.have.been.calledWith(
+        'scroll',
+        sandbox.match.func
       );
     });
 
