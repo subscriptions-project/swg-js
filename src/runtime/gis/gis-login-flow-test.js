@@ -178,6 +178,7 @@ describes.realWin('GisLoginFlow', (env) => {
           'theme': 'outline',
           'text': 'continue_with',
           'logo_alignment': 'left',
+          'width': 190,
           'click_listener': sandbox.match.func,
         }
       );

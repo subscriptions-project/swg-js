@@ -175,6 +175,7 @@ export class GisLoginFlow {
       'theme': 'outline',
       'text': 'continue_with',
       'logo_alignment': 'left',
+      'width': 190,
       'click_listener': this.overlayClick.bind(this),
     });
   }
