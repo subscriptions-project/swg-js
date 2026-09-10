@@ -157,7 +157,7 @@ export class GisLoginFlow {
     const overlay = createElement(this.doc.getRootNode(), 'div', {});
     setImportantStyles(overlay, {
       'position': 'absolute',
-      'opacity': '0',
+      'opacity': '0.001',
       'background-color': 'transparent',
       'z-index': '2147483647',
       'pointer-events': 'auto',
