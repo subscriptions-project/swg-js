@@ -836,6 +836,7 @@ describe('ElementCoordinates', () => {
     elementcoordinates1.setTop(0);
     elementcoordinates1.setWidth(0);
     elementcoordinates1.setHeight(0);
+    elementcoordinates1.setDisabled(false);
 
     let elementcoordinatesDeserialized;
 
@@ -857,6 +858,8 @@ describe('ElementCoordinates', () => {
         elementcoordinates1.getWidth());
     expect(elementcoordinatesDeserialized.getHeight()).to.deep.equal(
         elementcoordinates1.getHeight());
+    expect(elementcoordinatesDeserialized.getDisabled()).to.deep.equal(
+        elementcoordinates1.getDisabled());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -876,6 +879,8 @@ describe('ElementCoordinates', () => {
         elementcoordinates1.getWidth());
     expect(elementcoordinatesDeserialized.getHeight()).to.deep.equal(
         elementcoordinates1.getHeight());
+    expect(elementcoordinatesDeserialized.getDisabled()).to.deep.equal(
+        elementcoordinates1.getDisabled());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -894,6 +899,8 @@ describe('ElementCoordinates', () => {
         elementcoordinates1.getWidth());
     expect(elementcoordinatesDeserialized.getHeight()).to.deep.equal(
         elementcoordinates1.getHeight());
+    expect(elementcoordinatesDeserialized.getDisabled()).to.deep.equal(
+        elementcoordinates1.getDisabled());
   });
 });
 

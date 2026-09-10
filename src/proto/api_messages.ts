@@ -1206,6 +1206,7 @@ export class ElementCoordinates implements Message {
   private top_: number | null;
   private width_: number | null;
   private height_: number | null;
+  private disabled_: boolean | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
@@ -1219,6 +1220,8 @@ export class ElementCoordinates implements Message {
     this.width_ = data[3 + base] == null ? null : (data[3 + base] as number);
 
     this.height_ = data[4 + base] == null ? null : (data[4 + base] as number);
+
+    this.disabled_ = data[5 + base] == null ? null : (data[5 + base] as boolean);
   }
 
   getId(): string | null {
@@ -1261,6 +1264,14 @@ export class ElementCoordinates implements Message {
     this.height_ = value;
   }
 
+  getDisabled(): boolean | null {
+    return this.disabled_;
+  }
+
+  setDisabled(value: boolean): void {
+    this.disabled_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.id_, // field 1 - id
@@ -1268,6 +1279,7 @@ export class ElementCoordinates implements Message {
       this.top_, // field 3 - top
       this.width_, // field 4 - width
       this.height_, // field 5 - height
+      this.disabled_, // field 6 - disabled
     ];
     if (includeLabel) {
       arr.unshift(this.label());
