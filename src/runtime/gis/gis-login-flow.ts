@@ -36,6 +36,7 @@ interface ValidatedCoordinates {
   top: number;
   width: number;
   height: number;
+  disabled: boolean;
 }
 
 /**
@@ -103,6 +104,7 @@ export class GisLoginFlow {
         'top': `${offsetTop}px`,
         'width': `${p.width}px`,
         'height': `${p.height}px`,
+        'pointer-events': p.disabled ? 'none' : 'auto',
       });
     });
   }
@@ -140,6 +142,7 @@ export class GisLoginFlow {
     const top = position.getTop();
     const width = position.getWidth();
     const height = position.getHeight();
+    const disabled = !!position.getDisabled();
 
     if (
       id === null ||
@@ -150,7 +153,7 @@ export class GisLoginFlow {
     ) {
       return null;
     }
-    return {id, left, top, width, height};
+    return {id, left, top, width, height, disabled};
   }
 
   private createOverlay(key: string) {

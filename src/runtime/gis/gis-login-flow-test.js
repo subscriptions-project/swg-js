@@ -170,6 +170,7 @@ describes.realWin('GisLoginFlow', (env) => {
       expect(getStyle(overlays[0], 'top')).to.equal('510px');
       expect(getStyle(overlays[0], 'width')).to.equal('100px');
       expect(getStyle(overlays[0], 'height')).to.equal('30px');
+      expect(getStyle(overlays[0], 'pointer-events')).to.equal('auto');
 
       expect(win.google.accounts.id.renderButton).to.have.been.calledWith(
         overlays[0],
@@ -182,6 +183,57 @@ describes.realWin('GisLoginFlow', (env) => {
           'click_listener': sandbox.match.func,
         }
       );
+    });
+
+    it('sets pointer-events to none when coordinate is disabled', () => {
+      const disabledCoords = new ElementCoordinates();
+      disabledCoords.setId('1');
+      disabledCoords.setLeft(10);
+      disabledCoords.setTop(10);
+      disabledCoords.setWidth(100);
+      disabledCoords.setHeight(30);
+      disabledCoords.setDisabled(true);
+
+      const disabledMessage = new LoginButtonCoordinates();
+      disabledMessage.setLoginButtonCoordinatesList([disabledCoords]);
+
+      messageMap[disabledMessage.label()](disabledMessage);
+
+      const overlays = win.document.body.querySelectorAll('div');
+      expect(overlays.length).to.equal(1);
+      expect(getStyle(overlays[0], 'pointer-events')).to.equal('none');
+    });
+
+    it('updates pointer-events from none to auto when coordinate is re-enabled', () => {
+      const disabledCoords = new ElementCoordinates();
+      disabledCoords.setId('1');
+      disabledCoords.setLeft(10);
+      disabledCoords.setTop(10);
+      disabledCoords.setWidth(100);
+      disabledCoords.setHeight(30);
+      disabledCoords.setDisabled(true);
+
+      const disabledMessage = new LoginButtonCoordinates();
+      disabledMessage.setLoginButtonCoordinatesList([disabledCoords]);
+      messageMap[disabledMessage.label()](disabledMessage);
+
+      const overlays = win.document.body.querySelectorAll('div');
+      expect(overlays.length).to.equal(1);
+      expect(getStyle(overlays[0], 'pointer-events')).to.equal('none');
+
+      const enabledCoords = new ElementCoordinates();
+      enabledCoords.setId('1');
+      enabledCoords.setLeft(10);
+      enabledCoords.setTop(10);
+      enabledCoords.setWidth(100);
+      enabledCoords.setHeight(30);
+      enabledCoords.setDisabled(false);
+
+      const enabledMessage = new LoginButtonCoordinates();
+      enabledMessage.setLoginButtonCoordinatesList([enabledCoords]);
+      messageMap[enabledMessage.label()](enabledMessage);
+
+      expect(getStyle(overlays[0], 'pointer-events')).to.equal('auto');
     });
 
     it('ignores invalid coordinate payload', () => {
