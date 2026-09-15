@@ -19,7 +19,7 @@
  * Auto generated, do not edit
  */
 
-import {AccountCreationRequest, ActionRequest, ActionType, AddPreferredSourceRequest, AddPreferredSourceResponse, AddPreferredSourceStatus, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CloseWindowRequest, CompleteAudienceActionResponse, CtaMode, Duration, ElementCoordinates, EmailValidationStatus, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, GisMode, GisSignIn, LinkSaveTokenRequest, LinkingInfoResponse, LoginButtonCoordinates, OpenDialogRequest, OptInType, ReaderSurfaceType, RewardedAdAlternateActionRequest, RewardedAdLoadAdRequest, RewardedAdLoadAdResponse, RewardedAdViewAdRequest, SkuSelectedResponse, SmartBoxMessage, StartGisSignIn, SubscribeResponse, SubscriptionLinkingCompleteResponse, SubscriptionLinkingLinkResult, SubscriptionLinkingResponse, SurveyAnswer, SurveyDataTransferRequest, SurveyDataTransferResponse, SurveyQuestion, Timestamp, ToastCloseRequest, UpdateAddPreferredSourceButtonRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
+import {AccountCreationRequest, ActionRequest, ActionType, AddPreferredSourceRequest, AddPreferredSourceResponse, AddPreferredSourceStatus, AlreadySubscribedResponse, AnalyticsContext, AnalyticsEvent, AnalyticsEventMeta, AnalyticsRequest, AudienceActivityClientLogsRequest, CloseWindowRequest, CompleteAudienceActionResponse, CtaMode, Duration, ElementCoordinates, EmailValidationStatus, EntitlementJwt, EntitlementResult, EntitlementSource, EntitlementsRequest, EntitlementsResponse, EventOriginator, EventParams, FinishedLoggingResponse, GisMode, GisSignIn, LinkSaveTokenRequest, LinkingInfoResponse, LoginButtonCoordinates, OpenDialogRequest, OptInType, PreferredSourcesAddSourceTrigger, PreferredSourcesInstallType, ReaderSurfaceType, RewardedAdAlternateActionRequest, RewardedAdLoadAdRequest, RewardedAdLoadAdResponse, RewardedAdViewAdRequest, SkuSelectedResponse, SmartBoxMessage, StartGisSignIn, SubscribeResponse, SubscriptionLinkingCompleteResponse, SubscriptionLinkingLinkResult, SubscriptionLinkingResponse, SurveyAnswer, SurveyDataTransferRequest, SurveyDataTransferResponse, SurveyQuestion, Timestamp, ToastCloseRequest, UpdateAddPreferredSourceButtonRequest, ViewSubscriptionsResponse, deserialize, getLabel} from './api_messages';
 
 describe('deserialize', () => {
   it('throws if deserialization fails', () => {
@@ -552,6 +552,8 @@ describe('AnalyticsRequest', () => {
     eventparams1.setAddPreferredSourceStatus(AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_UNSPECIFIED);
     eventparams1.setCanonicalUrl('');
     eventparams1.setUvSiteChunk('');
+    eventparams1.setPreferredSourcesInstallType(PreferredSourcesInstallType.PREFERRED_SOURCES_INSTALL_TYPE_UNSPECIFIED);
+    eventparams1.setPreferredSourcesAddSourceTrigger(PreferredSourcesAddSourceTrigger.PREFERRED_SOURCES_ADD_SOURCE_TRIGGER_UNSPECIFIED);
     analyticsrequest1.setParams(eventparams1);
 
     let analyticsrequestDeserialized;
@@ -1115,6 +1117,8 @@ describe('EventParams', () => {
     eventparams1.setAddPreferredSourceStatus(AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_UNSPECIFIED);
     eventparams1.setCanonicalUrl('');
     eventparams1.setUvSiteChunk('');
+    eventparams1.setPreferredSourcesInstallType(PreferredSourcesInstallType.PREFERRED_SOURCES_INSTALL_TYPE_UNSPECIFIED);
+    eventparams1.setPreferredSourcesAddSourceTrigger(PreferredSourcesAddSourceTrigger.PREFERRED_SOURCES_ADD_SOURCE_TRIGGER_UNSPECIFIED);
 
     let eventparamsDeserialized;
 
@@ -1160,6 +1164,10 @@ describe('EventParams', () => {
         eventparams1.getCanonicalUrl());
     expect(eventparamsDeserialized.getUvSiteChunk()).to.deep.equal(
         eventparams1.getUvSiteChunk());
+    expect(eventparamsDeserialized.getPreferredSourcesInstallType()).to.deep.equal(
+        eventparams1.getPreferredSourcesInstallType());
+    expect(eventparamsDeserialized.getPreferredSourcesAddSourceTrigger()).to.deep.equal(
+        eventparams1.getPreferredSourcesAddSourceTrigger());
 
     // Verify includeLabel true
     // Verify serialized arrays.
@@ -1203,6 +1211,10 @@ describe('EventParams', () => {
         eventparams1.getCanonicalUrl());
     expect(eventparamsDeserialized.getUvSiteChunk()).to.deep.equal(
         eventparams1.getUvSiteChunk());
+    expect(eventparamsDeserialized.getPreferredSourcesInstallType()).to.deep.equal(
+        eventparams1.getPreferredSourcesInstallType());
+    expect(eventparamsDeserialized.getPreferredSourcesAddSourceTrigger()).to.deep.equal(
+        eventparams1.getPreferredSourcesAddSourceTrigger());
 
     // Verify includeLabel false
     // Verify serialized arrays.
@@ -1245,6 +1257,10 @@ describe('EventParams', () => {
         eventparams1.getCanonicalUrl());
     expect(eventparamsDeserialized.getUvSiteChunk()).to.deep.equal(
         eventparams1.getUvSiteChunk());
+    expect(eventparamsDeserialized.getPreferredSourcesInstallType()).to.deep.equal(
+        eventparams1.getPreferredSourcesInstallType());
+    expect(eventparamsDeserialized.getPreferredSourcesAddSourceTrigger()).to.deep.equal(
+        eventparams1.getPreferredSourcesAddSourceTrigger());
   });
 });
 
