@@ -19,6 +19,9 @@ import {AddPreferredSourceFlow} from './add-preferred-source-flow';
 import {
   AddPreferredSourceResponse,
   AddPreferredSourceStatus,
+  AnalyticsEvent,
+  PreferredSourcesAddSourceTrigger,
+  PreferredSourcesInstallType,
 } from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {ClientEventManager} from './client-event-manager';
@@ -103,6 +106,71 @@ describes.realWin('installPublisherRuntime', (env) => {
     installPublisherRuntime(win, {autoStart: false});
 
     expect(pubInitStub).to.not.have.been.called;
+  });
+
+  it('should log EVENT_PUBLISHER_RUNTIME_INSTALLED with AUTO integration type by default', () => {
+    const logSwgEventSpy = sandbox.spy(
+      ClientEventManager.prototype,
+      'logSwgEvent'
+    );
+    win.PREFERRED_SOURCE = undefined;
+    installPublisherRuntime(win);
+
+    expect(logSwgEventSpy).to.have.been.calledWith(
+      AnalyticsEvent.EVENT_PUBLISHER_RUNTIME_INSTALLED,
+      false,
+      sandbox.match((params) => {
+        return (
+          params.getPreferredSourcesInstallType() ===
+          PreferredSourcesInstallType.PREFERRED_SOURCES_INSTALL_TYPE_AUTO
+        );
+      })
+    );
+  });
+
+  it('should log EVENT_PUBLISHER_RUNTIME_INSTALLED with MANUAL integration type when preferred-sources-control="manual"', () => {
+    const logSwgEventSpy = sandbox.spy(
+      ClientEventManager.prototype,
+      'logSwgEvent'
+    );
+    const script = win.document.createElement('script');
+    script.setAttribute('preferred-sources-control', 'manual');
+    win.document.body.appendChild(script);
+
+    win.PREFERRED_SOURCE = undefined;
+    installPublisherRuntime(win);
+
+    expect(logSwgEventSpy).to.have.been.calledWith(
+      AnalyticsEvent.EVENT_PUBLISHER_RUNTIME_INSTALLED,
+      false,
+      sandbox.match((params) => {
+        return (
+          params.getPreferredSourcesInstallType() ===
+          PreferredSourcesInstallType.PREFERRED_SOURCES_INSTALL_TYPE_MANUAL
+        );
+      })
+    );
+    script.remove();
+  });
+
+  it('should log EVENT_PUBLISHER_RUNTIME_INSTALLED with MANUAL integration type when autoStart is false', () => {
+    const logSwgEventSpy = sandbox.spy(
+      ClientEventManager.prototype,
+      'logSwgEvent'
+    );
+    win.PREFERRED_SOURCE = undefined;
+    installPublisherRuntime(win, {autoStart: false});
+
+    expect(logSwgEventSpy).to.have.been.calledWith(
+      AnalyticsEvent.EVENT_PUBLISHER_RUNTIME_INSTALLED,
+      false,
+      sandbox.match((params) => {
+        return (
+          params.getPreferredSourcesInstallType() ===
+          PreferredSourcesInstallType.PREFERRED_SOURCES_INSTALL_TYPE_MANUAL
+        );
+      })
+    );
   });
 
   it('should return defensive fallback dummy object if PREFERRED_SOURCE is initialized without an api property', () => {
@@ -588,6 +656,78 @@ describes.realWin('installPublisherRuntime', (env) => {
     it('should allow init to be called with no arguments', () => {
       const runtime = new PublisherRuntime(win);
       expect(() => runtime.init()).to.not.throw();
+    });
+
+    it('should log ACTION_ADD_PREFERRED_SOURCE with trigger=API when called via api.addPreferredSource', () => {
+      const logSwgEventSpy = sandbox.spy(
+        ClientEventManager.prototype,
+        'logSwgEvent'
+      );
+      api.addPreferredSource();
+
+      expect(logSwgEventSpy).to.have.been.calledWith(
+        AnalyticsEvent.ACTION_ADD_PREFERRED_SOURCE,
+        false,
+        sandbox.match((params) => {
+          return (
+            params.getPreferredSourcesAddSourceTrigger() ===
+              PreferredSourcesAddSourceTrigger.PREFERRED_SOURCES_ADD_SOURCE_TRIGGER_API &&
+            params.getPreferredSourcesInstallType() ===
+              PreferredSourcesInstallType.PREFERRED_SOURCES_INSTALL_TYPE_AUTO
+          );
+        })
+      );
+    });
+
+    it('should sanitize isFromInflatedButton to false when called via api.addPreferredSource', () => {
+      const logSwgEventSpy = sandbox.spy(
+        ClientEventManager.prototype,
+        'logSwgEvent'
+      );
+      api.addPreferredSource({isFromInflatedButton: true});
+
+      expect(logSwgEventSpy).to.have.been.calledWith(
+        AnalyticsEvent.ACTION_ADD_PREFERRED_SOURCE,
+        false,
+        sandbox.match((params) => {
+          return (
+            params.getPreferredSourcesAddSourceTrigger() ===
+            PreferredSourcesAddSourceTrigger.PREFERRED_SOURCES_ADD_SOURCE_TRIGGER_API
+          );
+        })
+      );
+    });
+
+    it('should log ACTION_ADD_PREFERRED_SOURCE with trigger=INFLATED_BUTTON when button attach callback is invoked', async () => {
+      const logSwgEventSpy = sandbox.spy(
+        ClientEventManager.prototype,
+        'logSwgEvent'
+      );
+      const button = win.document.createElement('div');
+      button.setAttribute('google-add-preferred-source-btn', '');
+      win.document.body.appendChild(button);
+
+      api.init({theme: 'dark'});
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      const onResultCallback =
+        AddPreferredSourceButton.prototype.attach.getCall(0).args[0];
+
+      logSwgEventSpy.resetHistory();
+      await onResultCallback();
+
+      expect(logSwgEventSpy).to.have.been.calledWith(
+        AnalyticsEvent.ACTION_ADD_PREFERRED_SOURCE,
+        true,
+        sandbox.match((params) => {
+          return (
+            params.getPreferredSourcesAddSourceTrigger() ===
+              PreferredSourcesAddSourceTrigger.PREFERRED_SOURCES_ADD_SOURCE_TRIGGER_INFLATED_BUTTON &&
+            params.getPreferredSourcesInstallType() ===
+              PreferredSourcesInstallType.PREFERRED_SOURCES_INSTALL_TYPE_AUTO
+          );
+        })
+      );
     });
   });
 });
