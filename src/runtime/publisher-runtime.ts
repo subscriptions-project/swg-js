@@ -17,7 +17,13 @@
 import {ActivityPorts} from '../components/activities';
 import {AddPreferredSourceButton} from '../ui/add-preferred-source-button';
 import {AddPreferredSourceFlow} from './add-preferred-source-flow';
-import {AddPreferredSourceStatus} from '../proto/api_messages';
+import {
+  AddPreferredSourceStatus,
+  AnalyticsEvent,
+  EventParams,
+  PreferredSourcesAddSourceTrigger,
+  PreferredSourcesInstallType,
+} from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {ClientEventManager} from './client-event-manager';
 import {Config} from '../api/subscriptions';
@@ -31,6 +37,7 @@ import {
 } from '../api/preferred-source';
 import {Toast} from '../ui/toast';
 import {feUrl} from './services';
+import {getCanonicalUrl} from '../utils/url';
 import {injectStyleSheet} from '../utils/dom';
 import type {Callbacks} from './callbacks';
 import type {ClientConfigManager} from './client-config-manager';
@@ -44,6 +51,7 @@ import type {Storage} from './storage';
 export class PublisherRuntime implements Deps {
   private readonly win_: Window;
   private readonly doc_: Doc;
+  private readonly installType_: PreferredSourcesInstallType;
   private readonly pageConfig_: PageConfig;
   private readonly eventManager_: ClientEventManager;
   private readonly activityPorts_: ActivityPorts;
@@ -54,14 +62,19 @@ export class PublisherRuntime implements Deps {
   private currentStatus_?: AddPreferredSourceStatus;
   private startedLogging_ = false;
 
-  constructor(win: Window) {
+  constructor(
+    win: Window,
+    installType: PreferredSourcesInstallType = PreferredSourcesInstallType.PREFERRED_SOURCES_INSTALL_TYPE_AUTO
+  ) {
     this.win_ = win;
     this.doc_ = resolveDoc(win);
+    this.installType_ = installType;
     this.pageConfig_ = new PageConfig('publication-id-free', false);
     this.eventManager_ = new ClientEventManager(Promise.resolve());
     this.activityPorts_ = new ActivityPorts(this);
     this.analyticsService_ = new AnalyticsService(this);
     injectStyleSheet(this.doc_, DIALOG_CSS);
+    this.logPublisherRuntimeInstalled_();
   }
 
   // --- Deps Implementation ---
@@ -172,8 +185,29 @@ export class PublisherRuntime implements Deps {
     return 'light';
   }
 
+  /**
+   * Logs the publisher runtime installation telemetry event.
+   */
+  private logPublisherRuntimeInstalled_(): void {
+    this.maybeStartLogging_();
+    const params = new EventParams();
+    params.setPreferredSourcesInstallType(this.installType_);
+    const canonicalUrl = getCanonicalUrl(this.doc_);
+    if (canonicalUrl) {
+      params.setCanonicalUrl(canonicalUrl);
+    }
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.EVENT_PUBLISHER_RUNTIME_INSTALLED,
+      /* isFromUserAction */ false,
+      params
+    );
+  }
+
   // --- Public API Methods ---
 
+  /**
+   * Updates the status for all registered publisher buttons.
+   */
   updateAllButtons(status: AddPreferredSourceStatus): void {
     this.currentStatus_ = status;
     for (const button of this.buttons_) {
@@ -181,6 +215,9 @@ export class PublisherRuntime implements Deps {
     }
   }
 
+  /**
+   * Initializes publisher buttons found on the page.
+   */
   init(args: PreferredSourceButtonOptions = {}): void {
     this.options_ = Object.assign({}, this.options_, args);
     this.maybeStartLogging_();
@@ -203,12 +240,19 @@ export class PublisherRuntime implements Deps {
         buttonComponent.updateStatus(this.currentStatus_);
       }
       buttonComponent.attach(() => {
-        this.addPreferredSource({language: lang, theme});
+        this.addPreferredSource_({
+          language: lang,
+          theme,
+          isFromInflatedButton: true,
+        });
         return Promise.resolve(true);
       });
     }
   }
 
+  /**
+   * Displays the confirmation toast for the add preferred source flow.
+   */
   showToast(
     status: AddPreferredSourceStatus,
     sourceName = '',
@@ -231,8 +275,38 @@ export class PublisherRuntime implements Deps {
     toast.open();
   }
 
-  addPreferredSource(options?: {language?: string; theme?: string}): void {
+  /**
+   * Initiates the Add Preferred Source consent flow via the public API.
+   */
+  addPreferredSource(): void {
+    this.addPreferredSource_({isFromInflatedButton: false});
+  }
+
+  /**
+   * Internal implementation of the Add Preferred Source consent flow and telemetry.
+   */
+  private addPreferredSource_(options?: {
+    language?: string;
+    theme?: string;
+    isFromInflatedButton?: boolean;
+  }): void {
     this.maybeStartLogging_();
+    const actionTrigger = options?.isFromInflatedButton
+      ? PreferredSourcesAddSourceTrigger.PREFERRED_SOURCES_ADD_SOURCE_TRIGGER_INFLATED_BUTTON
+      : PreferredSourcesAddSourceTrigger.PREFERRED_SOURCES_ADD_SOURCE_TRIGGER_API;
+    const params = new EventParams();
+    params.setPreferredSourcesAddSourceTrigger(actionTrigger);
+    params.setPreferredSourcesInstallType(this.installType_);
+    const canonicalUrl = getCanonicalUrl(this.doc_);
+    if (canonicalUrl) {
+      params.setCanonicalUrl(canonicalUrl);
+    }
+    this.eventManager_.logSwgEvent(
+      AnalyticsEvent.ACTION_ADD_PREFERRED_SOURCE,
+      /* isFromUserAction */ Boolean(options?.isFromInflatedButton),
+      params
+    );
+
     const flow = new AddPreferredSourceFlow(this, options);
     flow
       .start()
@@ -266,6 +340,9 @@ interface PublisherWindow extends Window {
       };
 }
 
+/**
+ * Installs the Publisher runtime on the given window, attaches global API handlers, and logs installation telemetry.
+ */
 export function installPublisherRuntime(
   win: Window,
   options?: {autoStart?: boolean}
@@ -281,7 +358,19 @@ export function installPublisherRuntime(
     );
   }
 
-  const runtime = new PublisherRuntime(win);
+  const isManual =
+    options?.autoStart === false ||
+    Boolean(
+      win.document?.querySelector?.(
+        'script[preferred-sources-control="manual"]'
+      )
+    );
+
+  const installType = isManual
+    ? PreferredSourcesInstallType.PREFERRED_SOURCES_INSTALL_TYPE_MANUAL
+    : PreferredSourcesInstallType.PREFERRED_SOURCES_INSTALL_TYPE_AUTO;
+
+  const runtime = new PublisherRuntime(win, installType);
 
   // Set up the API object
   const api: PreferredSourceApi = {
@@ -312,21 +401,8 @@ export function installPublisherRuntime(
     api,
   };
 
-  if (options?.autoStart !== false) {
-    // Handle auto-initialization
-    let autoInit = true;
-    const scripts = win.document.querySelectorAll('script');
-    for (let i = 0; i < scripts.length; i++) {
-      const script = scripts[i];
-      if (script.getAttribute('preferred-sources-control') === 'manual') {
-        autoInit = false;
-        break;
-      }
-    }
-
-    if (autoInit) {
-      runtime.init();
-    }
+  if (!isManual) {
+    runtime.init();
   }
 
   return api;
