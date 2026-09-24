@@ -15,8 +15,13 @@
  */
 'use strict';
 
+const cookieParser = require('cookie-parser');
+const csrf = require('csurf');
 const express = require('express');
 const app = express();
+
+app.use(cookieParser());
+app.use(csrf({cookie: true}));
 
 const bodyParser = require('body-parser');
 app.use(bodyParser.json());
@@ -50,10 +55,14 @@ app.use((req, res, next) => {
 });
 
 // X-Frame-Options and CSP
+const ALLOWED_FRAME_OPTIONS = ['DENY', 'SAMEORIGIN'];
 app.use((req, res, next) => {
-  if (req.query['--X-Frame-Options']) {
+  const frameOptions = ALLOWED_FRAME_OPTIONS.find(
+    (allowed) => allowed === req.query['--X-Frame-Options']
+  );
+  if (frameOptions) {
     res.set({
-      'X-Frame-Options': req.query['--X-Frame-Options'],
+      'X-Frame-Options': frameOptions,
     });
   }
   if (req.query['--CSP']) {
