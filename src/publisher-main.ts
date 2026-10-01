@@ -19,8 +19,12 @@
  * The entry point for publisher runtime (publisher.js).
  */
 
+import {INTERNAL_RUNTIME_VERSION} from './constants';
 import {IS_ESM_BUILD} from './constants';
 import {installPublisherRuntime} from './runtime/publisher-runtime';
+import {log} from './utils/log';
+
+log(`Publisher Runtime: ${INTERNAL_RUNTIME_VERSION}`);
 
 const preferredSource = installPublisherRuntime(self, {
   autoStart: !IS_ESM_BUILD,
