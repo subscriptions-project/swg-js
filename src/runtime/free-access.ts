@@ -25,8 +25,14 @@ export class FreeAccess implements FreeAccessApi {
     'ios-app://com.google.app.ios',
   ];
 
-  private static readonly HOLDBACK_QUERY_PARAM = 'eafs_enabled';
-  private static readonly HOLDBACK_ENABLED_VALUE = 'false';
+  private static readonly EAFS_ENABLED_REFERRERS = [
+     "https://news.google.",
+     "android-app://com.google.android.apps.magazines", // Google News Android app
+  ]
+
+  private static readonly EAFS_QUERY_PARAM = 'eafs_enabled';
+  private static readonly HOLDBACK_VALUE = 'false';
+  private static readonly AFFIRMATIVE_ENABLE_VALUE = 'true';
 
   constructor(private readonly locationProvider = new LocationProvider()) {}
 
@@ -42,10 +48,21 @@ export class FreeAccess implements FreeAccessApi {
     );
     const queryMap = this.getQueryParamsAsMap();
     const holdBackSet =
-      queryMap.has(FreeAccess.HOLDBACK_QUERY_PARAM) &&
-      queryMap.get(FreeAccess.HOLDBACK_QUERY_PARAM) ===
-        FreeAccess.HOLDBACK_ENABLED_VALUE;
-    return googleReferer && !holdBackSet;
+      queryMap.has(FreeAccess.EAFS_QUERY_PARAM) &&
+      queryMap.get(FreeAccess.EAFS_QUERY_PARAM) ===
+        FreeAccess.HOLDBACK_VALUE;
+    if (googleReferer) {
+      return !holdBackSet
+    }
+
+    const affirmativeQueryParamReferrer =  FreeAccess.EAFS_ENABLED_REFERRERS.some(
+      (prefix) => self.document.referrer.toLowerCase().startsWith(prefix)
+    );
+    const affirmativeQueryParamSet =
+      queryMap.has(FreeAccess.EAFS_QUERY_PARAM) &&
+      queryMap.get(FreeAccess.EAFS_QUERY_PARAM) ===
+        FreeAccess.AFFIRMATIVE_ENABLE_VALUE;
+    return affirmativeQUeryParamReferrer && affirmativeQUeryParamSet;
   }
 
   private getQueryParamsAsMap(): Map<string, string> {
