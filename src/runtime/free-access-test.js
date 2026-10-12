@@ -98,5 +98,150 @@ describes.realWin('FreeAccess', () => {
       expect(freeAccess.shouldAllowFreeAccess()).to.be.true;
       expect(self.document.referrer).to.be.equal(fakeReferrer);
     });
+    // Google News web (https://news.google.*) requires an affirmative
+    // eafs_enabled=true.
+    it('do not allow for Google News web referrer without eafs_enabled', () => {
+      const fakeReferrer = 'https://news.google.com/';
+      // Redefine the property
+      Object.defineProperty(self.document, 'referrer', {
+        value: fakeReferrer,
+        writable: false,
+        configurable: true,
+      });
+      const mockLocation = sandbox.createStubInstance(LocationProvider);
+      mockLocation.getSearch.returns('?foo=bar');
+      const freeAccess = new FreeAccess(mockLocation);
+      expect(freeAccess.shouldAllowFreeAccess()).to.be.false;
+      expect(self.document.referrer).to.be.equal(fakeReferrer);
+    });
+    it('allow for Google News web referer with eafs_enabled=true', () => {
+      const fakeReferrer = 'https://news.google.com/';
+      // Redefine the property
+      Object.defineProperty(self.document, 'referrer', {
+        value: fakeReferrer,
+        writable: false,
+        configurable: true,
+      });
+      const mockLocation = sandbox.createStubInstance(LocationProvider);
+      mockLocation.getSearch.returns('?foo=bar&eafs_enabled=true');
+      const freeAccess = new FreeAccess(mockLocation);
+      expect(freeAccess.shouldAllowFreeAccess()).to.be.true;
+      expect(self.document.referrer).to.be.equal(fakeReferrer);
+    });
+    it('dont allow for Google News web referer with eafs_enabled=false', () => {
+      const fakeReferrer = 'https://news.google.com/';
+      // Redefine the property
+      Object.defineProperty(self.document, 'referrer', {
+        value: fakeReferrer,
+        writable: false,
+        configurable: true,
+      });
+      const mockLocation = sandbox.createStubInstance(LocationProvider);
+      mockLocation.getSearch.returns('?foo=bar&eafs_enabled=false');
+      const freeAccess = new FreeAccess(mockLocation);
+      expect(freeAccess.shouldAllowFreeAccess()).to.be.false;
+      expect(self.document.referrer).to.be.equal(fakeReferrer);
+    });
+    it('allow for non-.com Google News web referer with eafs_enabled=true', () => {
+      const fakeReferrer = 'https://news.google.co.uk/';
+      // Redefine the property
+      Object.defineProperty(self.document, 'referrer', {
+        value: fakeReferrer,
+        writable: false,
+        configurable: true,
+      });
+      const mockLocation = sandbox.createStubInstance(LocationProvider);
+      mockLocation.getSearch.returns('?eafs_enabled=true');
+      const freeAccess = new FreeAccess(mockLocation);
+      expect(freeAccess.shouldAllowFreeAccess()).to.be.true;
+      expect(self.document.referrer).to.be.equal(fakeReferrer);
+    });
+    it('dont allow for lookalike Google News web referer with eafs_enabled=true', () => {
+      const fakeReferrer = 'https://news.googlee.com/';
+      // Redefine the property
+      Object.defineProperty(self.document, 'referrer', {
+        value: fakeReferrer,
+        writable: false,
+        configurable: true,
+      });
+      const mockLocation = sandbox.createStubInstance(LocationProvider);
+      mockLocation.getSearch.returns('?eafs_enabled=true');
+      const freeAccess = new FreeAccess(mockLocation);
+      expect(freeAccess.shouldAllowFreeAccess()).to.be.false;
+      expect(self.document.referrer).to.be.equal(fakeReferrer);
+    });
+    // Google News Android app (android-app://com.google.android.apps.magazines)
+    // requires an affirmative eafs_enabled=true.
+    it('dont allow for Google News Android referer without eafs_enabled', () => {
+      const fakeReferrer = 'android-app://com.google.android.apps.magazines';
+      // Redefine the property
+      Object.defineProperty(self.document, 'referrer', {
+        value: fakeReferrer,
+        writable: false,
+        configurable: true,
+      });
+      const mockLocation = sandbox.createStubInstance(LocationProvider);
+      mockLocation.getSearch.returns('?foo=bar');
+      const freeAccess = new FreeAccess(mockLocation);
+      expect(freeAccess.shouldAllowFreeAccess()).to.be.false;
+      expect(self.document.referrer).to.be.equal(fakeReferrer);
+    });
+    it('allow for Google News Android referer with eafs_enabled=true', () => {
+      const fakeReferrer = 'android-app://com.google.android.apps.magazines';
+      // Redefine the property
+      Object.defineProperty(self.document, 'referrer', {
+        value: fakeReferrer,
+        writable: false,
+        configurable: true,
+      });
+      const mockLocation = sandbox.createStubInstance(LocationProvider);
+      mockLocation.getSearch.returns('?foo=bar&eafs_enabled=true');
+      const freeAccess = new FreeAccess(mockLocation);
+      expect(freeAccess.shouldAllowFreeAccess()).to.be.true;
+      expect(self.document.referrer).to.be.equal(fakeReferrer);
+    });
+    it('dont allow for Google News Android referer with eafs_enabled=false', () => {
+      const fakeReferrer = 'android-app://com.google.android.apps.magazines';
+      // Redefine the property
+      Object.defineProperty(self.document, 'referrer', {
+        value: fakeReferrer,
+        writable: false,
+        configurable: true,
+      });
+      const mockLocation = sandbox.createStubInstance(LocationProvider);
+      mockLocation.getSearch.returns('?foo=bar&eafs_enabled=false');
+      const freeAccess = new FreeAccess(mockLocation);
+      expect(freeAccess.shouldAllowFreeAccess()).to.be.false;
+      expect(self.document.referrer).to.be.equal(fakeReferrer);
+    });
+    // eafs_enabled=true alone must not grant access for other referrers.
+    it('dont allow for non-Google referer with eafs_enabled=true', () => {
+      const fakeReferrer = 'https://www.example.com/';
+      // Redefine the property
+      Object.defineProperty(self.document, 'referrer', {
+        value: fakeReferrer,
+        writable: false,
+        configurable: true,
+      });
+      const mockLocation = sandbox.createStubInstance(LocationProvider);
+      mockLocation.getSearch.returns('?foo=bar&eafs_enabled=true');
+      const freeAccess = new FreeAccess(mockLocation);
+      expect(freeAccess.shouldAllowFreeAccess()).to.be.false;
+      expect(self.document.referrer).to.be.equal(fakeReferrer);
+    });
+    it('dont allow for empty referer with eafs_enabled=true', () => {
+      const fakeReferrer = '';
+      // Redefine the property
+      Object.defineProperty(self.document, 'referrer', {
+        value: fakeReferrer,
+        writable: false,
+        configurable: true,
+      });
+      const mockLocation = sandbox.createStubInstance(LocationProvider);
+      mockLocation.getSearch.returns('?eafs_enabled=true');
+      const freeAccess = new FreeAccess(mockLocation);
+      expect(freeAccess.shouldAllowFreeAccess()).to.be.false;
+      expect(self.document.referrer).to.be.equal(fakeReferrer);
+    });
   });
 });
