@@ -62,6 +62,20 @@ const INLINE_CTA_ATTRIUBUTE_QUERY = 'div[rrm-inline-cta]';
 const INLINE_CTA_ATTRIUBUTE = 'rrm-inline-cta';
 
 /**
+ * First-layer mitigation for background-tab socket suspension: when returning
+ * from an external payment redirect (e.g., UPI intent or 3DS), the document's
+ * `visibilitychange`/`focus` event can fire slightly before the browser's
+ * network service finishes waking up and invalidating suspended sockets.
+ *
+ * 50ms is chosen to be long enough for the browser's network stack to resume
+ * on most devices, while short enough to add minimal delay before initiating
+ * iframe navigation. If 50ms is insufficient on a slower device, the one-time
+ * 6s timeout retry in `ActivityIframeView` (`INIT_TIMEOUT_MS`) acts as the
+ * fallback.
+ */
+const VISIBILITY_SETTLE_TIMEOUT_MS = 50;
+
+/**
  * Subscribe with Google request to pass to payments.
  */
 export interface SwgPaymentRequest {
@@ -486,7 +500,7 @@ export class PayCompleteFlow {
           onVisibilityChange
         );
         win.removeEventListener('focus', onFocus);
-        win.setTimeout(resolve, 50);
+        win.setTimeout(resolve, VISIBILITY_SETTLE_TIMEOUT_MS);
       };
       const onVisibilityChange = () => {
         if (this.win_.document.visibilityState === 'visible') {

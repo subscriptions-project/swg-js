@@ -27,6 +27,19 @@ import {isCancelError} from '../utils/errors';
 import {msg} from '../utils/i18n';
 import {setImportantStyles} from '../utils/style';
 
+/**
+ * Second-layer fallback for stalled iframe navigations: if the activity iframe
+ * does not complete its initial handshake (`openIframe` + `whenReady`) within
+ * this timeout—for example, on slower mobile devices where the browser's
+ * network stack took longer than `VISIBILITY_SETTLE_TIMEOUT_MS` (50ms) to wake
+ * up from background suspension and the request hung on a stale socket—the
+ * iframe is reloaded once with a cache-busting query parameter while the
+ * existing `ActivityIframePort` listener continues waiting for the handshake.
+ *
+ * 6000ms (6s) is chosen to be long enough to avoid prematurely interrupting
+ * legitimate slow cellular (3G/slow-4G) loads, while still recovering well
+ * before a user abandons an unresponsive loading spinner.
+ */
 const INIT_TIMEOUT_MS = 6000;
 
 /**
