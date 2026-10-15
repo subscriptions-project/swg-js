@@ -486,13 +486,7 @@ export class PayCompleteFlow {
   }
 
   private waitForDocumentVisible_(): Promise<void> {
-    if (
-      !this.win_.document.visibilityState ||
-      this.win_.document.visibilityState === 'visible'
-    ) {
-      return Promise.resolve();
-    }
-    const win = this.win_.document.defaultView || this.win_;
+    const win = this.win_.document.defaultView!;
     return new Promise((resolve) => {
       const complete = () => {
         this.win_.document.removeEventListener(

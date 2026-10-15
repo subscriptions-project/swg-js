@@ -1608,9 +1608,9 @@ describes.realWin('PayCompleteFlow', (env) => {
 
     const startPromise = flow.start(response);
 
-    // Flush microtasks while document is still hidden.
-    await Promise.resolve();
-    await Promise.resolve();
+    // Yield a macrotask so the event loop drains all pending microtasks
+    // (such as getClientConfig()) up to the visibilityPromise await point.
+    await new Promise((resolve) => origSetTimeout(resolve, 0));
     expect(openViewSpy).to.not.be.called;
 
     // Transition to visible and trigger visibilitychange.
@@ -1663,8 +1663,9 @@ describes.realWin('PayCompleteFlow', (env) => {
 
     const startPromise = flow.start(response);
 
-    await Promise.resolve();
-    await Promise.resolve();
+    // Yield a macrotask so the event loop drains all pending microtasks
+    // (such as getClientConfig()) up to the visibilityPromise await point.
+    await new Promise((resolve) => origSetTimeout(resolve, 0));
     expect(openViewSpy).to.not.be.called;
 
     // Trigger window focus event.

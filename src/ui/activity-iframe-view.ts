@@ -92,16 +92,11 @@ export class ActivityIframeView extends View {
     if (dialog?.getIframe()?.isConnected()) {
       const dialogDoc = dialog.getIframe().getDocument();
       if (this.iframe_.ownerDocument !== dialogDoc) {
-        const parent = this.iframe_.parentNode;
-        const nextSibling = this.iframe_.nextSibling;
         dialogDoc.adoptNode(this.iframe_);
-        if (parent) {
-          parent.insertBefore(this.iframe_, nextSibling);
-        }
       }
     }
 
-    const win = this.doc_.defaultView || this.win_;
+    const win = this.doc_.defaultView!;
     const timeoutId = win.setTimeout(() => {
       this.iframe_.src = addQueryParam(
         this.iframe_.src || this.src_,
