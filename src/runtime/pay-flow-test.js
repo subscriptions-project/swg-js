@@ -1568,6 +1568,115 @@ describes.realWin('PayCompleteFlow', (env) => {
     expect(PayCompleteFlow.waitingForPayClient).to.be.true;
   });
 
+  it('defers opening iframe when document is hidden until visibilitychange', async () => {
+    PayCompleteFlow.isInlineCta = false;
+    PayCompleteFlow.inlineConfigId = null;
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new MockActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+
+    let visibilityState = 'hidden';
+    Object.defineProperty(win.document, 'visibilityState', {
+      configurable: true,
+      get: () => visibilityState,
+    });
+
+    let tickCallback;
+    const origSetTimeout = win.setTimeout.bind(win);
+    sandbox.stub(win, 'setTimeout').callsFake((cb, delay) => {
+      if (delay === 50) {
+        tickCallback = cb;
+        return 1;
+      }
+      return origSetTimeout(cb, delay);
+    });
+
+    const openViewSpy = sandbox.spy(runtime.dialogManager(), 'openView');
+    activitiesMock.expects('openIframe').resolves(port);
+
+    const startPromise = flow.start(response);
+
+    // Flush microtasks while document is still hidden.
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(openViewSpy).to.not.be.called;
+
+    // Transition to visible and trigger visibilitychange.
+    visibilityState = 'visible';
+    win.document.dispatchEvent(new Event('visibilitychange'));
+    expect(tickCallback).to.be.a('function');
+    tickCallback();
+
+    await startPromise;
+    await flow.readyPromise_;
+    expect(openViewSpy).to.be.calledOnce;
+  });
+
+  it('defers opening iframe when document is hidden until window focus', async () => {
+    PayCompleteFlow.isInlineCta = false;
+    PayCompleteFlow.inlineConfigId = null;
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new MockActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+
+    Object.defineProperty(win.document, 'visibilityState', {
+      configurable: true,
+      get: () => 'hidden',
+    });
+
+    let tickCallback;
+    const origSetTimeout = win.setTimeout.bind(win);
+    sandbox.stub(win, 'setTimeout').callsFake((cb, delay) => {
+      if (delay === 50) {
+        tickCallback = cb;
+        return 1;
+      }
+      return origSetTimeout(cb, delay);
+    });
+
+    const openViewSpy = sandbox.spy(runtime.dialogManager(), 'openView');
+    activitiesMock.expects('openIframe').resolves(port);
+
+    const startPromise = flow.start(response);
+
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(openViewSpy).to.not.be.called;
+
+    // Trigger window focus event.
+    win.dispatchEvent(new Event('focus'));
+    expect(tickCallback).to.be.a('function');
+    tickCallback();
+
+    await startPromise;
+    await flow.readyPromise_;
+    expect(openViewSpy).to.be.calledOnce;
+  });
+
   describe('payments response', () => {
     let startStub;
     let triggerPromise;
