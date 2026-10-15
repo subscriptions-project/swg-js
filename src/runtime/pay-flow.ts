@@ -414,6 +414,12 @@ export class PayCompleteFlow {
 
     const confirmFeUrl = feUrl('/payconfirmiframe', urlParams);
 
+    const visibilityPromise =
+      this.win_.document.visibilityState &&
+      this.win_.document.visibilityState !== 'visible'
+        ? this.waitForDocumentVisible_()
+        : null;
+
     const clientConfig = await this.clientConfigManager_.getClientConfig();
 
     args['useUpdatedConfirmUi'] = clientConfig.useUpdatedOfferFlows;
@@ -430,6 +436,10 @@ export class PayCompleteFlow {
       EntitlementsResponse,
       this.handleEntitlementsResponse_.bind(this)
     );
+
+    if (visibilityPromise) {
+      await visibilityPromise;
+    }
 
     if (PayCompleteFlow.isInlineCta) {
       const inlineDiv = this.getInlineCtaDiv_(PayCompleteFlow.inlineConfigId);
@@ -458,6 +468,39 @@ export class PayCompleteFlow {
 
     this.readyPromise_.then(() => {
       this.deps_.callbacks().triggerPayConfirmOpened(this.activityIframeView_!);
+    });
+  }
+
+  private waitForDocumentVisible_(): Promise<void> {
+    if (
+      !this.win_.document.visibilityState ||
+      this.win_.document.visibilityState === 'visible'
+    ) {
+      return Promise.resolve();
+    }
+    const win = this.win_.document.defaultView || this.win_;
+    return new Promise((resolve) => {
+      const complete = () => {
+        this.win_.document.removeEventListener(
+          'visibilitychange',
+          onVisibilityChange
+        );
+        win.removeEventListener('focus', onFocus);
+        win.setTimeout(resolve, 50);
+      };
+      const onVisibilityChange = () => {
+        if (this.win_.document.visibilityState === 'visible') {
+          complete();
+        }
+      };
+      const onFocus = () => {
+        complete();
+      };
+      this.win_.document.addEventListener(
+        'visibilitychange',
+        onVisibilityChange
+      );
+      win.addEventListener('focus', onFocus);
     });
   }
 

@@ -21,10 +21,13 @@ import {I18N_STRINGS} from '../i18n/strings';
 import {Message} from '../proto/api_messages';
 import {View} from '../components/view';
 import {acceptPortResultData} from '../utils/activity-utils';
+import {addQueryParam} from '../utils/url';
 import {createElement} from '../utils/dom';
 import {isCancelError} from '../utils/errors';
 import {msg} from '../utils/i18n';
 import {setImportantStyles} from '../utils/style';
+
+const INIT_TIMEOUT_MS = 6000;
 
 /**
  * Class to build and render Activity iframe view.
@@ -73,12 +76,37 @@ export class ActivityIframeView extends View {
   }
 
   async init(dialog?: Dialog) {
-    const port = await this.activityPorts_.openIframe(
-      this.iframe_,
-      this.src_,
-      this.args_
-    );
-    return this.onOpenIframeResponse_(port, dialog);
+    if (dialog?.getIframe()?.isConnected()) {
+      const dialogDoc = dialog.getIframe().getDocument();
+      if (this.iframe_.ownerDocument !== dialogDoc) {
+        const parent = this.iframe_.parentNode;
+        const nextSibling = this.iframe_.nextSibling;
+        dialogDoc.adoptNode(this.iframe_);
+        if (parent) {
+          parent.insertBefore(this.iframe_, nextSibling);
+        }
+      }
+    }
+
+    const win = this.doc_.defaultView || this.win_;
+    const timeoutId = win.setTimeout(() => {
+      this.iframe_.src = addQueryParam(
+        this.iframe_.src || this.src_,
+        '_',
+        String(Date.now())
+      );
+    }, INIT_TIMEOUT_MS);
+
+    try {
+      const port = await this.activityPorts_.openIframe(
+        this.iframe_,
+        this.src_,
+        this.args_
+      );
+      return await this.onOpenIframeResponse_(port, dialog);
+    } finally {
+      win.clearTimeout(timeoutId);
+    }
   }
 
   /**
