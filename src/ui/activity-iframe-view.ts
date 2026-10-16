@@ -82,7 +82,8 @@ export class ActivityIframeView extends View {
       }
     }
 
-    const timeoutId = this.win_.setTimeout(() => {
+    const win = this.doc_.defaultView!;
+    const timeoutId = win.setTimeout(() => {
       this.iframe_.src = addQueryParam(
         this.iframe_.src || this.src_,
         '_',
@@ -98,7 +99,7 @@ export class ActivityIframeView extends View {
       );
       return await this.onOpenIframeResponse_(port, dialog);
     } finally {
-      this.win_.clearTimeout(timeoutId);
+      win.clearTimeout(timeoutId);
     }
   }
 
