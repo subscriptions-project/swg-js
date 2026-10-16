@@ -18,6 +18,7 @@ import {ActivityIframePort, ActivityPorts} from '../components/activities';
 import {ActivityResult} from 'web-activities/activity-ports';
 import {Dialog} from '../components/dialog';
 import {I18N_STRINGS} from '../i18n/strings';
+import {INIT_TIMEOUT_MS} from '../utils/constants';
 import {Message} from '../proto/api_messages';
 import {View} from '../components/view';
 import {acceptPortResultData} from '../utils/activity-utils';
@@ -26,21 +27,6 @@ import {createElement} from '../utils/dom';
 import {isCancelError} from '../utils/errors';
 import {msg} from '../utils/i18n';
 import {setImportantStyles} from '../utils/style';
-
-/**
- * Second-layer fallback for stalled iframe navigations: if the activity iframe
- * does not complete its initial handshake (`openIframe` + `whenReady`) within
- * this timeout—for example, on slower mobile devices where the browser's
- * network stack took longer than `VISIBILITY_SETTLE_TIMEOUT_MS` (50ms) to wake
- * up from background suspension and the request hung on a stale socket—the
- * iframe is reloaded once with a cache-busting query parameter while the
- * existing `ActivityIframePort` listener continues waiting for the handshake.
- *
- * 6000ms (6s) is chosen to be long enough to avoid prematurely interrupting
- * legitimate slow cellular (3G/slow-4G) loads, while still recovering well
- * before a user abandons an unresponsive loading spinner.
- */
-const INIT_TIMEOUT_MS = 6000;
 
 /**
  * Class to build and render Activity iframe view.
@@ -96,8 +82,7 @@ export class ActivityIframeView extends View {
       }
     }
 
-    const win = this.doc_.defaultView!;
-    const timeoutId = win.setTimeout(() => {
+    const timeoutId = this.win_.setTimeout(() => {
       this.iframe_.src = addQueryParam(
         this.iframe_.src || this.src_,
         '_',
@@ -113,7 +98,7 @@ export class ActivityIframeView extends View {
       );
       return await this.onOpenIframeResponse_(port, dialog);
     } finally {
-      win.clearTimeout(timeoutId);
+      this.win_.clearTimeout(timeoutId);
     }
   }
 

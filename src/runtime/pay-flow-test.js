@@ -697,6 +697,10 @@ describes.realWin('PayCompleteFlow', (env) => {
     sandbox.stub(runtime, 'win').returns({
       location: {href: WINDOW_LOCATION_DOMAIN + '/page/1'},
       document: win.document,
+      addEventListener: (...args) => win.addEventListener(...args),
+      removeEventListener: (...args) => win.removeEventListener(...args),
+      setTimeout: (...args) => win.setTimeout(...args),
+      clearTimeout: (...args) => win.clearTimeout(...args),
     });
 
     flow = new PayCompleteFlow(runtime);

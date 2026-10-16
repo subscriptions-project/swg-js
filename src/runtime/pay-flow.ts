@@ -50,7 +50,7 @@ import {
   WindowOpenMode,
 } from '../api/subscriptions';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
-import {StorageKeys} from '../utils/constants';
+import {StorageKeys, VISIBILITY_SETTLE_TIMEOUT_MS} from '../utils/constants';
 import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
 import {getPropertyFromJsonString} from '../utils/json';
@@ -60,20 +60,6 @@ import {setImportantStyles} from '../utils/style';
 
 const INLINE_CTA_ATTRIUBUTE_QUERY = 'div[rrm-inline-cta]';
 const INLINE_CTA_ATTRIUBUTE = 'rrm-inline-cta';
-
-/**
- * First-layer mitigation for background-tab socket suspension: when returning
- * from an external payment redirect (e.g., UPI intent or 3DS), the document's
- * `visibilitychange`/`focus` event can fire slightly before the browser's
- * network service finishes waking up and invalidating suspended sockets.
- *
- * 50ms is chosen to be long enough for the browser's network stack to resume
- * on most devices, while short enough to add minimal delay before initiating
- * iframe navigation. If 50ms is insufficient on a slower device, the one-time
- * 6s timeout retry in `ActivityIframeView` (`INIT_TIMEOUT_MS`) acts as the
- * fallback.
- */
-const VISIBILITY_SETTLE_TIMEOUT_MS = 50;
 
 /**
  * Subscribe with Google request to pass to payments.
@@ -429,7 +415,6 @@ export class PayCompleteFlow {
     const confirmFeUrl = feUrl('/payconfirmiframe', urlParams);
 
     const visibilityPromise =
-      this.win_.document.visibilityState &&
       this.win_.document.visibilityState !== 'visible'
         ? this.waitForDocumentVisible_()
         : null;
@@ -486,15 +471,14 @@ export class PayCompleteFlow {
   }
 
   private waitForDocumentVisible_(): Promise<void> {
-    const win = this.win_.document.defaultView!;
     return new Promise((resolve) => {
       const complete = () => {
         this.win_.document.removeEventListener(
           'visibilitychange',
           onVisibilityChange
         );
-        win.removeEventListener('focus', onFocus);
-        win.setTimeout(resolve, VISIBILITY_SETTLE_TIMEOUT_MS);
+        this.win_.removeEventListener('focus', onFocus);
+        this.win_.setTimeout(resolve, VISIBILITY_SETTLE_TIMEOUT_MS);
       };
       const onVisibilityChange = () => {
         if (this.win_.document.visibilityState === 'visible') {
@@ -508,7 +492,7 @@ export class PayCompleteFlow {
         'visibilitychange',
         onVisibilityChange
       );
-      win.addEventListener('focus', onFocus);
+      this.win_.addEventListener('focus', onFocus);
     });
   }
 
