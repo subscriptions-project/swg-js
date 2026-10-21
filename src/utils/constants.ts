@@ -90,4 +90,25 @@ const StorageKeysWithoutPublicationIdSuffix = {
 
 export const READER_VISIT_ACTION_KEY = 'reader_visit';
 
+/**
+ * Two-layer timeout configuration for mitigating background-tab socket
+ * suspension when returning from external payment redirects (e.g., UPI intent
+ * or 3DS):
+ *
+ * 1. `VISIBILITY_SETTLE_TIMEOUT_MS` (50ms): First-layer delay after the
+ *    document's `visibilitychange`/`focus` event fires upon returning to the
+ *    foreground. Chosen to be long enough for the browser's network stack to
+ *    resume on most devices, while short enough to add minimal delay before
+ *    initiating iframe navigation.
+ * 2. `INIT_TIMEOUT_MS` (6000ms): Second-layer fallback in `ActivityIframeView`
+ *    if `VISIBILITY_SETTLE_TIMEOUT_MS` is insufficient on a slower device and
+ *    the initial handshake (`openIframe` + `whenReady`) hangs on a stale
+ *    socket. Reloads the iframe once with a cache-busting query parameter while
+ *    the existing `ActivityIframePort` listener continues waiting. 6s avoids
+ *    prematurely interrupting legitimate slow cellular loads while recovering
+ *    before user abandonment.
+ */
+export const VISIBILITY_SETTLE_TIMEOUT_MS = 50;
+export const INIT_TIMEOUT_MS = 6000;
+
 export {Constants, StorageKeys, StorageKeysWithoutPublicationIdSuffix};

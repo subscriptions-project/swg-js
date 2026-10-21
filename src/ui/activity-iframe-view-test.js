@@ -280,5 +280,47 @@ describes.realWin('ActivityIframeView', (env) => {
       );
       expect(activityIframeView2.hasLoadingIndicator()).to.be.true;
     });
+
+    it('adopts iframe into dialog document when dialog is connected', async () => {
+      const openedDialog = await dialog.open();
+      const dialogDoc = openedDialog.getIframe().getDocument();
+
+      await activityIframeView.init(openedDialog);
+
+      expect(activityIframeView.getElement().ownerDocument).to.equal(dialogDoc);
+    });
+
+    it('reloads iframe src with cache-busting param if init times out', async () => {
+      let timeoutCallback;
+      sandbox.stub(win, 'setTimeout').callsFake((cb) => {
+        timeoutCallback = cb;
+        return 123;
+      });
+      const clearTimeoutSpy = sandbox.spy(win, 'clearTimeout');
+      sandbox.stub(Date, 'now').returns(99999);
+
+      let resolveReady;
+      activityIframePort.whenReady.callsFake(
+        () =>
+          new Promise((resolve) => {
+            resolveReady = resolve;
+          })
+      );
+
+      const initPromise = activityIframeView.init(dialog);
+
+      // Simulate timeout firing before whenReady resolves.
+      await Promise.resolve();
+      expect(timeoutCallback).to.be.a('function');
+      timeoutCallback();
+
+      expect(activityIframeView.getElement().src).to.equal(
+        'https://news.google.com/offersiframe?_=99999'
+      );
+
+      resolveReady(true);
+      await initPromise;
+      expect(clearTimeoutSpy).to.have.been.calledWith(123);
+    });
   });
 });
