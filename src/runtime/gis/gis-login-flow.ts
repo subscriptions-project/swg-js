@@ -17,6 +17,7 @@
 import {ActivityIframeView} from '../../ui/activity-iframe-view';
 import {
   AnalyticsEvent,
+  CtaMode,
   ElementCoordinates,
   EventParams,
   GisMode as GisModeProto,
@@ -54,7 +55,8 @@ export class GisLoginFlow {
   constructor(
     private readonly deps: Deps,
     private readonly activityIframeView: ActivityIframeView,
-    private readonly configurationId?: string
+    private readonly configurationId?: string,
+    private readonly ctaMode: CtaMode = CtaMode.CTA_MODE_POPUP
   ) {
     this.doc = deps.doc();
     this.eventManager = deps.eventManager();
@@ -64,7 +66,9 @@ export class GisLoginFlow {
       this.handleLoginButtonCoordinates.bind(this)
     );
     this.doc.getWin().addEventListener('resize', this.resizeHandler);
-    this.activityIframeView.onResize(this.resizeHandler);
+    if (this.ctaMode === CtaMode.CTA_MODE_POPUP) {
+      this.activityIframeView.onResize(this.resizeHandler);
+    }
 
     this.deps
       .gisInteropManager()
@@ -90,13 +94,22 @@ export class GisLoginFlow {
     this.positions.forEach((p, id) => {
       const iframe = this.activityIframeView.getElement();
       const iframeBoundingBox = iframe.getBoundingClientRect();
-      const iframeHeight = iframeBoundingBox.height;
-      const iframeWidth = iframeBoundingBox.width;
-      const windowWidth = this.doc.getWin()./*OK*/ innerWidth;
-      const windowHeight = this.doc.getWin()./*OK*/ innerHeight;
+      const win = this.doc.getWin();
 
-      const offsetLeft = (windowWidth - iframeWidth) / 2 + p.left;
-      const offsetTop = windowHeight - (iframeHeight - p.top);
+      let offsetLeft: number;
+      let offsetTop: number;
+      if (this.ctaMode === CtaMode.CTA_MODE_INLINE) {
+        offsetLeft = iframeBoundingBox.left + win./*OK*/ scrollX + p.left;
+        offsetTop = iframeBoundingBox.top + win./*OK*/ scrollY + p.top;
+      } else {
+        const iframeHeight = iframeBoundingBox.height;
+        const iframeWidth = iframeBoundingBox.width;
+        const windowWidth = win./*OK*/ innerWidth;
+        const windowHeight = win./*OK*/ innerHeight;
+
+        offsetLeft = (windowWidth - iframeWidth) / 2 + p.left;
+        offsetTop = windowHeight - (iframeHeight - p.top);
+      }
 
       const overlay = this.overlays.get(id)!;
       setImportantStyles(overlay, {
@@ -160,6 +173,7 @@ export class GisLoginFlow {
     const overlay = createElement(this.doc.getRootNode(), 'div', {});
     setImportantStyles(overlay, {
       'position': 'absolute',
+      'overflow': 'hidden',
       'opacity': '0.001',
       'background-color': 'transparent',
       'z-index': '2147483647',
@@ -186,6 +200,7 @@ export class GisLoginFlow {
   private overlayClick() {
     const eventParams = new EventParams();
     eventParams.setGisMode(GisModeProto.GIS_MODE_OVERLAY);
+    eventParams.setCtaMode(this.ctaMode);
     this.eventManager.logSwgEvent(
       AnalyticsEvent.ACTION_REGWALL_OPT_IN_BUTTON_CLICK,
       /* isFromUserAction= */ true,
@@ -193,6 +208,9 @@ export class GisLoginFlow {
       /* eventTime= */ undefined,
       this.configurationId
     );
+    this.deps
+      .gisInteropManager()
+      ?.setCompleteLoginCallback?.(this.completeLogin.bind(this));
     this.deps.gisInteropManager()?.setRegwallClickPending?.(true);
   }
 
