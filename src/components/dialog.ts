@@ -258,7 +258,7 @@ export class Dialog {
 
     // Add Loading indicator.
     const loadingViewClasses = [];
-    if (this.isPositionCenterOnDesktop()) {
+    if (this.shouldPositionCenter_()) {
       loadingViewClasses.push('centered-on-desktop');
     }
     this.loadingView_ = new LoadingView(iframeDoc, {
