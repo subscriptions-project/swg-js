@@ -66,7 +66,9 @@ export class GisLoginFlow {
       this.handleLoginButtonCoordinates.bind(this)
     );
     this.doc.getWin().addEventListener('resize', this.resizeHandler);
-    this.activityIframeView.onResize(this.resizeHandler);
+    if (this.ctaMode === CtaMode.CTA_MODE_POPUP) {
+      this.activityIframeView.onResize(this.resizeHandler);
+    }
 
     this.deps
       .gisInteropManager()

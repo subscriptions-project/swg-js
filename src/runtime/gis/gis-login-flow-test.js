@@ -293,6 +293,7 @@ describes.realWin('GisLoginFlow', (env) => {
       });
       win.scrollX = 20;
       win.scrollY = 150;
+      activityIframeView.onResize.resetHistory();
 
       gisLoginFlow = new GisLoginFlow(
         depsMock,
@@ -300,6 +301,8 @@ describes.realWin('GisLoginFlow', (env) => {
         'inline-config-id',
         CtaMode.CTA_MODE_INLINE
       );
+
+      expect(activityIframeView.onResize).to.not.have.been.called;
 
       messageMap[message.label()](message);
 

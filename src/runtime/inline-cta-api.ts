@@ -105,7 +105,10 @@ export class InlineCtaApi {
     div: HTMLElement,
     gisLoginFlow?: GisLoginFlow
   ): void {
-    gisLoginFlow?.dispose();
+    if (gisLoginFlow) {
+      gisLoginFlow.dispose();
+      this.deps_.gisInteropManager()?.redirectOk();
+    }
     this.entitlementsManager_.clear();
     const userToken = response.getSwgUserToken();
     if (userToken) {
@@ -122,7 +125,6 @@ export class InlineCtaApi {
     const now = Date.now().toString();
     this.storage_.set(StorageKeys.READ_TIME, now, /*useLocalStorage=*/ false);
     this.entitlementsManager_.getEntitlements();
-    this.deps_.gisInteropManager()?.redirectOk();
   }
 
   private clearInlineCta_(div: HTMLElement) {
