@@ -18,9 +18,11 @@ import {ActivityIframePort, ActivityPorts} from '../components/activities';
 import {ActivityResult} from 'web-activities/activity-ports';
 import {Dialog} from '../components/dialog';
 import {I18N_STRINGS} from '../i18n/strings';
+import {INIT_TIMEOUT_MS} from '../utils/constants';
 import {Message} from '../proto/api_messages';
 import {View} from '../components/view';
 import {acceptPortResultData} from '../utils/activity-utils';
+import {addQueryParam} from '../utils/url';
 import {createElement} from '../utils/dom';
 import {isCancelError} from '../utils/errors';
 import {msg} from '../utils/i18n';
@@ -73,12 +75,32 @@ export class ActivityIframeView extends View {
   }
 
   async init(dialog?: Dialog) {
-    const port = await this.activityPorts_.openIframe(
-      this.iframe_,
-      this.src_,
-      this.args_
-    );
-    return this.onOpenIframeResponse_(port, dialog);
+    if (dialog?.getIframe()?.isConnected()) {
+      const dialogDoc = dialog.getIframe().getDocument();
+      if (this.iframe_.ownerDocument !== dialogDoc) {
+        dialogDoc.adoptNode(this.iframe_);
+      }
+    }
+
+    const win = this.doc_.defaultView!;
+    const timeoutId = win.setTimeout(() => {
+      this.iframe_.src = addQueryParam(
+        this.iframe_.src || this.src_,
+        '_',
+        String(Date.now())
+      );
+    }, INIT_TIMEOUT_MS);
+
+    try {
+      const port = await this.activityPorts_.openIframe(
+        this.iframe_,
+        this.src_,
+        this.args_
+      );
+      return await this.onOpenIframeResponse_(port, dialog);
+    } finally {
+      win.clearTimeout(timeoutId);
+    }
   }
 
   /**

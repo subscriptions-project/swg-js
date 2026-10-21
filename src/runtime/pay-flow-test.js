@@ -697,6 +697,10 @@ describes.realWin('PayCompleteFlow', (env) => {
     sandbox.stub(runtime, 'win').returns({
       location: {href: WINDOW_LOCATION_DOMAIN + '/page/1'},
       document: win.document,
+      addEventListener: (...args) => win.addEventListener(...args),
+      removeEventListener: (...args) => win.removeEventListener(...args),
+      setTimeout: (...args) => win.setTimeout(...args),
+      clearTimeout: (...args) => win.clearTimeout(...args),
     });
 
     flow = new PayCompleteFlow(runtime);
@@ -1566,6 +1570,116 @@ describes.realWin('PayCompleteFlow', (env) => {
     await flow.start(response);
     await flow.readyPromise_;
     expect(PayCompleteFlow.waitingForPayClient).to.be.true;
+  });
+
+  it('defers opening iframe when document is hidden until visibilitychange', async () => {
+    PayCompleteFlow.isInlineCta = false;
+    PayCompleteFlow.inlineConfigId = null;
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new MockActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+
+    let visibilityState = 'hidden';
+    Object.defineProperty(win.document, 'visibilityState', {
+      configurable: true,
+      get: () => visibilityState,
+    });
+
+    let tickCallback;
+    const origSetTimeout = win.setTimeout.bind(win);
+    sandbox.stub(win, 'setTimeout').callsFake((cb, delay) => {
+      if (delay === 50) {
+        tickCallback = cb;
+        return 1;
+      }
+      return origSetTimeout(cb, delay);
+    });
+
+    const openViewSpy = sandbox.spy(runtime.dialogManager(), 'openView');
+    activitiesMock.expects('openIframe').resolves(port);
+
+    const startPromise = flow.start(response);
+
+    // Yield a macrotask so the event loop drains all pending microtasks
+    // (such as getClientConfig()) up to the visibilityPromise await point.
+    await new Promise((resolve) => origSetTimeout(resolve, 0));
+    expect(openViewSpy).to.not.be.called;
+
+    // Transition to visible and trigger visibilitychange.
+    visibilityState = 'visible';
+    win.document.dispatchEvent(new Event('visibilitychange'));
+    expect(tickCallback).to.be.a('function');
+    tickCallback();
+
+    await startPromise;
+    await flow.readyPromise_;
+    expect(openViewSpy).to.be.calledOnce;
+  });
+
+  it('defers opening iframe when document is hidden until window focus', async () => {
+    PayCompleteFlow.isInlineCta = false;
+    PayCompleteFlow.inlineConfigId = null;
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new MockActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+
+    Object.defineProperty(win.document, 'visibilityState', {
+      configurable: true,
+      get: () => 'hidden',
+    });
+
+    let tickCallback;
+    const origSetTimeout = win.setTimeout.bind(win);
+    sandbox.stub(win, 'setTimeout').callsFake((cb, delay) => {
+      if (delay === 50) {
+        tickCallback = cb;
+        return 1;
+      }
+      return origSetTimeout(cb, delay);
+    });
+
+    const openViewSpy = sandbox.spy(runtime.dialogManager(), 'openView');
+    activitiesMock.expects('openIframe').resolves(port);
+
+    const startPromise = flow.start(response);
+
+    // Yield a macrotask so the event loop drains all pending microtasks
+    // (such as getClientConfig()) up to the visibilityPromise await point.
+    await new Promise((resolve) => origSetTimeout(resolve, 0));
+    expect(openViewSpy).to.not.be.called;
+
+    // Trigger window focus event.
+    win.dispatchEvent(new Event('focus'));
+    expect(tickCallback).to.be.a('function');
+    tickCallback();
+
+    await startPromise;
+    await flow.readyPromise_;
+    expect(openViewSpy).to.be.calledOnce;
   });
 
   describe('payments response', () => {
