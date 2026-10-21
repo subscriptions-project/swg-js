@@ -246,6 +246,7 @@ export class AutoPromptManager {
     // persists across pages.
     this.hasStoredReaderVisit_ = false;
     if (params.autoPromptType === AutoPromptType.NONE) {
+      this.yeildControlToGis_();
       return;
     }
 
