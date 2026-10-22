@@ -100,15 +100,15 @@ export const READER_VISIT_ACTION_KEY = 'reader_visit';
  *    foreground. Chosen to be long enough for the browser's network stack to
  *    resume on most devices, while short enough to add minimal delay before
  *    initiating iframe navigation.
- * 2. `INIT_TIMEOUT_MS` (6000ms): Second-layer fallback in `ActivityIframeView`
- *    if `VISIBILITY_SETTLE_TIMEOUT_MS` is insufficient on a slower device and
- *    the initial handshake (`openIframe` + `whenReady`) hangs on a stale
- *    socket. Reloads the iframe once with a cache-busting query parameter while
- *    the existing `ActivityIframePort` listener continues waiting. 6s avoids
- *    prematurely interrupting legitimate slow cellular loads while recovering
- *    before user abandonment.
+ * 2. `IFRAME_HANDSHAKE_TIMEOUT_MS` (6000ms): Second-layer fallback in
+ *    `ActivityIframeView` if `VISIBILITY_SETTLE_TIMEOUT_MS` is insufficient on
+ *    a slower device and the initial handshake (`openIframe` + `whenReady`)
+ *    hangs on a stale socket. Reloads the iframe once with a cache-busting
+ *    query parameter while the existing `ActivityIframePort` listener continues
+ *    waiting. 6s avoids prematurely interrupting legitimate slow cellular loads
+ *    while recovering before user abandonment.
  */
 export const VISIBILITY_SETTLE_TIMEOUT_MS = 50;
-export const INIT_TIMEOUT_MS = 6000;
+export const IFRAME_HANDSHAKE_TIMEOUT_MS = 6000;
 
 export {Constants, StorageKeys, StorageKeysWithoutPublicationIdSuffix};
