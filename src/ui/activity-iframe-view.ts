@@ -18,7 +18,7 @@ import {ActivityIframePort, ActivityPorts} from '../components/activities';
 import {ActivityResult} from 'web-activities/activity-ports';
 import {Dialog} from '../components/dialog';
 import {I18N_STRINGS} from '../i18n/strings';
-import {INIT_TIMEOUT_MS} from '../utils/constants';
+import {IFRAME_HANDSHAKE_TIMEOUT_MS} from '../utils/constants';
 import {Message} from '../proto/api_messages';
 import {View} from '../components/view';
 import {acceptPortResultData} from '../utils/activity-utils';
@@ -89,7 +89,7 @@ export class ActivityIframeView extends View {
         '_',
         String(Date.now())
       );
-    }, INIT_TIMEOUT_MS);
+    }, IFRAME_HANDSHAKE_TIMEOUT_MS);
 
     try {
       const port = await this.activityPorts_.openIframe(
