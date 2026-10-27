@@ -22,7 +22,7 @@ jobs:
         run: npm ci --omit optional
 
       - name: Check lint & rules
-        run: gulp check
+        run: npx gulp check
 
       - name: Check types
         run: npx tsc --project tsconfig.json
@@ -129,7 +129,7 @@ jobs:
         run: npm ci --omit optional
 
       - name: Unit Tests
-        run: gulp unit --headless --coverage
+        run: npx gulp unit --headless --coverage
 
       - uses: codecov/codecov-action@v6
         with:
