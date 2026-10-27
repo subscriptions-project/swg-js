@@ -50,7 +50,7 @@ import {
   WindowOpenMode,
 } from '../api/subscriptions';
 import {PurchaseData, SubscribeResponse} from '../api/subscribe-response';
-import {StorageKeys} from '../utils/constants';
+import {StorageKeys, VISIBILITY_SETTLE_TIMEOUT_MS} from '../utils/constants';
 import {UserData} from '../api/user-data';
 import {feArgs, feUrl} from './services';
 import {getPropertyFromJsonString} from '../utils/json';
@@ -286,8 +286,14 @@ export class PayCompleteFlow {
             )
           );
         } else if (response.productType == ProductType.SUBSCRIPTION) {
+          const oldSku = response['oldSku'];
+          const eventType =
+            oldSku && oldSku.length > 0
+              ? AnalyticsEvent.EVENT_SUBSCRIPTION_PLAN_CHANGE_COMPLETE
+              : AnalyticsEvent.EVENT_SUBSCRIPTION_PAYMENT_COMPLETE;
+
           eventManager.logSwgEvent(
-            AnalyticsEvent.EVENT_SUBSCRIPTION_PAYMENT_COMPLETE,
+            eventType,
             true,
             getEventParams(
               sku || '',
@@ -408,6 +414,11 @@ export class PayCompleteFlow {
 
     const confirmFeUrl = feUrl('/payconfirmiframe', urlParams);
 
+    const visibilityPromise =
+      this.win_.document.visibilityState !== 'visible'
+        ? this.waitForDocumentVisible_()
+        : null;
+
     const clientConfig = await this.clientConfigManager_.getClientConfig();
 
     args['useUpdatedConfirmUi'] = clientConfig.useUpdatedOfferFlows;
@@ -424,6 +435,10 @@ export class PayCompleteFlow {
       EntitlementsResponse,
       this.handleEntitlementsResponse_.bind(this)
     );
+
+    if (visibilityPromise) {
+      await visibilityPromise;
+    }
 
     if (PayCompleteFlow.isInlineCta) {
       const inlineDiv = this.getInlineCtaDiv_(PayCompleteFlow.inlineConfigId);
@@ -452,6 +467,32 @@ export class PayCompleteFlow {
 
     this.readyPromise_.then(() => {
       this.deps_.callbacks().triggerPayConfirmOpened(this.activityIframeView_!);
+    });
+  }
+
+  private waitForDocumentVisible_(): Promise<void> {
+    return new Promise((resolve) => {
+      const complete = () => {
+        this.win_.document.removeEventListener(
+          'visibilitychange',
+          onVisibilityChange
+        );
+        this.win_.removeEventListener('focus', onFocus);
+        this.win_.setTimeout(resolve, VISIBILITY_SETTLE_TIMEOUT_MS);
+      };
+      const onVisibilityChange = () => {
+        if (this.win_.document.visibilityState === 'visible') {
+          complete();
+        }
+      };
+      const onFocus = () => {
+        complete();
+      };
+      this.win_.document.addEventListener(
+        'visibilitychange',
+        onVisibilityChange
+      );
+      this.win_.addEventListener('focus', onFocus);
     });
   }
 

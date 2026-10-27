@@ -697,6 +697,10 @@ describes.realWin('PayCompleteFlow', (env) => {
     sandbox.stub(runtime, 'win').returns({
       location: {href: WINDOW_LOCATION_DOMAIN + '/page/1'},
       document: win.document,
+      addEventListener: (...args) => win.addEventListener(...args),
+      removeEventListener: (...args) => win.removeEventListener(...args),
+      setTimeout: (...args) => win.setTimeout(...args),
+      clearTimeout: (...args) => win.clearTimeout(...args),
     });
 
     flow = new PayCompleteFlow(runtime);
@@ -1568,6 +1572,116 @@ describes.realWin('PayCompleteFlow', (env) => {
     expect(PayCompleteFlow.waitingForPayClient).to.be.true;
   });
 
+  it('defers opening iframe when document is hidden until visibilitychange', async () => {
+    PayCompleteFlow.isInlineCta = false;
+    PayCompleteFlow.inlineConfigId = null;
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new MockActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+
+    let visibilityState = 'hidden';
+    Object.defineProperty(win.document, 'visibilityState', {
+      configurable: true,
+      get: () => visibilityState,
+    });
+
+    let tickCallback;
+    const origSetTimeout = win.setTimeout.bind(win);
+    sandbox.stub(win, 'setTimeout').callsFake((cb, delay) => {
+      if (delay === 50) {
+        tickCallback = cb;
+        return 1;
+      }
+      return origSetTimeout(cb, delay);
+    });
+
+    const openViewSpy = sandbox.spy(runtime.dialogManager(), 'openView');
+    activitiesMock.expects('openIframe').resolves(port);
+
+    const startPromise = flow.start(response);
+
+    // Yield a macrotask so the event loop drains all pending microtasks
+    // (such as getClientConfig()) up to the visibilityPromise await point.
+    await new Promise((resolve) => origSetTimeout(resolve, 0));
+    expect(openViewSpy).to.not.be.called;
+
+    // Transition to visible and trigger visibilitychange.
+    visibilityState = 'visible';
+    win.document.dispatchEvent(new Event('visibilitychange'));
+    expect(tickCallback).to.be.a('function');
+    tickCallback();
+
+    await startPromise;
+    await flow.readyPromise_;
+    expect(openViewSpy).to.be.calledOnce;
+  });
+
+  it('defers opening iframe when document is hidden until window focus', async () => {
+    PayCompleteFlow.isInlineCta = false;
+    PayCompleteFlow.inlineConfigId = null;
+    const response = createDefaultSubscribeResponse();
+    entitlementsManagerMock
+      .expects('pushNextEntitlements')
+      .withExactArgs(sandbox.match((arg) => arg === RAW_ENTITLEMENTS))
+      .once();
+    port = new MockActivityPort();
+    port.onResizeRequest = () => {};
+    port.whenReady = () => Promise.resolve();
+    eventManagerMock
+      .expects('logSwgEvent')
+      .withExactArgs(
+        AnalyticsEvent.IMPRESSION_ACCOUNT_CHANGED,
+        true,
+        getEventParams('')
+      );
+
+    Object.defineProperty(win.document, 'visibilityState', {
+      configurable: true,
+      get: () => 'hidden',
+    });
+
+    let tickCallback;
+    const origSetTimeout = win.setTimeout.bind(win);
+    sandbox.stub(win, 'setTimeout').callsFake((cb, delay) => {
+      if (delay === 50) {
+        tickCallback = cb;
+        return 1;
+      }
+      return origSetTimeout(cb, delay);
+    });
+
+    const openViewSpy = sandbox.spy(runtime.dialogManager(), 'openView');
+    activitiesMock.expects('openIframe').resolves(port);
+
+    const startPromise = flow.start(response);
+
+    // Yield a macrotask so the event loop drains all pending microtasks
+    // (such as getClientConfig()) up to the visibilityPromise await point.
+    await new Promise((resolve) => origSetTimeout(resolve, 0));
+    expect(openViewSpy).to.not.be.called;
+
+    // Trigger window focus event.
+    win.dispatchEvent(new Event('focus'));
+    expect(tickCallback).to.be.a('function');
+    tickCallback();
+
+    await startPromise;
+    await flow.readyPromise_;
+    expect(openViewSpy).to.be.calledOnce;
+  });
+
   describe('payments response', () => {
     let startStub;
     let triggerPromise;
@@ -1948,6 +2062,39 @@ describes.realWin('PayCompleteFlow', (env) => {
       const response = await triggerPromise;
       expect(response).to.be.instanceof(SubscribeResponse);
       expect(response.productType).to.equal(ProductType.UI_CONTRIBUTION);
+    });
+
+    it('should log EVENT_SUBSCRIPTION_PLAN_CHANGE_COMPLETE when oldSku is present', async () => {
+      PayCompleteFlow.waitingForPayClient = true;
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(AnalyticsEvent.EVENT_CONFIRM_TX_ID, true, undefined);
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(
+          AnalyticsEvent.ACTION_PAYMENT_COMPLETE,
+          true,
+          getEventParams('', SubscriptionFlows.SUBSCRIBE)
+        );
+      eventManagerMock
+        .expects('logSwgEvent')
+        .withExactArgs(
+          AnalyticsEvent.EVENT_SUBSCRIPTION_PLAN_CHANGE_COMPLETE,
+          true,
+          getEventParams('', SubscriptionFlows.SUBSCRIBE)
+        );
+
+      const data = Object.assign({}, INTEGR_DATA_OBJ_DECODED);
+      data['googleTransactionId'] = runtime.analytics().getTransactionId();
+      data['paymentRequest'] = {
+        'swg': {'oldSku': 'sku_to_replace'},
+        'i': {'productType': ProductType.SUBSCRIPTION},
+      };
+      await responseCallback(Promise.resolve(data));
+      const response = await triggerPromise;
+      expect(response).to.be.instanceof(SubscribeResponse);
+      expect(response.productType).to.equal(ProductType.SUBSCRIPTION);
+      expect(response.oldSku).to.equal('sku_to_replace');
     });
 
     it('should start flow on correct payment response w/o entitlements', async () => {

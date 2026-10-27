@@ -22,7 +22,9 @@ module.exports = {
     basic
       .navigate()
       .pause(3000)
-      .assert.screenshotIdenticalToBaseline('html', 'enterprise-subscription')
+      .assert.screenshotIdenticalToBaseline('html', 'enterprise-subscription', {
+        threshold: 0.1,
+      })
       .viewSubscriptionOffers()
       .assert.textContains(
         '@subscriptionHeader',

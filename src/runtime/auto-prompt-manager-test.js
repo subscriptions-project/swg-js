@@ -93,7 +93,7 @@ describes.realWin('AutoPromptManager', (env) => {
     deps = new MockDeps();
 
     sandbox.useFakeTimers(CURRENT_TIME);
-    win = Object.assign({}, env.win, {
+    win = Object.assign(env.win, {
       gtag: () => {},
       ga: () => {},
       dataLayer: {push: () => {}},
@@ -389,6 +389,134 @@ describes.realWin('AutoPromptManager', (env) => {
         .once();
 
       await autoPromptManager.storeImpression('TYPE_REWARDED_SURVEY');
+    });
+
+    it('should store reader visit impression when storeReaderVisit is called and not logged in session', async () => {
+      // Given the reader has not visited the page in the current session and has no prior visit history
+      storageMock
+        .expects('get')
+        .withExactArgs(
+          StorageKeys.READER_VISIT_LOGGED,
+          /* useLocalStorage */ false
+        )
+        .resolves(null)
+        .once();
+      storageMock
+        .expects('get')
+        .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
+        .resolves('')
+        .once();
+      storageMock
+        .expects('set')
+        .withExactArgs(
+          StorageKeys.TIMESTAMPS,
+          JSON.stringify({
+            'reader_visit': {
+              impressions: [CURRENT_TIME],
+              dismissals: [],
+              completions: [],
+            },
+          }),
+          /* useLocalStorage */ true
+        )
+        .resolves(null)
+        .once();
+      storageMock
+        .expects('set')
+        .withExactArgs(
+          StorageKeys.READER_VISIT_LOGGED,
+          '1',
+          /* useLocalStorage */ false
+        )
+        .resolves(null)
+        .once();
+
+      // When storeReaderVisit is called
+      await autoPromptManager.storeReaderVisit();
+
+      // Then the current timestamp is saved to local storage, and the session flag is set
+      storageMock.verify();
+    });
+
+    it('should not store reader visit if already logged in session', async () => {
+      // Given the reader has already visited the page in the current session
+      storageMock
+        .expects('get')
+        .withExactArgs(
+          StorageKeys.READER_VISIT_LOGGED,
+          /* useLocalStorage */ false
+        )
+        .resolves('1')
+        .once();
+      storageMock
+        .expects('get')
+        .withExactArgs(StorageKeys.TIMESTAMPS, true)
+        .never();
+      storageMock.expects('set').never();
+
+      // When storeReaderVisit is called
+      await autoPromptManager.storeReaderVisit();
+
+      // Then no new visit is stored in local storage
+      storageMock.verify();
+    });
+
+    it('should store reader visit impression when EVENT_NO_ENTITLEMENTS event is logged', async () => {
+      expectFrequencyCappingTimestamps(
+        storageMock,
+        {},
+        {
+          ['reader_visit']: {impressions: [CURRENT_TIME]},
+        }
+      );
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.EVENT_NO_ENTITLEMENTS,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+
+    it('should store reader visit impression when EVENT_HAS_METERING_ENTITLEMENTS event is logged', async () => {
+      expectFrequencyCappingTimestamps(
+        storageMock,
+        {},
+        {
+          ['reader_visit']: {impressions: [CURRENT_TIME]},
+        }
+      );
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.EVENT_HAS_METERING_ENTITLEMENTS,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+    });
+
+    it('should only store one reader visit impression per page load when multiple reader visit events are logged', async () => {
+      expectFrequencyCappingTimestamps(
+        storageMock,
+        {},
+        {
+          ['reader_visit']: {impressions: [CURRENT_TIME]},
+        }
+      );
+
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.EVENT_NO_ENTITLEMENTS,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
+      // Second event on same manager instance should not trigger a storage set
+      await eventManagerCallback({
+        eventType: AnalyticsEvent.EVENT_HAS_METERING_ENTITLEMENTS,
+        eventOriginator: EventOriginator.UNKNOWN_CLIENT,
+        isFromUserAction: null,
+        additionalParameters: null,
+      });
     });
 
     it(`should set configId keyed impression timestamps when not in dev mode`, async () => {
@@ -915,6 +1043,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
       expect(contributionPromptFnSpy).to.not.be.called;
       expect(subscriptionPromptFnSpy).to.not.be.called;
+      expect(deps.gisInteropManager().yield).to.be.called;
     });
 
     it('should not display any CTA if canDisplayAutoPrompt is false', async () => {
@@ -5190,6 +5319,23 @@ describes.realWin('AutoPromptManager', (env) => {
       .expects('get')
       .withExactArgs(StorageKeys.TIMESTAMPS, /* useLocalStorage */ true)
       .resolves(get);
+    storageMock
+      .expects('get')
+      .withExactArgs(
+        StorageKeys.READER_VISIT_LOGGED,
+        /* useLocalStorage */ false
+      )
+      .resolves(null)
+      .atLeast(0);
+    storageMock
+      .expects('set')
+      .withExactArgs(
+        StorageKeys.READER_VISIT_LOGGED,
+        '1',
+        /* useLocalStorage */ false
+      )
+      .resolves(null)
+      .atLeast(0);
     if (set != undefined) {
       set = JSON.stringify(
         Object.entries(set).reduce((acc, [key, values]) => {

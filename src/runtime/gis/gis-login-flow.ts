@@ -17,17 +17,16 @@
 import {ActivityIframeView} from '../../ui/activity-iframe-view';
 import {
   AnalyticsEvent,
+  CtaMode,
   ElementCoordinates,
   EventParams,
   GisMode as GisModeProto,
   GisSignIn,
   LoginButtonCoordinates,
-  StartGisSignIn,
 } from '../../proto/api_messages';
 import {ClientEventManager} from '../client-event-manager';
+import {Deps} from '../deps';
 import {Doc} from '../../model/doc';
-import {GisInteropManager} from './gis-interop-manager';
-import {GisMode} from './gis-utils';
 import {createElement} from '../../utils/dom';
 import {setImportantStyles} from '../../utils/style';
 
@@ -38,13 +37,8 @@ interface ValidatedCoordinates {
   top: number;
   width: number;
   height: number;
+  disabled: boolean;
 }
-
-const GIS_MODE_TO_EVENT_PARAMS_MAP = {
-  [GisMode.GisModeDisabled]: GisModeProto.GIS_MODE_DISABLED,
-  [GisMode.GisModeOverlay]: GisModeProto.GIS_MODE_OVERLAY,
-  [GisMode.GisModeNormal]: GisModeProto.GIS_MODE_NORMAL,
-};
 
 /**
  * Manages the login flow for GIS.
@@ -55,53 +49,67 @@ export class GisLoginFlow {
   private rafId: number | null = null;
   private readonly resizeHandler = this.scheduleUpdate.bind(this);
 
+  private readonly doc: Doc;
+  private readonly eventManager: ClientEventManager;
+
   constructor(
-    private readonly doc: Doc,
+    private readonly deps: Deps,
     private readonly activityIframeView: ActivityIframeView,
-    private readonly gisMode: GisMode.GisModeOverlay | GisMode.GisModeNormal,
-    private readonly eventManager: ClientEventManager,
-    private readonly gisInteropManager: GisInteropManager,
-    private readonly configurationId?: string
+    private readonly configurationId?: string,
+    private readonly ctaMode: CtaMode = CtaMode.CTA_MODE_POPUP
   ) {
-    if (this.gisMode === GisMode.GisModeOverlay) {
-      this.activityIframeView.on(
-        LoginButtonCoordinates,
-        this.handleLoginButtonCoordinates.bind(this)
-      );
-      this.doc.getWin().addEventListener('resize', this.resizeHandler);
+    this.doc = deps.doc();
+    this.eventManager = deps.eventManager();
+
+    this.activityIframeView.on(
+      LoginButtonCoordinates,
+      this.handleLoginButtonCoordinates.bind(this)
+    );
+    this.doc.getWin().addEventListener('resize', this.resizeHandler);
+    if (this.ctaMode === CtaMode.CTA_MODE_POPUP) {
       this.activityIframeView.onResize(this.resizeHandler);
-    } else if (this.gisMode === GisMode.GisModeNormal) {
-      this.activityIframeView.on(StartGisSignIn, this.login.bind(this));
     }
+
+    this.deps
+      .gisInteropManager()
+      ?.setCompleteLoginCallback?.(this.completeLogin.bind(this));
   }
 
   /**
    * Removes all overlays.
    */
   dispose() {
-    if (this.gisMode === GisMode.GisModeOverlay) {
-      for (const overlay of this.overlays.values()) {
-        overlay.remove();
-      }
-      this.overlays.clear();
-      if (this.rafId) {
-        this.doc.getWin().cancelAnimationFrame(this.rafId);
-      }
-      this.doc.getWin().removeEventListener('resize', this.resizeHandler);
+    for (const overlay of this.overlays.values()) {
+      overlay.remove();
     }
+    this.overlays.clear();
+    if (this.rafId) {
+      this.doc.getWin().cancelAnimationFrame(this.rafId);
+    }
+    this.doc.getWin().removeEventListener('resize', this.resizeHandler);
+    this.deps.gisInteropManager()?.setCompleteLoginCallback?.(null);
   }
 
   private updateOverlays() {
     this.positions.forEach((p, id) => {
       const iframe = this.activityIframeView.getElement();
       const iframeBoundingBox = iframe.getBoundingClientRect();
-      const iframeHeight = iframeBoundingBox.height;
-      const iframeWidth = iframeBoundingBox.width;
-      const windowWidth = this.doc.getWin()./*OK*/ innerWidth;
-      const windowHeight = this.doc.getWin()./*OK*/ innerHeight;
+      const win = this.doc.getWin();
 
-      const offsetLeft = (windowWidth - iframeWidth) / 2 + p.left;
-      const offsetTop = windowHeight - (iframeHeight - p.top);
+      let offsetLeft: number;
+      let offsetTop: number;
+      if (this.ctaMode === CtaMode.CTA_MODE_INLINE) {
+        offsetLeft = iframeBoundingBox.left + win./*OK*/ scrollX + p.left;
+        offsetTop = iframeBoundingBox.top + win./*OK*/ scrollY + p.top;
+      } else {
+        const iframeHeight = iframeBoundingBox.height;
+        const iframeWidth = iframeBoundingBox.width;
+        const windowWidth = win./*OK*/ innerWidth;
+        const windowHeight = win./*OK*/ innerHeight;
+
+        offsetLeft = (windowWidth - iframeWidth) / 2 + p.left;
+        offsetTop = windowHeight - (iframeHeight - p.top);
+      }
 
       const overlay = this.overlays.get(id)!;
       setImportantStyles(overlay, {
@@ -109,6 +117,7 @@ export class GisLoginFlow {
         'top': `${offsetTop}px`,
         'width': `${p.width}px`,
         'height': `${p.height}px`,
+        'pointer-events': p.disabled ? 'none' : 'auto',
       });
     });
   }
@@ -146,6 +155,7 @@ export class GisLoginFlow {
     const top = position.getTop();
     const width = position.getWidth();
     const height = position.getHeight();
+    const disabled = !!position.getDisabled();
 
     if (
       id === null ||
@@ -156,27 +166,41 @@ export class GisLoginFlow {
     ) {
       return null;
     }
-    return {id, left, top, width, height};
+    return {id, left, top, width, height, disabled};
   }
 
   private createOverlay(key: string) {
     const overlay = createElement(this.doc.getRootNode(), 'div', {});
     setImportantStyles(overlay, {
       'position': 'absolute',
+      'overflow': 'hidden',
+      'opacity': '0.001',
       'background-color': 'transparent',
       'z-index': '2147483647',
       'pointer-events': 'auto',
       'cursor': 'pointer',
     });
-    overlay.onclick = this.overlayClick.bind(this);
+    this.renderButton(overlay);
     this.overlays.set(key, overlay);
     this.doc.getBody()?.appendChild(overlay);
     return overlay;
   }
 
+  private renderButton(overlay: HTMLElement) {
+    this.doc.getWin().google?.accounts?.id?.renderButton(overlay, {
+      'type': 'standard',
+      'theme': 'outline',
+      'text': 'continue_with',
+      'logo_alignment': 'left',
+      'width': 190,
+      'click_listener': this.overlayClick.bind(this),
+    });
+  }
+
   private overlayClick() {
     const eventParams = new EventParams();
-    eventParams.setGisMode(GIS_MODE_TO_EVENT_PARAMS_MAP[this.gisMode]);
+    eventParams.setGisMode(GisModeProto.GIS_MODE_OVERLAY);
+    eventParams.setCtaMode(this.ctaMode);
     this.eventManager.logSwgEvent(
       AnalyticsEvent.ACTION_REGWALL_OPT_IN_BUTTON_CLICK,
       /* isFromUserAction= */ true,
@@ -184,15 +208,18 @@ export class GisLoginFlow {
       /* eventTime= */ undefined,
       this.configurationId
     );
-    return this.login();
+    this.deps
+      .gisInteropManager()
+      ?.setCompleteLoginCallback?.(this.completeLogin.bind(this));
+    this.deps.gisInteropManager()?.setRegwallClickPending?.(true);
   }
 
-  private async login() {
+  private async completeLogin(swgUserToken: string): Promise<boolean> {
     try {
-      const swgUserToken = await this.gisInteropManager.signIn();
       const gisSignIn = new GisSignIn();
       gisSignIn.setSwgUserToken(swgUserToken);
-      this.activityIframeView.execute(gisSignIn);
+      await this.activityIframeView.execute(gisSignIn);
+      return true;
     } catch {
       this.eventManager.logSwgEvent(
         AnalyticsEvent.EVENT_GIS_LOGIN_ERROR,
@@ -201,6 +228,7 @@ export class GisLoginFlow {
         /* eventTime= */ undefined,
         this.configurationId
       );
+      return false;
     }
   }
 }

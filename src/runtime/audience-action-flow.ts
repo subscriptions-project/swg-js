@@ -163,7 +163,6 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     this.rewardedSlotGrantedHandler = this.rewardedSlotGranted.bind(this);
     this.slotRenderEndedHandler = this.slotRenderEnded.bind(this);
     const gisMode = getGisMode(
-      this.deps_.win(),
       this.params_.action,
       this.deps_.gisInteropManager(),
       this.deps_.config?.()?.gisInterop
@@ -209,11 +208,8 @@ export class AudienceActionIframeFlow implements AudienceActionFlow {
     }
     if (gisMode !== GisMode.GisModeDisabled) {
       this.gisLoginFlow = new GisLoginFlow(
-        this.deps_.doc(),
+        this.deps_,
         this.activityIframeView_,
-        gisMode,
-        this.deps_.eventManager(),
-        this.deps_.gisInteropManager()!,
         this.params_.configurationId
       );
     }

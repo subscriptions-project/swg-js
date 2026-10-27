@@ -162,6 +162,27 @@ describes.realWin('Frequency Capping utils', () => {
       });
     });
 
+    it('returns the first CTA when global frequency cap is only exceeded by reader_visit timestamps', async () => {
+      const timestampsWithReaderVisit = {
+        ...ACTION_TIMESTAMPS,
+        ['reader_visit']: {
+          impressions: [CURRENT_TIME],
+          dismissals: [],
+          completions: [],
+        },
+      };
+
+      const result = getFrequencyCappedOrchestration(
+        eventManager,
+        ORCHESTRATION,
+        timestampsWithReaderVisit,
+        INTERVENTION_FUNNEL,
+        VALID_FREQUENCY_CAP_CONFIG
+      );
+
+      expect(result).to.equal(CONTRIBUTION_ORCHESTRATION);
+    });
+
     it('returns undefined and log cap met if the global frequency cap within interventionFunnel is met', async () => {
       const result = getFrequencyCappedOrchestration(
         eventManager,

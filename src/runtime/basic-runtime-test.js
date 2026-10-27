@@ -45,10 +45,10 @@ import {PageConfig} from '../model/page-config';
 import {PageConfigResolver} from '../model/page-config-resolver';
 import {Toast} from '../ui/toast';
 import {UiPredicates} from '../model/client-config';
+import {XhrFetcher} from './fetcher';
 import {acceptPortResultData} from './../utils/activity-utils';
 import {analyticsEventToGoogleAnalyticsEvent} from './event-type-mapping';
 import {createElement} from '../utils/dom';
-import {setExperiment} from './experiments';
 import {tick} from '../../test/tick';
 
 const DEFAULT_INIT_PARAMS = {
@@ -579,6 +579,20 @@ describes.realWin('BasicRuntime', (env) => {
       await basicRuntime.setOnPaymentResponse(callback);
     });
 
+    it('should delegate "processGisCredential" to ConfiguredBasicRuntime', async () => {
+      const response = {credential: 'token'};
+      const params = {gisClientId: 'client-id'};
+      const mockResult = {fromRrm: true};
+      configuredBasicRuntimeMock
+        .expects('processGisCredential')
+        .withExactArgs(response, params)
+        .resolves(mockResult)
+        .once();
+
+      const result = await basicRuntime.processGisCredential(response, params);
+      expect(result).to.deep.equal(mockResult);
+    });
+
     it('should delegate "setOnLoginRequest" to ConfiguredBasicRuntime without callback', async () => {
       configuredBasicRuntimeMock
         .expects('setOnLoginRequest')
@@ -753,11 +767,6 @@ describes.realWin('BasicRuntime', (env) => {
     });
 
     it('should extract configurationId from funnel for subscription on closed content funnel', async () => {
-      setExperiment(
-        doc.getWin(),
-        'multi_instance_monetary_cta_experiment',
-        true
-      );
       sandbox.stub(pageConfig, 'isLocked').returns(true);
       const subscriptionButton = createElement(doc.getRootNode(), 'button', {
         'swg-standard-button': 'subscription',
@@ -780,6 +789,9 @@ describes.realWin('BasicRuntime', (env) => {
             ],
           },
         },
+        experimentConfig: {
+          experimentFlags: ['multi_instance_monetary_cta_experiment'],
+        },
       });
 
       await basicRuntime.setupButtons();
@@ -794,11 +806,6 @@ describes.realWin('BasicRuntime', (env) => {
     });
 
     it('should extract configurationId from funnel for contribution on open content funnel', async () => {
-      setExperiment(
-        doc.getWin(),
-        'multi_instance_monetary_cta_experiment',
-        true
-      );
       sandbox.stub(pageConfig, 'isLocked').returns(false);
       const contributionButton = createElement(doc.getRootNode(), 'button', {
         'swg-standard-button': 'contribution',
@@ -821,6 +828,9 @@ describes.realWin('BasicRuntime', (env) => {
             ],
           },
         },
+        experimentConfig: {
+          experimentFlags: ['multi_instance_monetary_cta_experiment'],
+        },
       });
 
       await basicRuntime.setupButtons();
@@ -835,11 +845,6 @@ describes.realWin('BasicRuntime', (env) => {
     });
 
     it('should extract configurationId from audienceActions for subscription on open content funnel', async () => {
-      setExperiment(
-        doc.getWin(),
-        'multi_instance_monetary_cta_experiment',
-        true
-      );
       sandbox.stub(pageConfig, 'isLocked').returns(false);
       const subscriptionButton = createElement(doc.getRootNode(), 'button', {
         'swg-standard-button': 'subscription',
@@ -860,6 +865,9 @@ describes.realWin('BasicRuntime', (env) => {
             },
           ],
         },
+        experimentConfig: {
+          experimentFlags: ['multi_instance_monetary_cta_experiment'],
+        },
       });
 
       await basicRuntime.setupButtons();
@@ -874,11 +882,6 @@ describes.realWin('BasicRuntime', (env) => {
     });
 
     it('should extract configurationId from audienceActions not in interventions for subscription on open content funnel', async () => {
-      setExperiment(
-        doc.getWin(),
-        'multi_instance_monetary_cta_experiment',
-        true
-      );
       sandbox.stub(pageConfig, 'isLocked').returns(false);
       const subscriptionButton = createElement(doc.getRootNode(), 'button', {
         'swg-standard-button': 'subscription',
@@ -913,6 +916,9 @@ describes.realWin('BasicRuntime', (env) => {
             },
           ],
         },
+        experimentConfig: {
+          experimentFlags: ['multi_instance_monetary_cta_experiment'],
+        },
       });
 
       await basicRuntime.setupButtons();
@@ -927,11 +933,6 @@ describes.realWin('BasicRuntime', (env) => {
     });
 
     it('should extract configurationId from audienceActions for subscription on open content funnel when only one action exists even if in interventions', async () => {
-      setExperiment(
-        doc.getWin(),
-        'multi_instance_monetary_cta_experiment',
-        true
-      );
       sandbox.stub(pageConfig, 'isLocked').returns(false);
       const subscriptionButton = createElement(doc.getRootNode(), 'button', {
         'swg-standard-button': 'subscription',
@@ -961,6 +962,9 @@ describes.realWin('BasicRuntime', (env) => {
               configurationId: 'sub_config_id_1',
             },
           ],
+        },
+        experimentConfig: {
+          experimentFlags: ['multi_instance_monetary_cta_experiment'],
         },
       });
 
@@ -1165,6 +1169,23 @@ describes.realWin('BasicConfiguredRuntime', (env) => {
         .stub(configuredBasicRuntime, 'gisInteropManager')
         .returns(undefined);
       expect(configuredBasicRuntime.getDiagnostics().isGisReady).to.be.false;
+    });
+
+    it('should return {fromRrm: false} from processGisCredential if no credential is provided', async () => {
+      const result = await configuredBasicRuntime.processGisCredential(
+        {},
+        {gisClientId: 'client-id'}
+      );
+      expect(result).to.deep.equal({fromRrm: false});
+    });
+
+    it('should call processGisCredentialInternal if credential is provided', async () => {
+      sandbox.stub(XhrFetcher.prototype, 'sendPost').resolves({});
+      const result = await configuredBasicRuntime.processGisCredential(
+        {credential: 'token'},
+        {gisClientId: 'client-id'}
+      );
+      expect(result).to.deep.equal({fromRrm: false});
     });
 
     it('should delegate config to ConfiguredRuntime', () => {

@@ -28,12 +28,14 @@ import {GlobalDoc} from '../model/doc';
 import {MockDeps} from '../../test/mock-deps';
 import {PageConfig} from '../model/page-config';
 import {PayStartFlow} from '../runtime/pay-flow';
+import {ProductType} from '../api/subscriptions';
 import {Toast} from '../ui/toast';
 import {XhrFetcher} from '../runtime/fetcher';
 import {
   getContributionsUrl,
   getSubscriptionUrl,
   getTimestamps,
+  getVisitFrequency,
   isActionEligible,
   showAlreadyOptedInToast,
   startContributionPayFlow,
@@ -323,6 +325,47 @@ describes.realWin('CTA utils', (env) => {
       expect(payStub.getCalls()[0].thisValue.isInlineCta_).to.be.true;
       expect(payStub.getCalls()[0].thisValue.configId_).to.equal(configId);
     });
+
+    it('does not set oneTime param for contribution if SkuSelectedResponse has oneTime as false', async () => {
+      const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
+      const skuSelected = new SkuSelectedResponse();
+      skuSelected.setSku('sku1');
+      skuSelected.setOneTime(false);
+      analyticsMock
+        .expects('removeLabels')
+        .withExactArgs(['CTA_MODE_INLINE'])
+        .once();
+
+      startContributionPayFlow(deps, skuSelected, /* isInlineCta */ false);
+
+      expect(payStub).to.be.calledOnce;
+      expect(
+        payStub.getCalls()[0].thisValue.subscriptionRequest_.skuId
+      ).to.equal('sku1');
+      expect(payStub.getCalls()[0].thisValue.subscriptionRequest_.oneTime).to.be
+        .undefined;
+      analyticsMock.verify();
+    });
+
+    it('does not set oneTime param for contribution if SkuSelectedResponse has oneTime as undefined', async () => {
+      const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
+      const skuSelected = new SkuSelectedResponse();
+      skuSelected.setSku('sku1');
+      analyticsMock
+        .expects('removeLabels')
+        .withExactArgs(['CTA_MODE_INLINE'])
+        .once();
+
+      startContributionPayFlow(deps, skuSelected, /* isInlineCta */ false);
+
+      expect(payStub).to.be.calledOnce;
+      expect(
+        payStub.getCalls()[0].thisValue.subscriptionRequest_.skuId
+      ).to.equal('sku1');
+      expect(payStub.getCalls()[0].thisValue.subscriptionRequest_.oneTime).to.be
+        .undefined;
+      analyticsMock.verify();
+    });
   });
 
   describe('startSubscriptionPayFlow', () => {
@@ -427,6 +470,72 @@ describes.realWin('CTA utils', (env) => {
       ).to.equal('sku1');
       expect(payStub.getCalls()[0].thisValue.isInlineCta_).to.be.true;
       expect(payStub.getCalls()[0].thisValue.configId_).to.equal(configId);
+      analyticsMock.verify();
+    });
+
+    it('calls PayStartFlow with right params for one-time offer', async () => {
+      const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
+      const skuSelected = new SkuSelectedResponse();
+      skuSelected.setSku('sku1');
+      skuSelected.setOneTime(true);
+      analyticsMock
+        .expects('removeLabels')
+        .withExactArgs(['CTA_MODE_INLINE'])
+        .once();
+
+      startSubscriptionPayFlow(deps, skuSelected);
+
+      expect(payStub).to.be.calledOnce;
+      expect(
+        payStub.getCalls()[0].thisValue.subscriptionRequest_.skuId
+      ).to.equal('sku1');
+      expect(payStub.getCalls()[0].thisValue.subscriptionRequest_.oneTime).to.be
+        .true;
+      expect(payStub.getCalls()[0].thisValue.productType_).to.equal(
+        ProductType.SUBSCRIPTION
+      );
+      expect(payStub.getCalls()[0].thisValue.isInlineCta_).to.be.false;
+      analyticsMock.verify();
+    });
+
+    it('does not set oneTime param for subscription if SkuSelectedResponse has oneTime as false', async () => {
+      const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
+      const skuSelected = new SkuSelectedResponse();
+      skuSelected.setSku('sku1');
+      skuSelected.setOneTime(false);
+      analyticsMock
+        .expects('removeLabels')
+        .withExactArgs(['CTA_MODE_INLINE'])
+        .once();
+
+      startSubscriptionPayFlow(deps, skuSelected);
+
+      expect(payStub).to.be.calledOnce;
+      expect(
+        payStub.getCalls()[0].thisValue.subscriptionRequest_.skuId
+      ).to.equal('sku1');
+      expect(payStub.getCalls()[0].thisValue.subscriptionRequest_.oneTime).to.be
+        .undefined;
+      analyticsMock.verify();
+    });
+
+    it('does not set oneTime param for subscription if SkuSelectedResponse has oneTime as undefined', async () => {
+      const payStub = sandbox.stub(PayStartFlow.prototype, 'start');
+      const skuSelected = new SkuSelectedResponse();
+      skuSelected.setSku('sku1');
+      analyticsMock
+        .expects('removeLabels')
+        .withExactArgs(['CTA_MODE_INLINE'])
+        .once();
+
+      startSubscriptionPayFlow(deps, skuSelected);
+
+      expect(payStub).to.be.calledOnce;
+      expect(
+        payStub.getCalls()[0].thisValue.subscriptionRequest_.skuId
+      ).to.equal('sku1');
+      expect(payStub.getCalls()[0].thisValue.subscriptionRequest_.oneTime).to.be
+        .undefined;
       analyticsMock.verify();
     });
   });
@@ -815,6 +924,116 @@ describes.realWin('CTA utils', (env) => {
 
       expect(result).to.deep.equal(validTimestamps);
       expect(eventManagerStub.logSwgEvent).to.not.be.called;
+    });
+  });
+
+  describe('getVisitFrequency', () => {
+    const now = 1000000000000; // Arbitrary fixed time
+    const ONE_DAY = 24 * 60 * 60 * 1000;
+
+    it('should return VISIT_FREQUENCY_NEW for 0 past visits (1 total)', () => {
+      // Given the reader has no past visits
+      // When the visit frequency is calculated
+      const result = getVisitFrequency({}, now);
+
+      // Then it returns VISIT_FREQUENCY_NEW
+      expect(result).to.equal('VISIT_FREQUENCY_NEW');
+    });
+
+    it('should return VISIT_FREQUENCY_CASUAL for 1 past visit (2 total)', () => {
+      // Given the reader has 1 past visit within the week
+      const visitHistory = {
+        'reader_visit': {
+          impressions: [now - ONE_DAY],
+          dismissals: [],
+          completions: [],
+        },
+      };
+
+      // When the visit frequency is calculated
+      const result = getVisitFrequency(visitHistory, now);
+
+      // Then it returns VISIT_FREQUENCY_CASUAL
+      expect(result).to.equal('VISIT_FREQUENCY_CASUAL');
+    });
+
+    it('should return VISIT_FREQUENCY_CASUAL for 2 past visits (3 total)', () => {
+      // Given the reader has 2 past visits within the week
+      const visitHistory = {
+        'reader_visit': {
+          impressions: [now - ONE_DAY, now - 2 * ONE_DAY],
+          dismissals: [],
+          completions: [],
+        },
+      };
+
+      // When the visit frequency is calculated
+      const result = getVisitFrequency(visitHistory, now);
+
+      // Then it returns VISIT_FREQUENCY_CASUAL
+      expect(result).to.equal('VISIT_FREQUENCY_CASUAL');
+    });
+
+    it('should return VISIT_FREQUENCY_FREQUENT for 3 past visits (4 total)', () => {
+      // Given the reader has 3 past visits within the week
+      const visitHistory = {
+        'reader_visit': {
+          impressions: [now - ONE_DAY, now - 2 * ONE_DAY, now - 3 * ONE_DAY],
+          dismissals: [],
+          completions: [],
+        },
+      };
+
+      // When the visit frequency is calculated
+      const result = getVisitFrequency(visitHistory, now);
+
+      // Then it returns VISIT_FREQUENCY_FREQUENT
+      expect(result).to.equal('VISIT_FREQUENCY_FREQUENT');
+    });
+
+    it('should return VISIT_FREQUENCY_FREQUENT for 6 past visits (7 total)', () => {
+      // Given the reader has 6 past visits within the week
+      const visitHistory = {
+        'reader_visit': {
+          impressions: [
+            now - ONE_DAY,
+            now - 2 * ONE_DAY,
+            now - 3 * ONE_DAY,
+            now - 4 * ONE_DAY,
+            now - 5 * ONE_DAY,
+            now - 6 * ONE_DAY,
+          ],
+          dismissals: [],
+          completions: [],
+        },
+      };
+
+      // When the visit frequency is calculated
+      const result = getVisitFrequency(visitHistory, now);
+
+      // Then it returns VISIT_FREQUENCY_FREQUENT
+      expect(result).to.equal('VISIT_FREQUENCY_FREQUENT');
+    });
+
+    it('should ignore visits older than 1 week', () => {
+      // Given a reader has 1 visit within the past week and 2 visits older than 1 week
+      const visitHistory = {
+        'reader_visit': {
+          impressions: [
+            now - ONE_DAY, // 1 fresh
+            now - 8 * ONE_DAY, // old, should be ignored
+            now - 9 * ONE_DAY, // old, should be ignored
+          ],
+          dismissals: [],
+          completions: [],
+        },
+      };
+
+      // When the visit frequency is calculated
+      const result = getVisitFrequency(visitHistory, now);
+
+      // Then it returns VISIT_FREQUENCY_CASUAL (accounting for 1 past fresh visit + 1 current visit)
+      expect(result).to.equal('VISIT_FREQUENCY_CASUAL');
     });
   });
 });

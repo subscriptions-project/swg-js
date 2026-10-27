@@ -52,10 +52,16 @@ import {PageConfig} from '../model/page-config';
 import {Storage} from './storage';
 import {StorageKeys} from '../utils/constants';
 import {Toast} from '../ui/toast';
-import {addQueryParam, getCanonicalUrl, parseQueryString} from '../utils/url';
+import {
+  addQueryParam,
+  getCanonicalUrl,
+  parseQueryString,
+  parseUrl,
+} from '../utils/url';
 import {analyticsEventToEntitlementResult} from './event-type-mapping';
 import {base64UrlEncodeFromBytes, utf8EncodeSync} from '../utils/bytes';
 import {feArgs, feUrl} from './services';
+import {getTimestamps, getVisitFrequency} from '../utils/cta-utils';
 import {hash} from '../utils/string';
 import {queryStringHasFreshGaaParams} from './extended-access';
 import {serviceUrl} from './services';
@@ -800,6 +806,8 @@ export class EntitlementsManager {
 
     url = addPreviewKeyToUrl(this.win_.location, url);
 
+    url = addPageReferrerToUrl(this.win_.document, url);
+
     // Add encryption param.
     if (params?.encryption) {
       url = addQueryParam(url, 'crypt', params.encryption.encryptedDocumentKey);
@@ -951,6 +959,10 @@ export class EntitlementsManager {
         this.encodedParams_
       );
     }
+    const timestamps = await getTimestamps(this.deps_);
+    const visitFrequency = getVisitFrequency(timestamps);
+    url = addQueryParam(url, 'visitFrequency', visitFrequency);
+
     url = serviceUrl(url);
 
     // Get entitlements.
@@ -1027,6 +1039,21 @@ function addPreviewKeyToUrl(location: Location, url: string): string {
     return url;
   }
   return addQueryParam(url, 'previewKey', previewKeyRequested);
+}
+
+/**
+ * Parses page referrer from the given document and adds it
+ * to the given URL.
+ */
+function addPageReferrerToUrl(document: Document, url: string): string {
+  if (!document.referrer) {
+    return url;
+  }
+  const hostname = parseUrl(document.referrer).hostname.replace(/^www\./, '');
+  if (!hostname || hostname === 'localhost') {
+    return url;
+  }
+  return addQueryParam(url, 'pageReferrer', hostname);
 }
 
 /**

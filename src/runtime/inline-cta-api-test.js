@@ -99,6 +99,8 @@ describes.realWin('InlineCtaApi', (env) => {
       gtag: () => {},
       ga: () => {},
       dataLayer: {push: () => {}},
+      addEventListener: () => {},
+      removeEventListener: () => {},
     });
     win.setTimeout = (callback) => callback();
     newsletterSnippet = createElement(win.document, 'div', {
@@ -178,7 +180,7 @@ describes.realWin('InlineCtaApi', (env) => {
     it('getUrl returns correct url', () => {
       const urlPrefix = '/url_prefix';
       const resultUrl =
-        'https://news.google.com/swg/ui/v1/url_prefix?_=_&origin=about%3Asrcdoc&configurationId=survey_config_id&isClosable=true&calledManually=false&previewEnabled=false&publicationId=pub1&ctaMode=CTA_MODE_INLINE';
+        'https://news.google.com/swg/ui/v1/url_prefix?_=_&origin=about%3Asrcdoc&configurationId=survey_config_id&isClosable=true&calledManually=false&previewEnabled=false&publicationId=pub1&ctaMode=CTA_MODE_INLINE&gisMode=GIS_MODE_DISABLED';
 
       const url = inlineCtaApi.getUrl_(
         urlPrefix,
@@ -381,7 +383,7 @@ describes.realWin('InlineCtaApi', (env) => {
       clientConfigManagerMock.expects('getLanguage').returns('pt-BR').twice();
       const element = sandbox.match((arg) => arg.tagName == 'IFRAME');
       const resultUrl =
-        'https://news.google.com/swg/ui/v1/newsletteriframe?_=_&origin=about%3Asrcdoc&configurationId=newsletter_config_id&isClosable=true&calledManually=false&previewEnabled=false&publicationId=pub1&ctaMode=CTA_MODE_INLINE&hl=pt-BR';
+        'https://news.google.com/swg/ui/v1/newsletteriframe?_=_&origin=about%3Asrcdoc&configurationId=newsletter_config_id&isClosable=true&calledManually=false&previewEnabled=false&publicationId=pub1&ctaMode=CTA_MODE_INLINE&gisMode=GIS_MODE_DISABLED&hl=pt-BR';
       const resultArgs = {
         supportsEventManager: true,
         productType: 'UI_CONTRIBUTION',
@@ -393,6 +395,62 @@ describes.realWin('InlineCtaApi', (env) => {
         .resolves(port);
 
       await inlineCtaApi.attachInlineCtasWithAttribute({});
+    });
+
+    it('opens registration wall iframe with GIS_MODE_OVERLAY and cleans up on completion', async () => {
+      win.document.body.removeChild(newsletterSnippet);
+      const regwallIntervention = {
+        type: 'TYPE_REGISTRATION_WALL',
+        configurationId: 'regwall_config_id',
+      };
+      const regwallSnippet = createElement(win.document, 'div', {
+        'rrm-inline-cta': regwallIntervention.configurationId,
+      });
+      win.document.body.appendChild(regwallSnippet);
+      setEntitlements();
+      setArticleResponse([regwallIntervention]);
+
+      const gisInteropManagerMock = {
+        getState: () => 'WAITING_FOR_PING',
+        isGisAllowed: () => true,
+        setCompleteLoginCallback: sandbox.stub(),
+        redirectOk: sandbox.stub(),
+      };
+      sandbox.stub(deps, 'gisInteropManager').returns(gisInteropManagerMock);
+      sandbox.stub(deps, 'config').returns({gisInterop: true});
+
+      const element = sandbox.match((arg) => arg.tagName == 'IFRAME');
+      const resultUrl =
+        'https://news.google.com/swg/ui/v1/regwalliframe?_=_&origin=about%3Asrcdoc&configurationId=regwall_config_id&isClosable=true&calledManually=false&previewEnabled=false&publicationId=pub1&ctaMode=CTA_MODE_INLINE&gisMode=GIS_MODE_OVERLAY';
+      const resultArgs = {
+        supportsEventManager: true,
+        productType: 'UI_CONTRIBUTION',
+        _client: 'SwG 0.0.0',
+      };
+      activitiesMock
+        .expects('openIframe')
+        .withExactArgs(element, resultUrl, resultArgs)
+        .resolves(port);
+
+      await inlineCtaApi.attachInlineCtasWithAttribute({});
+
+      expect(
+        gisInteropManagerMock.setCompleteLoginCallback
+      ).to.have.been.calledWith(sandbox.match.func);
+
+      entitlementsManagerMock.expects('clear').resolves(null).once();
+      entitlementsManagerMock.expects('getEntitlements').resolves(null).once();
+      const completeAudienceActionResponse = getCompleteAudienceActionResponse(
+        /*alreadyCompleted*/ false
+      );
+      messageMap[completeAudienceActionResponse.label()](
+        completeAudienceActionResponse
+      );
+
+      expect(
+        gisInteropManagerMock.setCompleteLoginCallback
+      ).to.have.been.calledWith(null);
+      expect(gisInteropManagerMock.redirectOk).to.have.been.calledOnce;
     });
 
     it('handleSurveyDataTransferRequest called on SurveyDataTransferRequest', async () => {
