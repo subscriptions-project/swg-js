@@ -129,6 +129,16 @@ function initEnterprise() {
 function initRrm() {
   isEnterprise = false;
   const isAccessibleForFree = document.getElementById('isAccessibleForFree').checked;
+  const enableInlineCta = document.getElementById('enableInlineCta').checked;
+  const inlineCtaContainer = document.getElementById('inlineCtaContainer');
+  if (enableInlineCta) {
+    inlineCtaContainer.setAttribute(
+      'rrm-inline-cta',
+      '4ea40750-06b3-489f-b206-3117b5944b82'
+    );
+  } else {
+    inlineCtaContainer.removeAttribute('rrm-inline-cta');
+  }
   (self.SWG_BASIC = self.SWG_BASIC || []).push((basicSubscriptions) => {
     basicSubscriptions.setOnEntitlementsResponse((entitlementsPromise) => {
       entitlementsPromise
@@ -145,6 +155,7 @@ function initRrm() {
       isPartOfType: ["Product"],
       isPartOfProductId: "CAowhbqJAQ:product1",
       isAccessibleForFree: isAccessibleForFree,
+      autoPromptType: enableInlineCta ? "none" : undefined,
       clientOptions: {
         theme: "light",
         lang: "en",
@@ -152,7 +163,9 @@ function initRrm() {
       gisInterop: true,
     });
   });
-  log(`Called initRrm with isAccessibleForFree: ${isAccessibleForFree}`);
+  log(
+    `Called initRrm with isAccessibleForFree: ${isAccessibleForFree}, enableInlineCta: ${enableInlineCta}`
+  );
 }
 
 function showOneTap() {

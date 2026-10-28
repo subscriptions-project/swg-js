@@ -18,6 +18,7 @@ import {ActivityIframeView} from '../../ui/activity-iframe-view';
 import {ActivityPorts} from '../../components/activities';
 import {
   AnalyticsEvent,
+  CtaMode,
   ElementCoordinates,
   GisMode as GisModeProto,
   GisSignIn,
@@ -170,6 +171,7 @@ describes.realWin('GisLoginFlow', (env) => {
       expect(getStyle(overlays[0], 'top')).to.equal('510px');
       expect(getStyle(overlays[0], 'width')).to.equal('100px');
       expect(getStyle(overlays[0], 'height')).to.equal('30px');
+      expect(getStyle(overlays[0], 'overflow')).to.equal('hidden');
       expect(getStyle(overlays[0], 'pointer-events')).to.equal('auto');
 
       expect(win.google.accounts.id.renderButton).to.have.been.calledWith(
@@ -253,9 +255,13 @@ describes.realWin('GisLoginFlow', (env) => {
         win.google.accounts.id.renderButton.firstCall.args;
       const clickListener = renderButtonArgs[1].click_listener;
 
+      gisInteropManagerMock.setCompleteLoginCallback.resetHistory();
       clickListener();
 
       expect(activityIframeView.execute).to.not.have.been.called;
+      expect(
+        gisInteropManagerMock.setCompleteLoginCallback
+      ).to.have.been.calledWith(sandbox.match.func);
       expect(
         gisInteropManagerMock.setRegwallClickPending
       ).to.have.been.calledWith(true);
@@ -264,10 +270,65 @@ describes.realWin('GisLoginFlow', (env) => {
         AnalyticsEvent.ACTION_REGWALL_OPT_IN_BUTTON_CLICK,
         true,
         sandbox.match((eventParams) => {
-          return eventParams.getGisMode() === GisModeProto.GIS_MODE_OVERLAY;
+          return (
+            eventParams.getGisMode() === GisModeProto.GIS_MODE_OVERLAY &&
+            eventParams.getCtaMode() === CtaMode.CTA_MODE_POPUP
+          );
         }),
         undefined,
         undefined
+      );
+    });
+
+    it('positions overlay relative to iframe bounding rect and scroll offset for inline CTA', () => {
+      gisLoginFlow.dispose();
+      const el = activityIframeView.getElement();
+      el.getBoundingClientRect.returns({
+        width: 500,
+        height: 400,
+        left: 80,
+        top: 300,
+        right: 580,
+        bottom: 700,
+      });
+      win.scrollX = 20;
+      win.scrollY = 150;
+      activityIframeView.onResize.resetHistory();
+
+      gisLoginFlow = new GisLoginFlow(
+        depsMock,
+        activityIframeView,
+        'inline-config-id',
+        CtaMode.CTA_MODE_INLINE
+      );
+
+      expect(activityIframeView.onResize).to.not.have.been.called;
+
+      messageMap[message.label()](message);
+
+      const overlays = win.document.body.querySelectorAll('div');
+      expect(overlays.length).to.equal(1);
+      // offsetLeft = 80 + 20 + 10 = 110
+      // offsetTop = 300 + 150 + 10 = 460
+      expect(getStyle(overlays[0], 'left')).to.equal('110px');
+      expect(getStyle(overlays[0], 'top')).to.equal('460px');
+
+      const renderButtonArgs =
+        win.google.accounts.id.renderButton.lastCall.args;
+      const clickListener = renderButtonArgs[1].click_listener;
+      clickListener();
+
+      expect(eventManagerMock.logSwgEvent).to.have.been.calledWith(
+        AnalyticsEvent.ACTION_REGWALL_OPT_IN_BUTTON_CLICK,
+        true,
+        sandbox.match((eventParams) => {
+          return (
+            eventParams.getGisMode() === GisModeProto.GIS_MODE_OVERLAY &&
+            eventParams.getCtaMode() === CtaMode.CTA_MODE_INLINE
+          );
+        }),
+        undefined,
+        'inline-config-id'
       );
     });
 
