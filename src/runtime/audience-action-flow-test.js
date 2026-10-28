@@ -1022,7 +1022,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
     expect(onCancelSpy).to.not.be.called;
   });
 
-  it('passes gisMode=GIS_MODE_NORMAL in query param for Chrome with GIS', async () => {
+  it('passes gisMode=GIS_MODE_OVERLAY in query param for Chrome with GIS', async () => {
     sandbox.stub(runtime, 'gisInteropManager').returns({
       getState: () => GisInteropManagerStates.COMMUNICATION_IFRAME_ESTABLISHED,
       isConnectionExpected: () => true,
@@ -1045,7 +1045,7 @@ describes.realWin('AudienceActionIframeFlow', (env) => {
         sandbox.match((arg) => arg.tagName == 'IFRAME'),
         `https://news.google.com/swg/ui/v1/regwalliframe?_=_&origin=${encodeURIComponent(
           WINDOW_LOCATION_DOMAIN
-        )}&configurationId=configId&isClosable=false&calledManually=false&previewEnabled=false&gisMode=GIS_MODE_NORMAL`,
+        )}&configurationId=configId&isClosable=false&calledManually=false&previewEnabled=false&gisMode=GIS_MODE_OVERLAY`,
         sandbox.match.any
       )
       .resolves(port);

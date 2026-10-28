@@ -30,7 +30,8 @@ import {
 } from '../proto/api_messages';
 import {Deps} from './deps';
 import {Doc} from '../model/doc';
-
+import {GisLoginFlow} from './gis/gis-login-flow';
+import {GisMode, getGisMode} from './gis/gis-utils';
 import {Intervention} from './intervention';
 import {InterventionType} from '../api/intervention-type';
 import {ProductType, SubscriptionFlows} from '../api/subscriptions';
@@ -77,7 +78,11 @@ export class InlineCtaApi {
     );
   }
 
-  private getUrl_(urlPrefix: string, configId: string): string {
+  private getUrl_(
+    urlPrefix: string,
+    configId: string,
+    gisMode: GisMode = GisMode.GisModeDisabled
+  ): string {
     const iframeParams: {[key: string]: string} = {
       'origin': parseUrl(this.win_.location.href).origin,
       'configurationId': configId,
@@ -86,6 +91,7 @@ export class InlineCtaApi {
       'previewEnabled': 'false',
       'publicationId': this.deps_.pageConfig().getPublicationId(),
       'ctaMode': 'CTA_MODE_INLINE',
+      'gisMode': gisMode,
     };
     if (this.clientConfigManager_.shouldForceLangInIframes()) {
       iframeParams['hl'] = this.clientConfigManager_.getLanguage();
@@ -96,8 +102,13 @@ export class InlineCtaApi {
   private handleCompleteAudienceActionResponse_(
     response: CompleteAudienceActionResponse,
     actionType: string,
-    div: HTMLElement
+    div: HTMLElement,
+    gisLoginFlow?: GisLoginFlow
   ): void {
+    if (gisLoginFlow) {
+      gisLoginFlow.dispose();
+      this.deps_.gisInteropManager()?.redirectOk();
+    }
     this.entitlementsManager_.clear();
     const userToken = response.getSwgUserToken();
     if (userToken) {
@@ -164,6 +175,11 @@ export class InlineCtaApi {
       return;
     }
     const urlPrefix = ActionToIframeMapping[action.type];
+    const gisMode = getGisMode(
+      action.type,
+      this.deps_.gisInteropManager(),
+      this.deps_.config?.()?.gisInterop
+    );
     const fetchUrl =
       action.type === InterventionType.TYPE_SUBSCRIPTION
         ? getSubscriptionUrl(
@@ -192,7 +208,7 @@ export class InlineCtaApi {
                 ? parseUrl(this.win_.location.href).origin
                 : undefined
             )
-          : this.getUrl_(urlPrefix, configId);
+          : this.getUrl_(urlPrefix, configId, gisMode);
     const fetchArgs =
       action.type === InterventionType.TYPE_SUBSCRIPTION
         ? (this.activityPorts_.addDefaultArguments({
@@ -268,8 +284,22 @@ export class InlineCtaApi {
         )
       );
     } else {
+      const gisLoginFlow =
+        gisMode !== GisMode.GisModeDisabled
+          ? new GisLoginFlow(
+              this.deps_,
+              activityIframeView,
+              configId,
+              CtaMode.CTA_MODE_INLINE
+            )
+          : undefined;
       activityIframeView.on(CompleteAudienceActionResponse, (response) =>
-        this.handleCompleteAudienceActionResponse_(response, action.type, div)
+        this.handleCompleteAudienceActionResponse_(
+          response,
+          action.type,
+          div,
+          gisLoginFlow
+        )
       );
       activityIframeView.on(SurveyDataTransferRequest, (request) =>
         handleSurveyDataTransferRequest(

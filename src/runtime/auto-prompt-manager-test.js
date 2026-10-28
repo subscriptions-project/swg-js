@@ -93,7 +93,7 @@ describes.realWin('AutoPromptManager', (env) => {
     deps = new MockDeps();
 
     sandbox.useFakeTimers(CURRENT_TIME);
-    win = Object.assign({}, env.win, {
+    win = Object.assign(env.win, {
       gtag: () => {},
       ga: () => {},
       dataLayer: {push: () => {}},
@@ -1043,6 +1043,7 @@ describes.realWin('AutoPromptManager', (env) => {
       expect(autoPromptManager.getLastAudienceActionFlow()).to.equal(null);
       expect(contributionPromptFnSpy).to.not.be.called;
       expect(subscriptionPromptFnSpy).to.not.be.called;
+      expect(deps.gisInteropManager().yield).to.be.called;
     });
 
     it('should not display any CTA if canDisplayAutoPrompt is false', async () => {

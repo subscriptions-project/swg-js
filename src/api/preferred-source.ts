@@ -1,6 +1,6 @@
 export interface PreferredSourceButtonOptions {
   lang?: string;
-  theme?: 'light' | 'dark';
+  theme?: 'light' | 'dark' | 'auto';
 }
 
 export interface PreferredSourceApi {

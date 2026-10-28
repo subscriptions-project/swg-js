@@ -30,7 +30,12 @@ import {ButtonApi, ButtonAttributeValues} from './button-api';
 import {Callbacks} from './callbacks';
 import {ClientConfigManager} from './client-config-manager';
 import {ClientEventManager} from './client-event-manager';
-import {Config, OffersRequest} from '../api/subscriptions';
+import {
+  Config,
+  GisCredentialResponse,
+  OffersRequest,
+  ProcessGisCredentialResult,
+} from '../api/subscriptions';
 import {ConfiguredRuntime} from './runtime';
 import {Deps} from './deps';
 import {DialogManager} from '../components/dialog-manager';
@@ -58,6 +63,7 @@ import {acceptPortResultData} from '../utils/activity-utils';
 import {assert} from '../utils/log';
 import {feArgs, feOrigin, feUrl} from './services';
 import {msg} from '../utils/i18n';
+import {processGisCredentialInternal} from './gis/gis-utils';
 
 const BASIC_RUNTIME_PROP = 'SWG_BASIC';
 const BUTTON_ATTRIUBUTE = 'swg-standard-button';
@@ -311,6 +317,14 @@ export class BasicRuntime implements BasicSubscriptions {
   async dismissSwgUI(): Promise<void> {
     const runtime = await this.configured_(false);
     runtime.dismissSwgUI();
+  }
+
+  async processGisCredential(
+    response: GisCredentialResponse,
+    params: {gisClientId: string}
+  ): Promise<ProcessGisCredentialResult> {
+    const runtime = await this.configured_(false);
+    return runtime.processGisCredential(response, params);
   }
 
   getDiagnostics(): {isGisReady: boolean} {
@@ -665,6 +679,16 @@ export class ConfiguredBasicRuntime implements Deps, BasicSubscriptions {
     this.dialogManager().completeAll();
   }
 
+  async processGisCredential(
+    response: GisCredentialResponse,
+    params: {gisClientId: string}
+  ): Promise<ProcessGisCredentialResult> {
+    if (!response.credential) {
+      return {fromRrm: false};
+    }
+    return processGisCredentialInternal(this, response, params);
+  }
+
   getDiagnostics(): {isGisReady: boolean} {
     const manager = this.gisInteropManager();
     return {
@@ -795,6 +819,7 @@ function createPublicBasicRuntime(
     setupAndShowAutoPrompt:
       basicRuntime.setupAndShowAutoPrompt.bind(basicRuntime),
     dismissSwgUI: basicRuntime.dismissSwgUI.bind(basicRuntime),
+    processGisCredential: basicRuntime.processGisCredential.bind(basicRuntime),
     getDiagnostics: basicRuntime.getDiagnostics.bind(basicRuntime),
   };
 }

@@ -6,15 +6,20 @@ on:
       - main
   pull_request: {}
 
+permissions:
+  contents: read
+
 jobs:
   check:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Install the right version of Nodejs
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24.x'
 
@@ -22,7 +27,7 @@ jobs:
         run: npm ci --omit optional
 
       - name: Check lint & rules
-        run: gulp check
+        run: npx gulp check
 
       - name: Check types
         run: npx tsc --project tsconfig.json
@@ -31,29 +36,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Install the right version of Nodejs
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24.x'
 
       - name: Install dependencies
         run: npm ci
+        env:
+          # Download the ChromeDriver matching the runner's preinstalled Chrome
+          # so e2e tests keep working when the runner image bumps Chrome.
+          DETECT_CHROMEDRIVER_VERSION: 'true'
 
       - name: E2E Tests
         run: . ./build_and_run_e2e.sh
 
       - name: Upload e2e VRT baseline
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: vrt-baseline
           path: test/e2e/vrt/baseline
 
       - name: Upload e2e VRT report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: vrt-report
           path: vrt-report
@@ -62,29 +73,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Install the right version of Nodejs
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24.x'
 
       - name: Install dependencies
         run: npm ci
+        env:
+          # Download the ChromeDriver matching the runner's preinstalled Chrome
+          # so e2e tests keep working when the runner image bumps Chrome.
+          DETECT_CHROMEDRIVER_VERSION: 'true'
 
       - name: E2E Tests with all experiments enabled
         run: . ./build_and_run_e2e.sh all_experiments_enabled
 
       - name: Upload e2e with all experiments VRT baseline
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: all-experiments-vrt-baseline
           path: test/e2e/vrt/baseline
 
       - name: Upload e2e with all experiments VRT report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: all-experiments-vrt-report
           path: vrt-report
@@ -93,10 +110,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Install the right version of Nodejs
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24.x'
 
@@ -107,7 +126,7 @@ jobs:
         run: . ./build_binaries.sh
 
       - name: Archive binaries
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: binaries
           path: |
@@ -118,10 +137,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Install the right version of Nodejs
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24.x'
 
@@ -129,9 +150,9 @@ jobs:
         run: npm ci --omit optional
 
       - name: Unit Tests
-        run: gulp unit --headless --coverage
+        run: npx gulp unit --headless --coverage
 
-      - uses: codecov/codecov-action@v6
+      - uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v6.0.2
         with:
           token: 3bd95ad1-098e-45cc-b6c9-4ead17849c96
           files: ./test/coverage/lcov-unit.info

@@ -18,7 +18,9 @@ function build_template_binary() {
     shift 2
 
     local filename="swg"
-    if [[ $target != "classic" ]]; then
+    if [[ $target == "publisher" ]]; then
+        filename="publisher"
+    elif [[ $target != "classic" ]]; then
         filename="$filename-$target"
     fi
     filename="$filename.template.js"
@@ -31,14 +33,16 @@ function build_template_binary() {
         "--minifiedBasicName=$filename" \
         "--minifiedGaaName=$filename" \
         "--minifiedName=$filename" \
+        "--minifiedPublisherName=$filename" \
         "--payEnvironment=___PAY_ENVIRONMENT___" \
         "--playEnvironment=___PLAY_ENVIRONMENT___" \
         "--swgVersion=$SWG_VERSION" \
         "--target=$target"
 }
-build_template_binary basic   $EXPERIMENTS &
-build_template_binary classic $EXPERIMENTS &
-build_template_binary gaa     $EXPERIMENTS &
+build_template_binary basic     $EXPERIMENTS &
+build_template_binary classic   $EXPERIMENTS &
+build_template_binary gaa       $EXPERIMENTS &
+build_template_binary publisher $EXPERIMENTS &
 wait
 
 # Create binaries for each environment, in parallel.
@@ -49,16 +53,22 @@ function create_binaries_for_environment() {
     local -r play_environment="$4"
     shift 4
 
-    for variant in "" "-basic" "-gaa"; do
-        # Copy files.
-        cp dist/swg$variant.template.js dist/swg$variant$target.js
-        cp dist/swg$variant.template.js.map dist/swg$variant$target.js.map
+    for basename in "swg" "swg-basic" "swg-gaa" "publisher"; do
+        for ext in "js" "mjs"; do
+            if [[ ! -f dist/$basename.template.$ext ]]; then
+                continue
+            fi
 
-        # Replace values.
-        sed -i "s|https://FRONTEND.com|$frontend|g"                dist/swg$variant$target*
-        sed -i "s|___PAY_ENVIRONMENT___|$pay_environment|g"        dist/swg$variant$target*
-        sed -i "s|___PLAY_ENVIRONMENT___|$play_environment|g"      dist/swg$variant$target*
-        sed -i "s|swg$variant.template.js.map|swg$variant$target.js.map|g" dist/swg$variant$target*
+            # Copy files.
+            cp dist/$basename.template.$ext dist/$basename$target.$ext
+            cp dist/$basename.template.$ext.map dist/$basename$target.$ext.map
+
+            # Replace values.
+            sed -i "s|https://FRONTEND.com|$frontend|g"                dist/$basename$target.$ext*
+            sed -i "s|___PAY_ENVIRONMENT___|$pay_environment|g"        dist/$basename$target.$ext*
+            sed -i "s|___PLAY_ENVIRONMENT___|$play_environment|g"      dist/$basename$target.$ext*
+            sed -i "s|$basename.template.$ext.map|$basename$target.$ext.map|g" dist/$basename$target.$ext*
+        done
     done
 }
 create_binaries_for_environment \
@@ -79,4 +89,4 @@ create_binaries_for_environment \
 wait
 
 # Remove template binaries.
-rm dist/*template.js*
+rm -f dist/*template.*js*

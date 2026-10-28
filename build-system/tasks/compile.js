@@ -129,20 +129,20 @@ function compileScript(srcDir, srcFilename, destDir, options) {
     debug: true,
   })
     .plugin(tsify)
-    .transform(
-      babelify.configure({
-        'presets': ['@babel/preset-env'],
-        'extensions': ['.js', '.ts'],
-        'plugins': [
-          [
-            './build-system/transform-define-constants',
-            {
-              'replacements': resolveConfig(),
-            },
-          ],
+    .transform(babelify, {
+      'global': true,
+      'ignore': [/\/node_modules\/(?!(@material|lit|@lit))/],
+      'presets': [['@babel/preset-env', {'modules': 'commonjs'}]],
+      'extensions': ['.js', '.ts', '.mjs'],
+      'plugins': [
+        [
+          './build-system/transform-define-constants',
+          {
+            'replacements': resolveConfig(),
+          },
         ],
-      })
-    );
+      ],
+    });
   if (options.watch) {
     bundler = watchify(bundler);
   }

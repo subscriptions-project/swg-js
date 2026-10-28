@@ -216,6 +216,7 @@ export enum AnalyticsEvent {
   ACTION_BYOE_POP_UP_OPT_IN = 1092,
   ACTION_ADD_PREFERRED_SOURCES_BUTTON_CLICK = 1093,
   ACTION_MANAGE_PREFERRED_SOURCES = 1094,
+  ACTION_ADD_PREFERRED_SOURCE = 1095,
   EVENT_PAYMENT_FAILED = 2000,
   EVENT_REGWALL_OPT_IN_FAILED = 2001,
   EVENT_NEWSLETTER_OPT_IN_FAILED = 2002,
@@ -306,6 +307,7 @@ export enum AnalyticsEvent {
   EVENT_ADD_PREFERRED_SOURCE_SUCCESS = 3076,
   EVENT_PREFERRED_SOURCE_ALREADY_ADDED = 3077,
   EVENT_SUBSCRIPTION_PLAN_CHANGE_COMPLETE = 3078,
+  EVENT_PUBLISHER_RUNTIME_INSTALLED = 3079,
   EVENT_SUBSCRIPTION_STATE = 4000,
   FREE_ACCESS_EVENT_LANDING = 5000,
   FREE_ACCESS_EVENT_FREE_ACCESS_PROGRAM = 5001,
@@ -376,6 +378,20 @@ export enum OptInType {
   OPT_IN_TYPE_UNSPECIFIED = 0,
   OPT_IN_TYPE_FIRST_PARTY = 1,
   OPT_IN_TYPE_READER_SPECIFIED = 2,
+}
+
+/** */
+export enum PreferredSourcesAddSourceTrigger {
+  PREFERRED_SOURCES_ADD_SOURCE_TRIGGER_UNSPECIFIED = 0,
+  PREFERRED_SOURCES_ADD_SOURCE_TRIGGER_INFLATED_BUTTON = 1,
+  PREFERRED_SOURCES_ADD_SOURCE_TRIGGER_API = 2,
+}
+
+/** */
+export enum PreferredSourcesInstallType {
+  PREFERRED_SOURCES_INSTALL_TYPE_UNSPECIFIED = 0,
+  PREFERRED_SOURCES_INSTALL_TYPE_AUTO = 1,
+  PREFERRED_SOURCES_INSTALL_TYPE_MANUAL = 2,
 }
 
 /** */
@@ -1206,6 +1222,7 @@ export class ElementCoordinates implements Message {
   private top_: number | null;
   private width_: number | null;
   private height_: number | null;
+  private disabled_: boolean | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
@@ -1219,6 +1236,8 @@ export class ElementCoordinates implements Message {
     this.width_ = data[3 + base] == null ? null : (data[3 + base] as number);
 
     this.height_ = data[4 + base] == null ? null : (data[4 + base] as number);
+
+    this.disabled_ = data[5 + base] == null ? null : (data[5 + base] as boolean);
   }
 
   getId(): string | null {
@@ -1261,6 +1280,14 @@ export class ElementCoordinates implements Message {
     this.height_ = value;
   }
 
+  getDisabled(): boolean | null {
+    return this.disabled_;
+  }
+
+  setDisabled(value: boolean): void {
+    this.disabled_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.id_, // field 1 - id
@@ -1268,6 +1295,7 @@ export class ElementCoordinates implements Message {
       this.top_, // field 3 - top
       this.width_, // field 4 - width
       this.height_, // field 5 - height
+      this.disabled_, // field 6 - disabled
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -1503,6 +1531,8 @@ export class EventParams implements Message {
   private addPreferredSourceStatus_: AddPreferredSourceStatus | null;
   private canonicalUrl_: string | null;
   private uvSiteChunk_: string | null;
+  private preferredSourcesInstallType_: PreferredSourcesInstallType | null;
+  private preferredSourcesAddSourceTrigger_: PreferredSourcesAddSourceTrigger | null;
 
   constructor(data: unknown[] = [], includesLabel = true) {
     const base = includesLabel ? 1 : 0;
@@ -1543,6 +1573,10 @@ export class EventParams implements Message {
     this.canonicalUrl_ = data[15 + base] == null ? null : (data[15 + base] as string);
 
     this.uvSiteChunk_ = data[16 + base] == null ? null : (data[16 + base] as string);
+
+    this.preferredSourcesInstallType_ = data[17 + base] == null ? null : (data[17 + base] as PreferredSourcesInstallType);
+
+    this.preferredSourcesAddSourceTrigger_ = data[18 + base] == null ? null : (data[18 + base] as PreferredSourcesAddSourceTrigger);
   }
 
   getSmartboxMessage(): string | null {
@@ -1681,6 +1715,24 @@ export class EventParams implements Message {
     this.uvSiteChunk_ = value;
   }
 
+  getPreferredSourcesInstallType(): PreferredSourcesInstallType | null {
+    return this.preferredSourcesInstallType_;
+  }
+
+  setPreferredSourcesInstallType(value: PreferredSourcesInstallType): void {
+    this.preferredSourcesInstallType_ = value;
+  }
+
+  getPreferredSourcesAddSourceTrigger(): PreferredSourcesAddSourceTrigger | null {
+    return this.preferredSourcesAddSourceTrigger_;
+  }
+
+  setPreferredSourcesAddSourceTrigger(
+    value: PreferredSourcesAddSourceTrigger,
+  ): void {
+    this.preferredSourcesAddSourceTrigger_ = value;
+  }
+
   toArray(includeLabel = true): unknown[] {
     const arr: unknown[] = [
       this.smartboxMessage_, // field 1 - smartbox_message
@@ -1700,6 +1752,8 @@ export class EventParams implements Message {
       this.addPreferredSourceStatus_, // field 15 - add_preferred_source_status
       this.canonicalUrl_, // field 16 - canonical_url
       this.uvSiteChunk_, // field 17 - uv_site_chunk
+      this.preferredSourcesInstallType_, // field 18 - preferred_sources_install_type
+      this.preferredSourcesAddSourceTrigger_, // field 19 - preferred_sources_add_source_trigger
     ];
     if (includeLabel) {
       arr.unshift(this.label());
@@ -2724,6 +2778,39 @@ export class ToastCloseRequest implements Message {
 }
 
 /** */
+export class UpdateAddPreferredSourceButtonRequest implements Message {
+  private status_: AddPreferredSourceStatus | null;
+
+  constructor(data: unknown[] = [], includesLabel = true) {
+    const base = includesLabel ? 1 : 0;
+
+    this.status_ = data[base] == null ? null : (data[base] as AddPreferredSourceStatus);
+  }
+
+  getStatus(): AddPreferredSourceStatus | null {
+    return this.status_;
+  }
+
+  setStatus(value: AddPreferredSourceStatus): void {
+    this.status_ = value;
+  }
+
+  toArray(includeLabel = true): unknown[] {
+    const arr: unknown[] = [
+      this.status_, // field 1 - status
+    ];
+    if (includeLabel) {
+      arr.unshift(this.label());
+    }
+    return arr;
+  }
+
+  label(): string {
+    return 'UpdateAddPreferredSourceButtonRequest';
+  }
+}
+
+/** */
 export class ViewSubscriptionsResponse implements Message {
   private native_: boolean | null;
 
@@ -2797,6 +2884,7 @@ const PROTO_MAP: {[key: string]: MessageConstructor} = {
   'SurveyQuestion': SurveyQuestion,
   'Timestamp': Timestamp,
   'ToastCloseRequest': ToastCloseRequest,
+  'UpdateAddPreferredSourceButtonRequest': UpdateAddPreferredSourceButtonRequest,
   'ViewSubscriptionsResponse': ViewSubscriptionsResponse,
 };
 

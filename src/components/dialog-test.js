@@ -816,14 +816,14 @@ describes.realWin('Dialog', (env) => {
       expect(matchMedia.hasListeners()).to.be.false;
     });
 
-    it('adds centered-on-desktop class to the LoadingView', async () => {
+    it('does not add centered-on-desktop class to the LoadingView', async () => {
       immediate();
       const openedDialog = await dialog.open();
       const loadingContainer = openedDialog
         .getIframe()
         .getDocument()
         .querySelector('swg-loading-container');
-      expect(loadingContainer).to.have.class('centered-on-desktop');
+      expect(loadingContainer).not.to.have.class('centered-on-desktop');
     });
 
     it('adds padding-bottom to document root on resize', async () => {

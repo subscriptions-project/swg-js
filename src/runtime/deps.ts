@@ -61,4 +61,6 @@ export interface Deps {
   creationTimestamp(): number;
 
   gisInteropManager(): GisInteropManager | undefined;
+
+  isPublisher?(): boolean;
 }

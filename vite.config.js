@@ -39,12 +39,27 @@ const plugins = [
     preventAssignment: false,
     values: replacementValues,
   }),
+  {
+    name: 'inject-esm-flag',
+    transform(code, id) {
+      if (id.endsWith('src/constants.ts')) {
+        return code.replace('export const IS_ESM_BUILD = false;', 'export const IS_ESM_BUILD = __IS_ESM_BUILD__;');
+      }
+    },
+    renderChunk(code, chunk, options) {
+      const isEsm = options.format === 'es' || options.format === 'esm';
+      return code.replace(/__IS_ESM_BUILD__/g, JSON.stringify(isEsm));
+    },
+  },
   // Wrap generated code in outer function to avoid leaking into global scope.
   // b/293444391.
   {
     name: 'add-outer-iife',
     apply: 'build',
     generateBundle(options, bundle) {
+      if (options.format !== 'iife') {
+        return;
+      }
       const chunks = Object.values(bundle).filter(
         (entry) => entry.type === 'chunk' && entry.code
       );
@@ -109,10 +124,24 @@ const builds = {
   publisher: {
     output: args.minifiedPublisherName || 'publisher.js',
     input: './src/publisher-main.ts',
+    esm: true,
   },
 };
 
-const {input, output} = builds[args.target || 'classic'];
+const target = args.target || 'classic';
+const {input, output, esm} = builds[target];
+const outputs = [
+  {
+    format: 'iife',
+    entryFileNames: output,
+  },
+];
+if (esm) {
+  outputs.push({
+    format: 'es',
+    entryFileNames: output.replace(/\.js$/, '.mjs'),
+  });
+}
 
 export default defineConfig({
   plugins,
@@ -141,12 +170,8 @@ export default defineConfig({
 
     rollupOptions: {
       input,
-      output: [
-        {
-          format: 'iife',
-          entryFileNames: output,
-        },
-      ],
+      preserveEntrySignatures: esm ? 'allow-extension' : undefined,
+      output: outputs,
     },
   },
 });

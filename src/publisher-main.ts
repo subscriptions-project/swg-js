@@ -20,9 +20,13 @@
  */
 
 import {INTERNAL_RUNTIME_VERSION} from './constants';
+import {IS_ESM_BUILD} from './constants';
 import {installPublisherRuntime} from './runtime/publisher-runtime';
 import {log} from './utils/log';
 
 log(`Publisher Runtime: ${INTERNAL_RUNTIME_VERSION}`);
 
-installPublisherRuntime(self);
+const preferredSource = installPublisherRuntime(self, {
+  autoStart: !IS_ESM_BUILD,
+});
+export {preferredSource};
