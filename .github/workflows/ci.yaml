@@ -19,7 +19,7 @@ jobs:
           persist-credentials: false
 
       - name: Install the right version of Nodejs
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24.x'
 
@@ -41,12 +41,16 @@ jobs:
           persist-credentials: false
 
       - name: Install the right version of Nodejs
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24.x'
 
       - name: Install dependencies
         run: npm ci
+        env:
+          # Download the ChromeDriver matching the runner's preinstalled Chrome
+          # so e2e tests keep working when the runner image bumps Chrome.
+          DETECT_CHROMEDRIVER_VERSION: 'true'
 
       - name: E2E Tests
         run: . ./build_and_run_e2e.sh
@@ -74,12 +78,16 @@ jobs:
           persist-credentials: false
 
       - name: Install the right version of Nodejs
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24.x'
 
       - name: Install dependencies
         run: npm ci
+        env:
+          # Download the ChromeDriver matching the runner's preinstalled Chrome
+          # so e2e tests keep working when the runner image bumps Chrome.
+          DETECT_CHROMEDRIVER_VERSION: 'true'
 
       - name: E2E Tests with all experiments enabled
         run: . ./build_and_run_e2e.sh all_experiments_enabled
@@ -107,7 +115,7 @@ jobs:
           persist-credentials: false
 
       - name: Install the right version of Nodejs
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24.x'
 
@@ -134,7 +142,7 @@ jobs:
           persist-credentials: false
 
       - name: Install the right version of Nodejs
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24.x'
 
