@@ -47,6 +47,10 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        env:
+          # Download the ChromeDriver matching the runner's preinstalled Chrome
+          # so e2e tests keep working when the runner image bumps Chrome.
+          DETECT_CHROMEDRIVER_VERSION: 'true'
 
       - name: E2E Tests
         run: . ./build_and_run_e2e.sh
@@ -80,6 +84,10 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        env:
+          # Download the ChromeDriver matching the runner's preinstalled Chrome
+          # so e2e tests keep working when the runner image bumps Chrome.
+          DETECT_CHROMEDRIVER_VERSION: 'true'
 
       - name: E2E Tests with all experiments enabled
         run: . ./build_and_run_e2e.sh all_experiments_enabled
