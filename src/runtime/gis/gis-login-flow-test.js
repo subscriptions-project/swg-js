@@ -368,6 +368,127 @@ describes.realWin('GisLoginFlow', (env) => {
       );
     });
 
+    describe('renderButton retries', () => {
+      let pendingTimeouts;
+      let gisInitialized;
+
+      function runPendingTimeouts() {
+        const callbacks = pendingTimeouts;
+        pendingTimeouts = [];
+        callbacks.forEach((cb) => cb());
+      }
+
+      beforeEach(() => {
+        pendingTimeouts = [];
+        gisInitialized = false;
+        sandbox.stub(win, 'setTimeout').callsFake((cb) => {
+          pendingTimeouts.push(cb);
+          return pendingTimeouts.length;
+        });
+        sandbox.spy(win, 'clearTimeout');
+        // Mimics GIS: renderButton is a no-op until initialize() is called,
+        // after which it renders a child into the parent.
+        win.google.accounts.id.renderButton = sandbox.spy((parent) => {
+          if (gisInitialized) {
+            parent.textContent = '';
+            parent.appendChild(win.document.createElement('div'));
+          }
+        });
+      });
+
+      it('does not retry when the button renders on first attempt', () => {
+        gisInitialized = true;
+
+        messageMap[message.label()](message);
+
+        expect(win.google.accounts.id.renderButton).to.have.been.calledOnce;
+        expect(win.setTimeout).to.not.have.been.called;
+      });
+
+      it('polls renderButton until GIS is initialized and then stops', () => {
+        messageMap[message.label()](message);
+        const overlay = win.document.body.querySelector('div');
+        expect(overlay.firstElementChild).to.be.null;
+        expect(pendingTimeouts.length).to.equal(1);
+
+        runPendingTimeouts();
+        expect(overlay.firstElementChild).to.be.null;
+        expect(pendingTimeouts.length).to.equal(1);
+
+        gisInitialized = true;
+        const callCount = win.google.accounts.id.renderButton.callCount;
+        runPendingTimeouts();
+
+        expect(win.google.accounts.id.renderButton.callCount).to.equal(
+          callCount + 1
+        );
+        expect(win.google.accounts.id.renderButton.lastCall.args[0]).to.equal(
+          overlay
+        );
+        expect(overlay.firstElementChild).to.not.be.null;
+        expect(pendingTimeouts.length).to.equal(0);
+      });
+
+      it('retries renderButton on later coordinate updates while the overlay is empty', () => {
+        messageMap[message.label()](message);
+        const overlay = win.document.body.querySelector('div');
+        expect(overlay.firstElementChild).to.be.null;
+
+        gisInitialized = true;
+        messageMap[message.label()](message);
+
+        expect(overlay.firstElementChild).to.not.be.null;
+        expect(
+          win.document.body.querySelectorAll(':scope > div').length
+        ).to.equal(1);
+
+        // Once rendered, further updates do not re-render the button.
+        const callCount = win.google.accounts.id.renderButton.callCount;
+        messageMap[message.label()](message);
+        expect(win.google.accounts.id.renderButton.callCount).to.equal(
+          callCount
+        );
+      });
+
+      it('retries renderButton on resize while the overlay is empty', () => {
+        messageMap[message.label()](message);
+        const overlay = win.document.body.querySelector('div');
+
+        gisInitialized = true;
+        onResizeCallback();
+
+        expect(overlay.firstElementChild).to.not.be.null;
+      });
+
+      it('stops polling after the maximum number of retries', () => {
+        messageMap[message.label()](message);
+
+        for (let i = 0; i < 100 && pendingTimeouts.length; i++) {
+          runPendingTimeouts();
+        }
+
+        expect(pendingTimeouts.length).to.equal(0);
+        expect(win.setTimeout.callCount).to.equal(60);
+      });
+
+      it('cancels a pending retry on dispose', () => {
+        messageMap[message.label()](message);
+        expect(pendingTimeouts.length).to.equal(1);
+
+        gisLoginFlow.dispose();
+
+        expect(win.clearTimeout).to.have.been.calledWith(1);
+        gisLoginFlow = null;
+      });
+
+      it('does not schedule another poll while one is pending', () => {
+        messageMap[message.label()](message);
+        messageMap[message.label()](message);
+
+        expect(win.setTimeout).to.have.been.calledOnce;
+      });
+    });
+
     it('cancels existing requestAnimationFrame on scheduleUpdate', () => {
       messageMap[message.label()](message);
       expect(cancelAnimationFrameSpy).to.have.not.been.called;
