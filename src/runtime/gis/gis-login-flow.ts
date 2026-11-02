@@ -41,12 +41,30 @@ interface ValidatedCoordinates {
 }
 
 /**
+ * Retry delays for rendering the GIS button into an empty overlay: exponential
+ * backoff starting at 250ms, doubling up to 8s. Each failed attempt makes GIS
+ * log a console warning, so backoff limits warnings on pages that load GIS but
+ * never call initialize().
+ */
+const INITIAL_RENDER_RETRY_DELAY_MS = 250;
+const MAX_RENDER_RETRY_DELAY_MS = 8000;
+
+/**
+ * Maximum number of render retries. With the delays above this bounds polling
+ * to ~30s (250 + 500 + 1000 + 2000 + 4000 + 8000 * 3 ms).
+ */
+const MAX_RENDER_RETRIES = 8;
+
+/**
  * Manages the login flow for GIS.
  */
 export class GisLoginFlow {
   private readonly overlays = new Map<string, HTMLElement>();
   private readonly positions = new Map<string, ValidatedCoordinates>();
   private rafId: number | null = null;
+  private renderRetryTimeoutId: number | null = null;
+  private renderRetryCount = 0;
+  private disposed = false;
   private readonly resizeHandler = this.scheduleUpdate.bind(this);
 
   private readonly doc: Doc;
@@ -79,13 +97,18 @@ export class GisLoginFlow {
    * Removes all overlays.
    */
   dispose() {
+    // activityIframeView has no way to unregister the coordinate and resize
+    // callbacks, so they are ignored after dispose.
+    this.disposed = true;
     for (const overlay of this.overlays.values()) {
       overlay.remove();
     }
     this.overlays.clear();
+    this.positions.clear();
     if (this.rafId) {
       this.doc.getWin().cancelAnimationFrame(this.rafId);
     }
+    this.cancelRenderRetry();
     this.doc.getWin().removeEventListener('resize', this.resizeHandler);
     this.deps.gisInteropManager()?.setCompleteLoginCallback?.(null);
   }
@@ -119,10 +142,15 @@ export class GisLoginFlow {
         'height': `${p.height}px`,
         'pointer-events': p.disabled ? 'none' : 'auto',
       });
+      this.ensureButtonRendered(overlay);
     });
+    this.scheduleRenderRetryIfNeeded();
   }
 
   private scheduleUpdate() {
+    if (this.disposed) {
+      return;
+    }
     if (this.rafId) {
       this.doc.getWin().cancelAnimationFrame(this.rafId);
       this.rafId = null;
@@ -134,6 +162,9 @@ export class GisLoginFlow {
   }
 
   private handleLoginButtonCoordinates(message: LoginButtonCoordinates) {
+    if (this.disposed) {
+      return;
+    }
     message.getLoginButtonCoordinatesList()?.forEach((position) => {
       const p = this.validatedPosition(position);
       if (!p) {
@@ -180,10 +211,63 @@ export class GisLoginFlow {
       'pointer-events': 'auto',
       'cursor': 'pointer',
     });
-    this.renderButton(overlay);
     this.overlays.set(key, overlay);
     this.doc.getBody()?.appendChild(overlay);
     return overlay;
+  }
+
+  /**
+   * Renders the GIS button into the overlay if it is still empty. GIS ignores
+   * renderButton() calls made before google.accounts.id.initialize(), which
+   * publishers may call after swg-basic.js has already created the overlay.
+   */
+  private ensureButtonRendered(overlay: HTMLElement) {
+    if (!overlay.firstElementChild) {
+      this.renderButton(overlay);
+    }
+  }
+
+  private hasEmptyOverlay(): boolean {
+    for (const overlay of this.overlays.values()) {
+      if (!overlay.firstElementChild) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Polls (bounded, with exponential backoff) until every overlay contains a
+   * rendered GIS button, so the overlay becomes clickable once GIS is
+   * initialized even if no further coordinate or resize updates arrive.
+   */
+  private scheduleRenderRetryIfNeeded() {
+    if (
+      this.renderRetryTimeoutId !== null ||
+      this.renderRetryCount >= MAX_RENDER_RETRIES ||
+      !this.hasEmptyOverlay()
+    ) {
+      return;
+    }
+    const delay = Math.min(
+      INITIAL_RENDER_RETRY_DELAY_MS * 2 ** this.renderRetryCount,
+      MAX_RENDER_RETRY_DELAY_MS
+    );
+    this.renderRetryTimeoutId = this.doc.getWin().setTimeout(() => {
+      this.renderRetryTimeoutId = null;
+      this.renderRetryCount++;
+      for (const overlay of this.overlays.values()) {
+        this.ensureButtonRendered(overlay);
+      }
+      this.scheduleRenderRetryIfNeeded();
+    }, delay);
+  }
+
+  private cancelRenderRetry() {
+    if (this.renderRetryTimeoutId !== null) {
+      this.doc.getWin().clearTimeout(this.renderRetryTimeoutId);
+      this.renderRetryTimeoutId = null;
+    }
   }
 
   private renderButton(overlay: HTMLElement) {

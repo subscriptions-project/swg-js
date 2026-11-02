@@ -39,6 +39,7 @@ describes.realWin('GisLoginFlow', (env) => {
   let eventManagerMock;
   let gisInteropManagerMock;
   let depsMock;
+  let clock;
 
   beforeEach(() => {
     const coordinates = new ElementCoordinates();
@@ -62,6 +63,10 @@ describes.realWin('GisLoginFlow', (env) => {
       return 1;
     });
     cancelAnimationFrameSpy = sandbox.spy(win, 'cancelAnimationFrame');
+    clock = sandbox.useFakeTimers({
+      global: win,
+      toFake: ['setTimeout', 'clearTimeout'],
+    });
     win.google = {
       accounts: {
         id: {
@@ -366,6 +371,201 @@ describes.realWin('GisLoginFlow', (env) => {
         undefined,
         'config123'
       );
+    });
+
+    describe('renderButton retries', () => {
+      let gisInitialized;
+
+      function createMessage(ids) {
+        const msg = new LoginButtonCoordinates();
+        msg.setLoginButtonCoordinatesList(
+          ids.map((id) => {
+            const coords = new ElementCoordinates();
+            coords.setId(id);
+            coords.setLeft(10);
+            coords.setTop(10);
+            coords.setWidth(100);
+            coords.setHeight(30);
+            return coords;
+          })
+        );
+        return msg;
+      }
+
+      beforeEach(() => {
+        gisInitialized = false;
+        sandbox.spy(win, 'setTimeout');
+        // Mimics GIS: renderButton is a no-op until initialize() is called,
+        // after which it renders a child into the parent.
+        win.google.accounts.id.renderButton = sandbox.spy((parent) => {
+          if (gisInitialized) {
+            parent.textContent = '';
+            parent.appendChild(win.document.createElement('div'));
+          }
+        });
+      });
+
+      it('renders the button once and does not retry when GIS is initialized', () => {
+        gisInitialized = true;
+
+        messageMap[message.label()](message);
+
+        expect(win.google.accounts.id.renderButton).to.have.been.calledOnce;
+        expect(win.setTimeout).to.not.have.been.called;
+      });
+
+      it('renders the button after the overlay is attached and styled', () => {
+        win.google.accounts.id.renderButton = sandbox.spy((parent) => {
+          expect(parent.parentNode).to.equal(win.document.body);
+          expect(getStyle(parent, 'width')).to.equal('100px');
+          expect(getStyle(parent, 'height')).to.equal('30px');
+        });
+
+        messageMap[message.label()](message);
+
+        expect(win.google.accounts.id.renderButton).to.have.been.calledOnce;
+      });
+
+      it('retries with exponential backoff until GIS is initialized and then stops', () => {
+        messageMap[message.label()](message);
+        const overlay = win.document.body.querySelector('div');
+        expect(overlay.firstElementChild).to.be.null;
+        expect(win.google.accounts.id.renderButton).to.have.been.calledOnce;
+        expect(win.setTimeout).to.have.been.calledOnceWith(
+          sandbox.match.func,
+          250
+        );
+
+        clock.tick(249);
+        expect(win.google.accounts.id.renderButton).to.have.been.calledOnce;
+        clock.tick(1);
+        expect(win.google.accounts.id.renderButton).to.have.been.calledTwice;
+        expect(win.setTimeout.lastCall.args[1]).to.equal(500);
+
+        gisInitialized = true;
+        clock.tick(500);
+
+        expect(win.google.accounts.id.renderButton).to.have.been.calledThrice;
+        expect(win.google.accounts.id.renderButton.lastCall.args[0]).to.equal(
+          overlay
+        );
+        expect(overlay.firstElementChild).to.not.be.null;
+        expect(win.setTimeout).to.have.been.calledTwice;
+      });
+
+      it('caps the backoff delay and stops after the maximum number of retries', () => {
+        messageMap[message.label()](message);
+
+        clock.tick(60000);
+
+        expect(
+          win.setTimeout.getCalls().map((call) => call.args[1])
+        ).to.deep.equal([250, 500, 1000, 2000, 4000, 8000, 8000, 8000]);
+        // 1 initial attempt + 8 retries.
+        expect(win.google.accounts.id.renderButton.callCount).to.equal(9);
+      });
+
+      it('retries renderButton on later coordinate updates while the overlay is empty', () => {
+        messageMap[message.label()](message);
+        const overlay = win.document.body.querySelector('div');
+        expect(overlay.firstElementChild).to.be.null;
+
+        gisInitialized = true;
+        messageMap[message.label()](message);
+
+        expect(win.google.accounts.id.renderButton).to.have.been.calledTwice;
+        expect(overlay.firstElementChild).to.not.be.null;
+
+        // Once rendered, further updates do not re-render the button.
+        messageMap[message.label()](message);
+        expect(win.google.accounts.id.renderButton).to.have.been.calledTwice;
+      });
+
+      it('retries renderButton on resize while the overlay is empty', () => {
+        messageMap[message.label()](message);
+        const overlay = win.document.body.querySelector('div');
+
+        gisInitialized = true;
+        onResizeCallback();
+
+        expect(win.google.accounts.id.renderButton).to.have.been.calledTwice;
+        expect(overlay.firstElementChild).to.not.be.null;
+      });
+
+      it('keeps polling for an empty overlay without re-rendering a rendered one', () => {
+        gisInitialized = true;
+        messageMap[message.label()](createMessage(['1']));
+        const overlay1 = win.document.body.querySelector('div');
+        expect(overlay1.firstElementChild).to.not.be.null;
+
+        gisInitialized = false;
+        messageMap[message.label()](createMessage(['1', '2']));
+        const overlay2 = win.document.body.querySelectorAll(':scope > div')[1];
+        expect(overlay2.firstElementChild).to.be.null;
+
+        clock.tick(250);
+        gisInitialized = true;
+        clock.tick(500);
+
+        expect(overlay2.firstElementChild).to.not.be.null;
+        const renderedParents = win.google.accounts.id.renderButton
+          .getCalls()
+          .map((call) => call.args[0]);
+        expect(renderedParents.filter((el) => el === overlay1).length).to.equal(
+          1
+        );
+        expect(renderedParents.filter((el) => el === overlay2).length).to.equal(
+          3
+        );
+      });
+
+      it('cancels a pending retry on dispose', () => {
+        messageMap[message.label()](message);
+        expect(win.google.accounts.id.renderButton).to.have.been.calledOnce;
+
+        gisLoginFlow.dispose();
+        gisLoginFlow = null;
+        clock.tick(60000);
+
+        expect(win.google.accounts.id.renderButton).to.have.been.calledOnce;
+      });
+
+      it('does not schedule another poll while one is pending', () => {
+        messageMap[message.label()](message);
+        messageMap[message.label()](message);
+
+        expect(win.setTimeout).to.have.been.calledOnce;
+      });
+    });
+
+    it('ignores coordinate and resize callbacks after dispose', () => {
+      messageMap[message.label()](message);
+      expect(win.document.body.querySelectorAll('div').length).to.equal(1);
+      gisLoginFlow.dispose();
+      expect(win.document.body.querySelectorAll('div').length).to.equal(0);
+      win.google.accounts.id.renderButton.resetHistory();
+      win.requestAnimationFrame.resetHistory();
+
+      const newIdCoordinates = new ElementCoordinates();
+      newIdCoordinates.setId('2');
+      newIdCoordinates.setLeft(10);
+      newIdCoordinates.setTop(10);
+      newIdCoordinates.setWidth(100);
+      newIdCoordinates.setHeight(30);
+      const lateMessage = new LoginButtonCoordinates();
+      lateMessage.setLoginButtonCoordinatesList([
+        message.getLoginButtonCoordinatesList()[0],
+        newIdCoordinates,
+      ]);
+
+      expect(() => messageMap[message.label()](lateMessage)).to.not.throw();
+      expect(() => onResizeCallback()).to.not.throw();
+      clock.tick(60000);
+
+      expect(win.document.body.querySelectorAll('div').length).to.equal(0);
+      expect(win.requestAnimationFrame).to.not.have.been.called;
+      expect(win.google.accounts.id.renderButton).to.not.have.been.called;
+      gisLoginFlow = null;
     });
 
     it('cancels existing requestAnimationFrame on scheduleUpdate', () => {
