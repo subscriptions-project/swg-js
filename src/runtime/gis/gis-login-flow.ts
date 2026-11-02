@@ -203,7 +203,12 @@ export class GisLoginFlow {
   private createOverlay(key: string) {
     const overlay = createElement(this.doc.getRootNode(), 'div', {});
     setImportantStyles(overlay, {
-      'position': 'absolute',
+      // The popup iframe is position: fixed and updateOverlays() computes
+      // viewport-relative coordinates for it, so its overlay must also be fixed
+      // to stay aligned when the page is scrolled. The inline iframe scrolls
+      // with the page, so its overlay uses document coordinates.
+      'position':
+        this.ctaMode === CtaMode.CTA_MODE_INLINE ? 'absolute' : 'fixed',
       'overflow': 'hidden',
       'opacity': '0.001',
       'background-color': 'transparent',
