@@ -40,14 +40,20 @@ interface ValidatedCoordinates {
   disabled: boolean;
 }
 
-/** Interval between attempts to render the GIS button into an empty overlay. */
-const RENDER_RETRY_INTERVAL_MS = 500;
+/**
+ * Retry delays for rendering the GIS button into an empty overlay: exponential
+ * backoff starting at 250ms, doubling up to 8s. Each failed attempt makes GIS
+ * log a console warning, so backoff limits warnings on pages that load GIS but
+ * never call initialize().
+ */
+const INITIAL_RENDER_RETRY_DELAY_MS = 250;
+const MAX_RENDER_RETRY_DELAY_MS = 8000;
 
 /**
- * Maximum number of render retries. Bounds polling to ~30s so pages that never
- * initialize GIS don't poll forever.
+ * Maximum number of render retries. With the delays above this bounds polling
+ * to ~30s (250 + 500 + 1000 + 2000 + 4000 + 8000 * 3 ms).
  */
-const MAX_RENDER_RETRIES = 60;
+const MAX_RENDER_RETRIES = 8;
 
 /**
  * Manages the login flow for GIS.
@@ -124,7 +130,6 @@ export class GisLoginFlow {
       }
 
       const overlay = this.overlays.get(id)!;
-      this.ensureButtonRendered(overlay);
       setImportantStyles(overlay, {
         'left': `${offsetLeft}px`,
         'top': `${offsetTop}px`,
@@ -132,7 +137,9 @@ export class GisLoginFlow {
         'height': `${p.height}px`,
         'pointer-events': p.disabled ? 'none' : 'auto',
       });
+      this.ensureButtonRendered(overlay);
     });
+    this.scheduleRenderRetryIfNeeded();
   }
 
   private scheduleUpdate() {
@@ -158,7 +165,6 @@ export class GisLoginFlow {
       this.positions.set(p.id, p);
     });
     this.scheduleUpdate();
-    this.scheduleRenderRetryIfNeeded();
   }
 
   private validatedPosition(
@@ -194,7 +200,6 @@ export class GisLoginFlow {
       'pointer-events': 'auto',
       'cursor': 'pointer',
     });
-    this.renderButton(overlay);
     this.overlays.set(key, overlay);
     this.doc.getBody()?.appendChild(overlay);
     return overlay;
@@ -221,9 +226,9 @@ export class GisLoginFlow {
   }
 
   /**
-   * Polls (bounded) until every overlay contains a rendered GIS button, so the
-   * overlay becomes clickable once GIS is initialized even if no further
-   * coordinate or resize updates arrive.
+   * Polls (bounded, with exponential backoff) until every overlay contains a
+   * rendered GIS button, so the overlay becomes clickable once GIS is
+   * initialized even if no further coordinate or resize updates arrive.
    */
   private scheduleRenderRetryIfNeeded() {
     if (
@@ -233,6 +238,10 @@ export class GisLoginFlow {
     ) {
       return;
     }
+    const delay = Math.min(
+      INITIAL_RENDER_RETRY_DELAY_MS * 2 ** this.renderRetryCount,
+      MAX_RENDER_RETRY_DELAY_MS
+    );
     this.renderRetryTimeoutId = this.doc.getWin().setTimeout(() => {
       this.renderRetryTimeoutId = null;
       this.renderRetryCount++;
@@ -240,7 +249,7 @@ export class GisLoginFlow {
         this.ensureButtonRendered(overlay);
       }
       this.scheduleRenderRetryIfNeeded();
-    }, RENDER_RETRY_INTERVAL_MS);
+    }, delay);
   }
 
   private cancelRenderRetry() {

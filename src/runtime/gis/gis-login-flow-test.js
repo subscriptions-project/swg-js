@@ -39,6 +39,7 @@ describes.realWin('GisLoginFlow', (env) => {
   let eventManagerMock;
   let gisInteropManagerMock;
   let depsMock;
+  let clock;
 
   beforeEach(() => {
     const coordinates = new ElementCoordinates();
@@ -62,6 +63,10 @@ describes.realWin('GisLoginFlow', (env) => {
       return 1;
     });
     cancelAnimationFrameSpy = sandbox.spy(win, 'cancelAnimationFrame');
+    clock = sandbox.useFakeTimers({
+      global: win,
+      toFake: ['setTimeout', 'clearTimeout'],
+    });
     win.google = {
       accounts: {
         id: {
@@ -369,23 +374,27 @@ describes.realWin('GisLoginFlow', (env) => {
     });
 
     describe('renderButton retries', () => {
-      let pendingTimeouts;
       let gisInitialized;
 
-      function runPendingTimeouts() {
-        const callbacks = pendingTimeouts;
-        pendingTimeouts = [];
-        callbacks.forEach((cb) => cb());
+      function createMessage(ids) {
+        const msg = new LoginButtonCoordinates();
+        msg.setLoginButtonCoordinatesList(
+          ids.map((id) => {
+            const coords = new ElementCoordinates();
+            coords.setId(id);
+            coords.setLeft(10);
+            coords.setTop(10);
+            coords.setWidth(100);
+            coords.setHeight(30);
+            return coords;
+          })
+        );
+        return msg;
       }
 
       beforeEach(() => {
-        pendingTimeouts = [];
         gisInitialized = false;
-        sandbox.stub(win, 'setTimeout').callsFake((cb) => {
-          pendingTimeouts.push(cb);
-          return pendingTimeouts.length;
-        });
-        sandbox.spy(win, 'clearTimeout');
+        sandbox.spy(win, 'setTimeout');
         // Mimics GIS: renderButton is a no-op until initialize() is called,
         // after which it renders a child into the parent.
         win.google.accounts.id.renderButton = sandbox.spy((parent) => {
@@ -396,7 +405,7 @@ describes.realWin('GisLoginFlow', (env) => {
         });
       });
 
-      it('does not retry when the button renders on first attempt', () => {
+      it('renders the button once and does not retry when GIS is initialized', () => {
         gisInitialized = true;
 
         messageMap[message.label()](message);
@@ -405,28 +414,55 @@ describes.realWin('GisLoginFlow', (env) => {
         expect(win.setTimeout).to.not.have.been.called;
       });
 
-      it('polls renderButton until GIS is initialized and then stops', () => {
+      it('renders the button after the overlay is attached and styled', () => {
+        win.google.accounts.id.renderButton = sandbox.spy((parent) => {
+          expect(parent.parentNode).to.equal(win.document.body);
+          expect(getStyle(parent, 'width')).to.equal('100px');
+          expect(getStyle(parent, 'height')).to.equal('30px');
+        });
+
+        messageMap[message.label()](message);
+
+        expect(win.google.accounts.id.renderButton).to.have.been.calledOnce;
+      });
+
+      it('retries with exponential backoff until GIS is initialized and then stops', () => {
         messageMap[message.label()](message);
         const overlay = win.document.body.querySelector('div');
         expect(overlay.firstElementChild).to.be.null;
-        expect(pendingTimeouts.length).to.equal(1);
+        expect(win.google.accounts.id.renderButton).to.have.been.calledOnce;
+        expect(win.setTimeout).to.have.been.calledOnceWith(
+          sandbox.match.func,
+          250
+        );
 
-        runPendingTimeouts();
-        expect(overlay.firstElementChild).to.be.null;
-        expect(pendingTimeouts.length).to.equal(1);
+        clock.tick(249);
+        expect(win.google.accounts.id.renderButton).to.have.been.calledOnce;
+        clock.tick(1);
+        expect(win.google.accounts.id.renderButton).to.have.been.calledTwice;
+        expect(win.setTimeout.lastCall.args[1]).to.equal(500);
 
         gisInitialized = true;
-        const callCount = win.google.accounts.id.renderButton.callCount;
-        runPendingTimeouts();
+        clock.tick(500);
 
-        expect(win.google.accounts.id.renderButton.callCount).to.equal(
-          callCount + 1
-        );
+        expect(win.google.accounts.id.renderButton).to.have.been.calledThrice;
         expect(win.google.accounts.id.renderButton.lastCall.args[0]).to.equal(
           overlay
         );
         expect(overlay.firstElementChild).to.not.be.null;
-        expect(pendingTimeouts.length).to.equal(0);
+        expect(win.setTimeout).to.have.been.calledTwice;
+      });
+
+      it('caps the backoff delay and stops after the maximum number of retries', () => {
+        messageMap[message.label()](message);
+
+        clock.tick(60000);
+
+        expect(
+          win.setTimeout.getCalls().map((call) => call.args[1])
+        ).to.deep.equal([250, 500, 1000, 2000, 4000, 8000, 8000, 8000]);
+        // 1 initial attempt + 8 retries.
+        expect(win.google.accounts.id.renderButton.callCount).to.equal(9);
       });
 
       it('retries renderButton on later coordinate updates while the overlay is empty', () => {
@@ -437,17 +473,12 @@ describes.realWin('GisLoginFlow', (env) => {
         gisInitialized = true;
         messageMap[message.label()](message);
 
+        expect(win.google.accounts.id.renderButton).to.have.been.calledTwice;
         expect(overlay.firstElementChild).to.not.be.null;
-        expect(
-          win.document.body.querySelectorAll(':scope > div').length
-        ).to.equal(1);
 
         // Once rendered, further updates do not re-render the button.
-        const callCount = win.google.accounts.id.renderButton.callCount;
         messageMap[message.label()](message);
-        expect(win.google.accounts.id.renderButton.callCount).to.equal(
-          callCount
-        );
+        expect(win.google.accounts.id.renderButton).to.have.been.calledTwice;
       });
 
       it('retries renderButton on resize while the overlay is empty', () => {
@@ -457,28 +488,46 @@ describes.realWin('GisLoginFlow', (env) => {
         gisInitialized = true;
         onResizeCallback();
 
+        expect(win.google.accounts.id.renderButton).to.have.been.calledTwice;
         expect(overlay.firstElementChild).to.not.be.null;
       });
 
-      it('stops polling after the maximum number of retries', () => {
-        messageMap[message.label()](message);
+      it('keeps polling for an empty overlay without re-rendering a rendered one', () => {
+        gisInitialized = true;
+        messageMap[message.label()](createMessage(['1']));
+        const overlay1 = win.document.body.querySelector('div');
+        expect(overlay1.firstElementChild).to.not.be.null;
 
-        for (let i = 0; i < 100 && pendingTimeouts.length; i++) {
-          runPendingTimeouts();
-        }
+        gisInitialized = false;
+        messageMap[message.label()](createMessage(['1', '2']));
+        const overlay2 = win.document.body.querySelectorAll(':scope > div')[1];
+        expect(overlay2.firstElementChild).to.be.null;
 
-        expect(pendingTimeouts.length).to.equal(0);
-        expect(win.setTimeout.callCount).to.equal(60);
+        clock.tick(250);
+        gisInitialized = true;
+        clock.tick(500);
+
+        expect(overlay2.firstElementChild).to.not.be.null;
+        const renderedParents = win.google.accounts.id.renderButton
+          .getCalls()
+          .map((call) => call.args[0]);
+        expect(renderedParents.filter((el) => el === overlay1).length).to.equal(
+          1
+        );
+        expect(renderedParents.filter((el) => el === overlay2).length).to.equal(
+          3
+        );
       });
 
       it('cancels a pending retry on dispose', () => {
         messageMap[message.label()](message);
-        expect(pendingTimeouts.length).to.equal(1);
+        expect(win.google.accounts.id.renderButton).to.have.been.calledOnce;
 
         gisLoginFlow.dispose();
-
-        expect(win.clearTimeout).to.have.been.calledWith(1);
         gisLoginFlow = null;
+        clock.tick(60000);
+
+        expect(win.google.accounts.id.renderButton).to.have.been.calledOnce;
       });
 
       it('does not schedule another poll while one is pending', () => {
