@@ -538,6 +538,36 @@ describes.realWin('GisLoginFlow', (env) => {
       });
     });
 
+    it('ignores coordinate and resize callbacks after dispose', () => {
+      messageMap[message.label()](message);
+      expect(win.document.body.querySelectorAll('div').length).to.equal(1);
+      gisLoginFlow.dispose();
+      expect(win.document.body.querySelectorAll('div').length).to.equal(0);
+      win.google.accounts.id.renderButton.resetHistory();
+      win.requestAnimationFrame.resetHistory();
+
+      const newIdCoordinates = new ElementCoordinates();
+      newIdCoordinates.setId('2');
+      newIdCoordinates.setLeft(10);
+      newIdCoordinates.setTop(10);
+      newIdCoordinates.setWidth(100);
+      newIdCoordinates.setHeight(30);
+      const lateMessage = new LoginButtonCoordinates();
+      lateMessage.setLoginButtonCoordinatesList([
+        message.getLoginButtonCoordinatesList()[0],
+        newIdCoordinates,
+      ]);
+
+      expect(() => messageMap[message.label()](lateMessage)).to.not.throw();
+      expect(() => onResizeCallback()).to.not.throw();
+      clock.tick(60000);
+
+      expect(win.document.body.querySelectorAll('div').length).to.equal(0);
+      expect(win.requestAnimationFrame).to.not.have.been.called;
+      expect(win.google.accounts.id.renderButton).to.not.have.been.called;
+      gisLoginFlow = null;
+    });
+
     it('cancels existing requestAnimationFrame on scheduleUpdate', () => {
       messageMap[message.label()](message);
       expect(cancelAnimationFrameSpy).to.have.not.been.called;

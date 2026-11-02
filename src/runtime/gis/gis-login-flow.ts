@@ -64,6 +64,7 @@ export class GisLoginFlow {
   private rafId: number | null = null;
   private renderRetryTimeoutId: number | null = null;
   private renderRetryCount = 0;
+  private disposed = false;
   private readonly resizeHandler = this.scheduleUpdate.bind(this);
 
   private readonly doc: Doc;
@@ -96,10 +97,14 @@ export class GisLoginFlow {
    * Removes all overlays.
    */
   dispose() {
+    // activityIframeView has no way to unregister the coordinate and resize
+    // callbacks, so they are ignored after dispose.
+    this.disposed = true;
     for (const overlay of this.overlays.values()) {
       overlay.remove();
     }
     this.overlays.clear();
+    this.positions.clear();
     if (this.rafId) {
       this.doc.getWin().cancelAnimationFrame(this.rafId);
     }
@@ -143,6 +148,9 @@ export class GisLoginFlow {
   }
 
   private scheduleUpdate() {
+    if (this.disposed) {
+      return;
+    }
     if (this.rafId) {
       this.doc.getWin().cancelAnimationFrame(this.rafId);
       this.rafId = null;
@@ -154,6 +162,9 @@ export class GisLoginFlow {
   }
 
   private handleLoginButtonCoordinates(message: LoginButtonCoordinates) {
+    if (this.disposed) {
+      return;
+    }
     message.getLoginButtonCoordinatesList()?.forEach((position) => {
       const p = this.validatedPosition(position);
       if (!p) {
