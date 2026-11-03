@@ -137,10 +137,14 @@ export function getRuntime(): Runtime {
 /**
  * Installs SwG runtime.
  */
-export function installRuntime(win: Window): void {
+export function installRuntime(
+  win: Window,
+  options?: {autoStart?: boolean}
+): SubscriptionsInterface {
   // Only install the SwG runtime once.
-  if (win[RUNTIME_PROP] && !Array.isArray(win[RUNTIME_PROP])) {
-    return;
+  const existingSwg = win.SWG;
+  if (existingSwg && !Array.isArray(existingSwg)) {
+    return existingSwg.api ?? createPublicRuntime(runtimeInstance);
   }
 
   // Create a SwG runtime.
@@ -168,8 +172,8 @@ export function installRuntime(win: Window): void {
 
   // Queue up any callbacks the publication might have provided.
   const waitingCallbacks = ([] as ((api: Subscriptions) => void)[]).concat(
-    win[RUNTIME_PROP],
-    win[RUNTIME_LEGACY_PROP]
+    Array.isArray(win[RUNTIME_PROP]) ? win[RUNTIME_PROP] : [],
+    Array.isArray(win[RUNTIME_LEGACY_PROP]) ? win[RUNTIME_LEGACY_PROP] : []
   );
   for (const waitingCallback of waitingCallbacks) {
     callWhenRuntimeIsReady(waitingCallback);
@@ -178,14 +182,21 @@ export function installRuntime(win: Window): void {
   // If any more callbacks are `push`ed to the global SwG variables,
   // they'll be queued up to receive the SwG runtime when it's ready.
   (win[RUNTIME_PROP] as {}) = (win[RUNTIME_LEGACY_PROP] as {}) = {
+    api: publicRuntime,
     push: callWhenRuntimeIsReady,
+    ready: (): Promise<SubscriptionsInterface> =>
+      Promise.resolve(publicRuntime),
   };
 
   // Set variable for testing.
   runtimeInstance = runtime;
 
   // Kick off subscriptions flow.
-  runtime.startSubscriptionsFlowIfNeeded();
+  if (options?.autoStart !== false) {
+    runtime.startSubscriptionsFlowIfNeeded();
+  }
+
+  return publicRuntime;
 }
 
 export class Runtime implements SubscriptionsInterface {
@@ -1347,12 +1358,14 @@ export class ConfiguredRuntime implements Deps, SubscriptionsInterface {
 }
 
 function createPublicRuntime(runtime: Runtime): SubscriptionsInterface {
-  return {
+  const publicRuntime: SubscriptionsInterface = {
     init: runtime.init.bind(runtime),
     configure: runtime.configure.bind(runtime),
     start: runtime.start.bind(runtime),
     reset: runtime.reset.bind(runtime),
     clear: runtime.clear.bind(runtime),
+    ready: (): Promise<SubscriptionsInterface> =>
+      Promise.resolve(publicRuntime),
     getEntitlements: runtime.getEntitlements.bind(runtime),
     linkAccount: runtime.linkAccount.bind(runtime),
     showLoginPrompt: runtime.showLoginPrompt.bind(runtime),
@@ -1399,4 +1412,5 @@ function createPublicRuntime(runtime: Runtime): SubscriptionsInterface {
     getAvailableInterventions: runtime.getAvailableInterventions.bind(runtime),
     getFreeAccess: runtime.getFreeAccess.bind(runtime),
   };
+  return publicRuntime;
 }

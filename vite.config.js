@@ -116,6 +116,7 @@ const builds = {
   classic: {
     output: args.minifiedName || 'subscriptions.js',
     input: './src/main.ts',
+    esm: true,
   },
   gaa: {
     output: args.minifiedGaaName || 'subscriptions-gaa.js',

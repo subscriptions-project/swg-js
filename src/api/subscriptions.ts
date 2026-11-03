@@ -56,6 +56,11 @@ export interface Subscriptions {
    */
   clear(): Promise<void> | void;
 
+  /**
+   * Returns a promise that resolves to the Subscriptions instance when ready.
+   */
+  ready?(): Promise<Subscriptions>;
+
   getEntitlements(
     params?: GetEntitlementsParamsExternalDef
   ): Promise<Entitlements>;
