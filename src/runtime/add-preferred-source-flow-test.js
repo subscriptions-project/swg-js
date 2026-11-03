@@ -49,7 +49,7 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
         data: [
           'AddPreferredSourceResponse',
           AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS,
-          'WELT',
+          'TestSite',
         ],
         origin: 'https://news.google.com',
         originVerified: true,
@@ -177,7 +177,7 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
       const expected = new AddPreferredSourceResponse([
         'AddPreferredSourceResponse',
         AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS,
-        'WELT',
+        'TestSite',
       ]);
       expect(onResponse).to.have.been.calledOnceWithExactly(expected);
       expect(onCancelOrError).to.not.have.been.called;
@@ -189,7 +189,7 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
           data: [
             'AddPreferredSourceResponse',
             AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_ALREADY_ADDED,
-            'WELT',
+            'TestSite',
           ],
           origin: 'https://news.google.com',
           originVerified: true,
@@ -202,7 +202,7 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
       const expected = new AddPreferredSourceResponse([
         'AddPreferredSourceResponse',
         AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_ALREADY_ADDED,
-        'WELT',
+        'TestSite',
       ]);
       expect(onResponse).to.have.been.calledOnceWithExactly(expected);
       expect(onCancelOrError).to.not.have.been.called;

@@ -788,7 +788,7 @@ describes.realWin('installPublisherRuntime', (env) => {
         data: [
           'AddPreferredSourceResponse',
           AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS,
-          'WELT',
+          'TestSite',
         ],
       });
 
@@ -804,7 +804,7 @@ describes.realWin('installPublisherRuntime', (env) => {
       expect(toastOpenStub).to.have.been.calledOnce;
       const toastInstance = toastOpenStub.getCall(0).thisValue;
       expect(toastInstance.src_).to.include('flavor=preferred_source');
-      expect(toastInstance.src_).to.include('sourceName=WELT');
+      expect(toastInstance.src_).to.include('sourceName=TestSite');
       expect(toastInstance.src_).to.include('confirmationType=3');
       expect(toastInstance.src_).to.include('hl=de');
       expect(toastInstance.src_).to.include('theme=dark');
@@ -825,7 +825,7 @@ describes.realWin('installPublisherRuntime', (env) => {
         data: [
           'AddPreferredSourceResponse',
           AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_ALREADY_ADDED,
-          'WELT',
+          'TestSite',
         ],
       });
 
@@ -842,7 +842,7 @@ describes.realWin('installPublisherRuntime', (env) => {
       expect(toastOpenStub).to.have.been.calledOnce;
       const toastInstance = toastOpenStub.getCall(0).thisValue;
       expect(toastInstance.src_).to.include('confirmationType=1');
-      expect(toastInstance.src_).to.include('sourceName=WELT');
+      expect(toastInstance.src_).to.include('sourceName=TestSite');
     });
 
     it('falls back to button data-lang and data-theme on redirect return', async () => {
