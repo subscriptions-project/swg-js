@@ -18,6 +18,7 @@ import {ActivityPorts} from '../components/activities';
 import {AddPreferredSourceButton} from '../ui/add-preferred-source-button';
 import {AddPreferredSourceFlow} from './add-preferred-source-flow';
 import {
+  AddPreferredSourceResponse,
   AddPreferredSourceStatus,
   AnalyticsEvent,
   EventParams,
@@ -60,6 +61,7 @@ export class PublisherRuntime implements Deps {
   private options_: PreferredSourceButtonOptions = {};
   private readonly buttons_: AddPreferredSourceButton[] = [];
   private currentStatus_?: AddPreferredSourceStatus;
+  private pendingFlowOptions_?: {language?: string; theme?: string};
   private startedLogging_ = false;
 
   constructor(
@@ -72,6 +74,15 @@ export class PublisherRuntime implements Deps {
     this.pageConfig_ = new PageConfig('publication-id-free', false);
     this.eventManager_ = new ClientEventManager(Promise.resolve());
     this.activityPorts_ = new ActivityPorts(this);
+    AddPreferredSourceFlow.configurePending(
+      this,
+      (response) => {
+        this.handlePreferredSourceResponse_(response);
+      },
+      () => {
+        this.pendingFlowOptions_ = undefined;
+      }
+    );
     this.analyticsService_ = new AnalyticsService(this);
     injectStyleSheet(this.doc_, DIALOG_CSS);
     this.logPublisherRuntimeInstalled_();
@@ -285,13 +296,13 @@ export class PublisherRuntime implements Deps {
   /**
    * Internal implementation of the Add Preferred Source consent flow and telemetry.
    */
-  private addPreferredSource_(options?: {
+  private addPreferredSource_(options: {
     language?: string;
     theme?: string;
-    isFromInflatedButton?: boolean;
+    isFromInflatedButton: boolean;
   }): void {
     this.maybeStartLogging_();
-    const actionTrigger = options?.isFromInflatedButton
+    const actionTrigger = options.isFromInflatedButton
       ? PreferredSourcesAddSourceTrigger.PREFERRED_SOURCES_ADD_SOURCE_TRIGGER_INFLATED_BUTTON
       : PreferredSourcesAddSourceTrigger.PREFERRED_SOURCES_ADD_SOURCE_TRIGGER_API;
     const params = new EventParams();
@@ -303,30 +314,42 @@ export class PublisherRuntime implements Deps {
     }
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_ADD_PREFERRED_SOURCE,
-      /* isFromUserAction */ Boolean(options?.isFromInflatedButton),
+      /* isFromUserAction */ options.isFromInflatedButton,
       params
     );
 
-    const flow = new AddPreferredSourceFlow(this, options);
-    flow
-      .start()
-      .then((response) => {
-        const status = response.getStatus();
-        if (
-          status ===
-            AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS ||
-          status ===
-            AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_ALREADY_ADDED ||
-          status ===
-            AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_INELIGIBLE
-        ) {
-          this.updateAllButtons(status);
-          this.showToast(status, response.getSiteName() || '', options);
-        }
-      })
-      .catch(() => {
-        // Ignore user cancellation or abortion of the flow natively.
-      });
+    this.pendingFlowOptions_ = {
+      language: options.language,
+      theme: options.theme,
+    };
+    void new AddPreferredSourceFlow(this, options).start();
+  }
+
+  /**
+   * Handles a verified AddPreferredSourceResponse from either popup or redirect mode.
+   */
+  private handlePreferredSourceResponse_(
+    response: AddPreferredSourceResponse
+  ): void {
+    const buttonEl = this.win_.document.querySelector(
+      '[google-add-preferred-source-btn]'
+    );
+    const toastOptions = this.pendingFlowOptions_ ?? {
+      language: buttonEl?.getAttribute('data-lang') ?? undefined,
+      theme: buttonEl?.getAttribute('data-theme') ?? undefined,
+    };
+    this.pendingFlowOptions_ = undefined;
+
+    const status = response.getStatus();
+    if (
+      status === AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS ||
+      status ===
+        AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_ALREADY_ADDED ||
+      status === AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_INELIGIBLE
+    ) {
+      this.updateAllButtons(status);
+      this.showToast(status, response.getSiteName() || '', toastOptions);
+    }
   }
 }
 

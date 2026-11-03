@@ -30,6 +30,31 @@ export class AddPreferredSourceFlow {
   private readonly activityPorts_: ActivityPorts;
   private readonly win_: Window;
 
+  static configurePending(
+    deps: Deps,
+    onResponse: (response: AddPreferredSourceResponse) => void,
+    onCancelOrError: () => void
+  ): void {
+    deps.activities().onResult(ADD_PREFERRED_SOURCE_REQUEST_ID, (port) => {
+      acceptPortResultData(
+        port,
+        feOrigin(),
+        /* requireOriginVerified */ true,
+        /* requireSecureChannel */ false
+      )
+        .then((data) => {
+          if (Array.isArray(data)) {
+            onResponse(new AddPreferredSourceResponse(data));
+          } else {
+            onCancelOrError();
+          }
+        })
+        .catch(() => {
+          onCancelOrError();
+        });
+    });
+  }
+
   constructor(
     private readonly deps_: Deps,
     private readonly options_?: AddPreferredSourceFlowOptions
@@ -39,38 +64,23 @@ export class AddPreferredSourceFlow {
   }
 
   /**
-   * Starts the Add Preferred Source consent flow in a popup window.
+   * Starts the Add Preferred Source consent flow in a popup or redirect window.
    */
-  start(): Promise<AddPreferredSourceResponse> {
-    return new Promise((resolve, reject) => {
-      this.activityPorts_.onResult(ADD_PREFERRED_SOURCE_REQUEST_ID, (port) => {
-        acceptPortResultData(
-          port,
-          feOrigin(),
-          /* requireOriginVerified */ true,
-          /* requireSecureChannel */ true
-        )
-          .then((data) => {
-            resolve(new AddPreferredSourceResponse(data as unknown[]));
-          })
-          .catch(reject);
-      });
-
-      const queryParams: {[key: string]: string} = {
-        hl:
-          this.options_?.language ||
-          this.deps_.clientConfigManager().getLanguage(),
+  async start(): Promise<void> {
+    const queryParams: {[key: string]: string} = {
+      hl:
+        this.options_?.language ||
+        this.deps_.clientConfigManager().getLanguage(),
+      source: this.win_.location.href,
+    };
+    await this.activityPorts_.openPopupWithMessaging(
+      ADD_PREFERRED_SOURCE_REQUEST_ID,
+      feUrl('/addpreferredsource', queryParams),
+      '_blank',
+      feArgs({
         source: this.win_.location.href,
-      };
-      this.activityPorts_.openPopupWithMessaging(
-        ADD_PREFERRED_SOURCE_REQUEST_ID,
-        feUrl('/addpreferredsource', queryParams),
-        '_blank',
-        feArgs({
-          source: this.win_.location.href,
-        }),
-        {}
-      );
-    });
+      }),
+      {}
+    );
   }
 }
