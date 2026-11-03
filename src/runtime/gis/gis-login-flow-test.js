@@ -568,6 +568,40 @@ describes.realWin('GisLoginFlow', (env) => {
       gisLoginFlow = null;
     });
 
+    it('uses fixed positioning with viewport coordinates for popup CTA on a scrolled page', () => {
+      win.innerWidth = 1000;
+      win.innerHeight = 1000;
+      win.scrollX = 40;
+      win.scrollY = 2000;
+
+      messageMap[message.label()](message);
+
+      const overlays = win.document.body.querySelectorAll('div');
+      expect(overlays.length).to.equal(1);
+      expect(getStyle(overlays[0], 'position')).to.equal('fixed');
+      // Viewport-relative, independent of scroll offsets.
+      // offsetLeft = (1000 - 500) / 2 + 10 = 260
+      // offsetTop = 1000 - (500 - 10) = 510
+      expect(getStyle(overlays[0], 'left')).to.equal('260px');
+      expect(getStyle(overlays[0], 'top')).to.equal('510px');
+    });
+
+    it('uses absolute positioning for inline CTA', () => {
+      gisLoginFlow.dispose();
+      gisLoginFlow = new GisLoginFlow(
+        depsMock,
+        activityIframeView,
+        /* configurationId= */ undefined,
+        CtaMode.CTA_MODE_INLINE
+      );
+
+      messageMap[message.label()](message);
+
+      const overlays = win.document.body.querySelectorAll('div');
+      expect(overlays.length).to.equal(1);
+      expect(getStyle(overlays[0], 'position')).to.equal('absolute');
+    });
+
     it('cancels existing requestAnimationFrame on scheduleUpdate', () => {
       messageMap[message.label()](message);
       expect(cancelAnimationFrameSpy).to.have.not.been.called;
