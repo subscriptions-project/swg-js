@@ -22,7 +22,7 @@
     "lint": "gulp lint",
     "build": "gulp build",
     "build-i18n": "node build-system/tasks/build-i18n.js && gulp lint --fix --files='src/i18n/strings.ts'",
-    "postinstall": "npm audit --omit=dev --omit=optional || true"
+    "postinstall": "npm audit --omit=dev --omit=optional --registry=https://registry.npmjs.org/ || true"
   },
   "dependencies": {
     "@material/web": "^2.5.0",
