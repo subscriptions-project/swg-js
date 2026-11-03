@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import {ActivityIframePort} from '../components/activities';
 import {AddPreferredSourceFlow} from './add-preferred-source-flow';
 import {
   AddPreferredSourceResponse,
@@ -26,60 +25,39 @@ import {PageConfig} from '../model/page-config';
 
 describes.realWin('AddPreferredSourceFlow', (env) => {
   let win;
-  let pageConfig;
   let runtime;
   let activitiesMock;
-  let dialogManagerMock;
-  let port;
-  let flow;
   let clientConfigManager;
-  let clientConfigManagerMock;
+  let flow;
 
   beforeEach(() => {
     win = env.win;
-    pageConfig = new PageConfig('pub1:label1', true);
-    runtime = new ConfiguredRuntime(win, pageConfig);
+    runtime = new ConfiguredRuntime(win, new PageConfig('pub1:label1', true));
     activitiesMock = sandbox.mock(runtime.activities());
-    dialogManagerMock = sandbox.mock(runtime.dialogManager());
-    port = sandbox.createStubInstance(ActivityIframePort);
-    port.onResizeRequest = () => {};
-    port.whenReady = () => Promise.resolve();
-    port.acceptResult = () =>
-      Promise.resolve({
-        data: [
-          'AddPreferredSourceResponse',
-          AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS,
-          'TestSite',
-        ],
-        origin: 'https://news.google.com',
-        originVerified: true,
-        secureChannel: true,
-      });
-
     clientConfigManager = new ClientConfigManager(runtime);
-    clientConfigManagerMock = sandbox.mock(clientConfigManager);
     sandbox.stub(runtime, 'clientConfigManager').returns(clientConfigManager);
-
     flow = new AddPreferredSourceFlow(runtime);
   });
 
   afterEach(() => {
     activitiesMock.verify();
-    dialogManagerMock.verify();
-    clientConfigManagerMock.verify();
   });
 
-  it('starts flow in popup window with language parameter without registering duplicate onResult', async () => {
+  it('starts flow in popup window with default language and source URL without registering duplicate onResult', async () => {
+    const encodedSource = encodeURIComponent(win.location.href);
     activitiesMock.expects('onResult').never();
     activitiesMock
       .expects('openPopupWithMessaging')
       .withExactArgs(
         'addPreferredSource',
         sandbox.match(
-          (url) => url.includes('/addpreferredsource') && url.includes('hl=en')
+          (url) =>
+            url.includes('/addpreferredsource') &&
+            url.includes('hl=en') &&
+            url.includes(`source=${encodedSource}`)
         ),
         '_blank',
-        sandbox.match.object,
+        sandbox.match({source: win.location.href}),
         sandbox.match.object
       )
       .once()
@@ -124,34 +102,26 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
     await flow.start();
   });
 
-  it('passes window location href in source URL query param', async () => {
-    activitiesMock.expects('onResult').never();
-    activitiesMock
-      .expects('openPopupWithMessaging')
-      .withExactArgs(
-        'addPreferredSource',
-        sandbox.match(
-          (url) =>
-            url.includes('/addpreferredsource') && url.includes('source=')
-        ),
-        '_blank',
-        sandbox.match.object,
-        sandbox.match.object
-      )
-      .once()
-      .resolves();
-
-    await flow.start();
-  });
-
   describe('configurePending', () => {
     let onResultCallback;
     let onResponse;
-    let onCancelOrError;
+    let port;
 
     beforeEach(() => {
       onResponse = sandbox.spy();
-      onCancelOrError = sandbox.spy();
+      port = {
+        acceptResult: () =>
+          Promise.resolve({
+            data: [
+              'AddPreferredSourceResponse',
+              AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS,
+              'TestSite',
+            ],
+            origin: 'https://news.google.com',
+            originVerified: true,
+            secureChannel: true,
+          }),
+      };
       activitiesMock
         .expects('onResult')
         .withExactArgs(
@@ -163,16 +133,11 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
         )
         .once();
 
-      AddPreferredSourceFlow.configurePending(
-        runtime,
-        onResponse,
-        onCancelOrError
-      );
+      AddPreferredSourceFlow.configurePending(runtime, onResponse);
     });
 
     it('delivers parsed AddPreferredSourceResponse from verified popup port', async () => {
-      onResultCallback(port);
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await onResultCallback(port);
 
       const expected = new AddPreferredSourceResponse([
         'AddPreferredSourceResponse',
@@ -180,7 +145,6 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
         'TestSite',
       ]);
       expect(onResponse).to.have.been.calledOnceWithExactly(expected);
-      expect(onCancelOrError).to.not.have.been.called;
     });
 
     it('delivers parsed AddPreferredSourceResponse from verified redirect port', async () => {
@@ -196,8 +160,7 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
           secureChannel: false,
         });
 
-      onResultCallback(port);
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await onResultCallback(port);
 
       const expected = new AddPreferredSourceResponse([
         'AddPreferredSourceResponse',
@@ -205,10 +168,9 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
         'TestSite',
       ]);
       expect(onResponse).to.have.been.calledOnceWithExactly(expected);
-      expect(onCancelOrError).to.not.have.been.called;
     });
 
-    it('calls onCancelOrError when originVerified is false', async () => {
+    it('ignores result when originVerified is false', async () => {
       port.acceptResult = () =>
         Promise.resolve({
           data: [
@@ -221,14 +183,12 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
           secureChannel: false,
         });
 
-      onResultCallback(port);
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await onResultCallback(port);
 
       expect(onResponse).to.not.have.been.called;
-      expect(onCancelOrError).to.have.been.calledOnce;
     });
 
-    it('calls onCancelOrError when result data is null or non-array', async () => {
+    it('ignores result when data is null or non-array', async () => {
       port.acceptResult = () =>
         Promise.resolve({
           data: null,
@@ -237,22 +197,18 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
           secureChannel: false,
         });
 
-      onResultCallback(port);
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await onResultCallback(port);
 
       expect(onResponse).to.not.have.been.called;
-      expect(onCancelOrError).to.have.been.calledOnce;
     });
 
-    it('calls onCancelOrError when acceptResult rejects on cancellation', async () => {
+    it('ignores result when acceptResult rejects on cancellation', async () => {
       port.acceptResult = () =>
         Promise.reject(new DOMException('AbortError', 'AbortError'));
 
-      onResultCallback(port);
-      await new Promise((resolve) => setTimeout(resolve, 0));
+      await onResultCallback(port);
 
       expect(onResponse).to.not.have.been.called;
-      expect(onCancelOrError).to.have.been.calledOnce;
     });
   });
 });

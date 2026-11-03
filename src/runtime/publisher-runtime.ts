@@ -61,7 +61,6 @@ export class PublisherRuntime implements Deps {
   private options_: PreferredSourceButtonOptions = {};
   private readonly buttons_: AddPreferredSourceButton[] = [];
   private currentStatus_?: AddPreferredSourceStatus;
-  private pendingFlowOptions_?: {language?: string; theme?: string};
   private startedLogging_ = false;
 
   constructor(
@@ -74,16 +73,10 @@ export class PublisherRuntime implements Deps {
     this.pageConfig_ = new PageConfig('publication-id-free', false);
     this.eventManager_ = new ClientEventManager(Promise.resolve());
     this.activityPorts_ = new ActivityPorts(this);
-    AddPreferredSourceFlow.configurePending(
-      this,
-      (response) => {
-        this.handlePreferredSourceResponse_(response);
-      },
-      () => {
-        this.pendingFlowOptions_ = undefined;
-      }
-    );
     this.analyticsService_ = new AnalyticsService(this);
+    AddPreferredSourceFlow.configurePending(this, (response) => {
+      this.handlePreferredSourceResponse_(response);
+    });
     injectStyleSheet(this.doc_, DIALOG_CSS);
     this.logPublisherRuntimeInstalled_();
   }
@@ -253,7 +246,6 @@ export class PublisherRuntime implements Deps {
       buttonComponent.attach(() => {
         this.addPreferredSource_({
           language: lang,
-          theme,
           isFromInflatedButton: true,
         });
         return Promise.resolve(true);
@@ -267,7 +259,7 @@ export class PublisherRuntime implements Deps {
   showToast(
     status: AddPreferredSourceStatus,
     sourceName = '',
-    options?: {language?: string; theme?: string}
+    options?: {language?: string | null; theme?: string | null}
   ): void {
     this.maybeStartLogging_();
     const params: {[key: string]: string} = {
@@ -298,7 +290,6 @@ export class PublisherRuntime implements Deps {
    */
   private addPreferredSource_(options: {
     language?: string;
-    theme?: string;
     isFromInflatedButton: boolean;
   }): void {
     this.maybeStartLogging_();
@@ -318,10 +309,6 @@ export class PublisherRuntime implements Deps {
       params
     );
 
-    this.pendingFlowOptions_ = {
-      language: options.language,
-      theme: options.theme,
-    };
     void new AddPreferredSourceFlow(this, options).start();
   }
 
@@ -331,25 +318,23 @@ export class PublisherRuntime implements Deps {
   private handlePreferredSourceResponse_(
     response: AddPreferredSourceResponse
   ): void {
+    const status = response.getStatus();
+    if (
+      status !== AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS &&
+      status !==
+        AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_ALREADY_ADDED &&
+      status !== AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_INELIGIBLE
+    ) {
+      return;
+    }
+    this.updateAllButtons(status);
     const buttonEl = this.win_.document.querySelector(
       '[google-add-preferred-source-btn]'
     );
-    const toastOptions = this.pendingFlowOptions_ ?? {
-      language: buttonEl?.getAttribute('data-lang') ?? undefined,
-      theme: buttonEl?.getAttribute('data-theme') ?? undefined,
-    };
-    this.pendingFlowOptions_ = undefined;
-
-    const status = response.getStatus();
-    if (
-      status === AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS ||
-      status ===
-        AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_ALREADY_ADDED ||
-      status === AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_INELIGIBLE
-    ) {
-      this.updateAllButtons(status);
-      this.showToast(status, response.getSiteName() || '', toastOptions);
-    }
+    this.showToast(status, response.getSiteName() || '', {
+      language: buttonEl?.getAttribute('data-lang'),
+      theme: buttonEl?.getAttribute('data-theme'),
+    });
   }
 }
 
