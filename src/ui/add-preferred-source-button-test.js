@@ -233,7 +233,7 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     eventManagerMock.verify();
   });
 
-  it('should embed canonical url from link rel=canonical tag in analytics events', () => {
+  it('should embed canonical origin from link rel=canonical tag in analytics events', () => {
     const canonicalLink = doc.createElement('link');
     canonicalLink.setAttribute('rel', 'canonical');
     canonicalLink.setAttribute('href', 'https://publisher.com/canonical-story');
@@ -245,9 +245,7 @@ describes.realWin('AddPreferredSourceButton', (env) => {
       AnalyticsEvent.IMPRESSION_ADD_PREFERRED_SOURCES_BUTTON,
       false,
       sandbox.match((params) => {
-        return (
-          params.getCanonicalUrl() === 'https://publisher.com/canonical-story'
-        );
+        return params.getCanonicalUrl() === 'https://publisher.com';
       })
     );
 

@@ -22,7 +22,6 @@ import {
   AnalyticsEvent,
   EventParams,
   PreferredSourcesAddSourceTrigger,
-  PreferredSourcesInstallType,
 } from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {ClientEventManager} from './client-event-manager';
@@ -37,7 +36,7 @@ import {
 } from '../api/preferred-source';
 import {Toast} from '../ui/toast';
 import {feUrl} from './services';
-import {getCanonicalUrl} from '../utils/url';
+import {getCanonicalUrl, getHttpOrigin} from '../utils/url';
 import {injectStyleSheet} from '../utils/dom';
 import type {Callbacks} from './callbacks';
 import type {ClientConfigManager} from './client-config-manager';
@@ -51,30 +50,23 @@ import type {Storage} from './storage';
 export class PublisherRuntime implements Deps {
   private readonly win_: Window;
   private readonly doc_: Doc;
-  private readonly installType_: PreferredSourcesInstallType;
   private readonly pageConfig_: PageConfig;
   private readonly eventManager_: ClientEventManager;
   private readonly activityPorts_: ActivityPorts;
-  private readonly analyticsService_: AnalyticsService;
+  private analyticsService_: AnalyticsService | null = null;
   private readonly creationTimestamp_ = Date.now();
   private options_: PreferredSourceButtonOptions = {};
   private readonly buttons_: AddPreferredSourceButton[] = [];
   private currentStatus_?: AddPreferredSourceStatus;
   private startedLogging_ = false;
 
-  constructor(
-    win: Window,
-    installType: PreferredSourcesInstallType = PreferredSourcesInstallType.PREFERRED_SOURCES_INSTALL_TYPE_AUTO
-  ) {
+  constructor(win: Window) {
     this.win_ = win;
     this.doc_ = resolveDoc(win);
-    this.installType_ = installType;
     this.pageConfig_ = new PageConfig('publication-id-free', false);
     this.eventManager_ = new ClientEventManager(Promise.resolve());
     this.activityPorts_ = new ActivityPorts(this);
-    this.analyticsService_ = new AnalyticsService(this);
     injectStyleSheet(this.doc_, DIALOG_CSS);
-    this.logPublisherRuntimeInstalled_();
   }
 
   // --- Deps Implementation ---
@@ -96,6 +88,9 @@ export class PublisherRuntime implements Deps {
   }
 
   analytics(): AnalyticsService {
+    if (!this.analyticsService_) {
+      this.analyticsService_ = new AnalyticsService(this);
+    }
     return this.analyticsService_;
   }
 
@@ -158,8 +153,9 @@ export class PublisherRuntime implements Deps {
   private maybeStartLogging_(): void {
     if (!this.startedLogging_) {
       this.startedLogging_ = true;
-      this.analyticsService_.setReadyForLogging();
-      this.analyticsService_.start();
+      const analyticsService = this.analytics();
+      analyticsService.setReadyForLogging();
+      analyticsService.start();
     }
   }
 
@@ -185,24 +181,6 @@ export class PublisherRuntime implements Deps {
     return 'light';
   }
 
-  /**
-   * Logs the publisher runtime installation telemetry event.
-   */
-  private logPublisherRuntimeInstalled_(): void {
-    this.maybeStartLogging_();
-    const params = new EventParams();
-    params.setPreferredSourcesInstallType(this.installType_);
-    const canonicalUrl = getCanonicalUrl(this.doc_);
-    if (canonicalUrl) {
-      params.setCanonicalUrl(canonicalUrl);
-    }
-    this.eventManager_.logSwgEvent(
-      AnalyticsEvent.EVENT_PUBLISHER_RUNTIME_INSTALLED,
-      /* isFromUserAction */ false,
-      params
-    );
-  }
-
   // --- Public API Methods ---
 
   /**
@@ -220,12 +198,16 @@ export class PublisherRuntime implements Deps {
    */
   init(args: PreferredSourceButtonOptions = {}): void {
     this.options_ = Object.assign({}, this.options_, args);
-    this.maybeStartLogging_();
 
     const document = this.win_.document;
     const buttons = document.querySelectorAll(
       '[google-add-preferred-source-btn]:not([data-initialized])'
     );
+    if (buttons.length === 0) {
+      return;
+    }
+
+    this.maybeStartLogging_();
     for (let i = 0; i < buttons.length; i++) {
       const button = buttons[i] as HTMLElement;
       button.setAttribute('data-initialized', 'true');
@@ -296,10 +278,9 @@ export class PublisherRuntime implements Deps {
       : PreferredSourcesAddSourceTrigger.PREFERRED_SOURCES_ADD_SOURCE_TRIGGER_API;
     const params = new EventParams();
     params.setPreferredSourcesAddSourceTrigger(actionTrigger);
-    params.setPreferredSourcesInstallType(this.installType_);
-    const canonicalUrl = getCanonicalUrl(this.doc_);
-    if (canonicalUrl) {
-      params.setCanonicalUrl(canonicalUrl);
+    const canonicalOrigin = getHttpOrigin(getCanonicalUrl(this.doc_));
+    if (canonicalOrigin) {
+      params.setCanonicalUrl(canonicalOrigin);
     }
     this.eventManager_.logSwgEvent(
       AnalyticsEvent.ACTION_ADD_PREFERRED_SOURCE,
@@ -341,7 +322,7 @@ interface PublisherWindow extends Window {
 }
 
 /**
- * Installs the Publisher runtime on the given window, attaches global API handlers, and logs installation telemetry.
+ * Installs the Publisher runtime on the given window and attaches global API handlers.
  */
 export function installPublisherRuntime(
   win: Window,
@@ -366,11 +347,7 @@ export function installPublisherRuntime(
       )
     );
 
-  const installType = isManual
-    ? PreferredSourcesInstallType.PREFERRED_SOURCES_INSTALL_TYPE_MANUAL
-    : PreferredSourcesInstallType.PREFERRED_SOURCES_INSTALL_TYPE_AUTO;
-
-  const runtime = new PublisherRuntime(win, installType);
+  const runtime = new PublisherRuntime(win);
 
   // Set up the API object
   const api: PreferredSourceApi = {

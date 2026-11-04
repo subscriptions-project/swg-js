@@ -26,7 +26,7 @@ import {I18N_STRINGS} from '../i18n/strings';
 import {PreferredSourceButtonOptions} from '../api/preferred-source';
 import {createElement} from '../utils/dom';
 import {getButtonStyles} from './add-preferred-source-button-templates';
-import {getCanonicalUrl} from '../utils/url';
+import {getCanonicalUrl, getHttpOrigin} from '../utils/url';
 import {msg} from '../utils/i18n';
 
 export class AddPreferredSourceButton {
@@ -180,10 +180,10 @@ export class AddPreferredSourceButton {
 
   private logAnalyticsEvent_(eventType: AnalyticsEvent): void {
     try {
-      const canonicalUrl = getCanonicalUrl(this.deps_.doc());
+      const canonicalOrigin = getHttpOrigin(getCanonicalUrl(this.deps_.doc()));
       const params = new EventParams();
-      if (canonicalUrl) {
-        params.setCanonicalUrl(canonicalUrl);
+      if (canonicalOrigin) {
+        params.setCanonicalUrl(canonicalOrigin);
       }
       this.deps_
         .eventManager()

@@ -180,6 +180,19 @@ export function getCanonicalUrl(doc: Doc): string {
   );
 }
 
+/**
+ * Extracts the HTTP(S) origin from an absolute URL string, or returns an empty
+ * string if the URL is missing, relative, hostless, or uses a non-HTTP(S)
+ * scheme.
+ */
+export function getHttpOrigin(url: string): string {
+  if (!/^https?:\/\//i.test(url)) {
+    return '';
+  }
+  const parsed = parseUrl(url);
+  return parsed.host ? parsed.origin : '';
+}
+
 const PARSED_URL = parseUrl(self.window.location.href);
 const PARSED_REFERRER = parseUrl(self.document.referrer);
 
