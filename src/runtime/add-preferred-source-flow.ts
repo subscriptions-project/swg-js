@@ -34,6 +34,10 @@ export class AddPreferredSourceFlow {
       .activities()
       .onResult(ADD_PREFERRED_SOURCE_REQUEST_ID, async (port) => {
         try {
+          // Redirect results arrive via the `#__WA_RES__` URL fragment where
+          // `ActivityWindowRedirectPort` always sets `secureChannel` to false;
+          // authenticity is enforced by matching `feOrigin()` against the
+          // `document.referrer` origin (`requireOriginVerified = true`).
           const data = await acceptPortResultData(
             port,
             feOrigin(),

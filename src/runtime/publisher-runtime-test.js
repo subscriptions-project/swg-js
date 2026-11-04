@@ -398,19 +398,55 @@ describes.realWin('installPublisherRuntime', (env) => {
       expect(toastInstance.src_).to.include('theme=dark');
     });
 
-    it('should resolve toast language and theme from button attributes when api.addPreferredSource is called', () => {
-      const button = win.document.createElement('div');
-      button.setAttribute('google-add-preferred-source-btn', '');
-      button.setAttribute('data-lang', 'es');
-      button.setAttribute('data-theme', 'dark');
-      win.document.body.appendChild(button);
+    it('should use clicked button data-lang and data-theme for toast on multi-button pages without affecting api.addPreferredSource()', async () => {
+      const button1 = win.document.createElement('div');
+      button1.setAttribute('google-add-preferred-source-btn', '');
+      button1.setAttribute('data-lang', 'es');
+      button1.setAttribute('data-theme', 'light');
+      win.document.body.appendChild(button1);
 
+      const button2 = win.document.createElement('div');
+      button2.setAttribute('google-add-preferred-source-btn', '');
+      button2.setAttribute('data-lang', 'fr');
+      button2.setAttribute('data-theme', 'dark');
+      win.document.body.appendChild(button2);
+
+      api.init({lang: 'de', theme: 'light'});
+
+      const button2ClickCallback =
+        AddPreferredSourceButton.prototype.attach.getCall(1).args[0];
+      await button2ClickCallback();
+
+      expect(toastOpenStub).to.have.been.calledOnce;
+      const button2Toast = toastOpenStub.getCall(0).thisValue;
+      expect(button2Toast.src_).to.include('hl=fr');
+      expect(button2Toast.src_).to.include('theme=dark');
+
+      toastOpenStub.resetHistory();
       api.addPreferredSource();
 
       expect(toastOpenStub).to.have.been.calledOnce;
-      const toastInstance = toastOpenStub.getCall(0).thisValue;
-      expect(toastInstance.src_).to.include('hl=es');
-      expect(toastInstance.src_).to.include('theme=dark');
+      const apiToast = toastOpenStub.getCall(0).thisValue;
+      expect(apiToast.src_).to.include('hl=de');
+      expect(apiToast.src_).to.include('theme=light');
+    });
+
+    it('should swallow rejected AddPreferredSourceFlow.start() promises without unhandled rejections', async () => {
+      AddPreferredSourceFlow.prototype.start.callsFake(() =>
+        Promise.reject(new Error('Popup failed'))
+      );
+      let unhandled = false;
+      const onUnhandled = () => {
+        unhandled = true;
+      };
+      win.addEventListener('unhandledrejection', onUnhandled);
+
+      api.addPreferredSource();
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      win.removeEventListener('unhandledrejection', onUnhandled);
+      expect(unhandled).to.be.false;
+      expect(toastOpenStub).to.not.have.been.called;
     });
 
     it('should ignore toast if response status is UNSPECIFIED', () => {
@@ -848,6 +884,48 @@ describes.realWin('installPublisherRuntime', (env) => {
 
       expect(toastOpenStub).to.not.have.been.called;
       expect(updateStatusStub).to.not.have.been.called;
+    });
+
+    it('waits for document ready before showing redirect toast when installed in <head> before <body> or manual init()', async () => {
+      let readyState = 'loading';
+      sandbox.stub(win.document, 'readyState').get(() => readyState);
+
+      const script = win.document.createElement('script');
+      script.setAttribute('preferred-sources-control', 'manual');
+      win.document.head.appendChild(script);
+
+      win.location.hash =
+        '#__WA_RES__=' +
+        encodeURIComponent(
+          JSON.stringify({
+            requestId: 'addPreferredSource',
+            origin: 'https://news.google.com',
+            code: 'ok',
+            data: [
+              'AddPreferredSourceResponse',
+              AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS,
+              'TestSite',
+            ],
+          })
+        );
+
+      const api = installPublisherRuntime(win);
+      expect(replaceStateCalls).to.deep.equal(['#']);
+      expect(win.location.hash).to.equal('');
+
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      expect(toastOpenStub).to.not.have.been.called;
+
+      // Body scripts execute and call init() before readystatechange completes.
+      api.init({lang: 'de', theme: 'dark'});
+      readyState = 'interactive';
+      win.document.dispatchEvent(new Event('readystatechange'));
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(toastOpenStub).to.have.been.calledOnce;
+      const toastInstance = toastOpenStub.getCall(0).thisValue;
+      expect(toastInstance.src_).to.include('hl=de');
+      expect(toastInstance.src_).to.include('theme=dark');
     });
   });
 });
