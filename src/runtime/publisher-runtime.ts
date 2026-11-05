@@ -343,6 +343,9 @@ export class PublisherRuntime implements Deps {
     if (pendingToastOptions) {
       toastOptions = pendingToastOptions;
     } else {
+      // `whenReady()` resolves at `readyState === 'interactive'` (after `<body>`
+      // and inline scripts parse, but before `defer` scripts / `DOMContentLoaded`),
+      // so manual `init({lang, theme})` calls deferred there won't apply here.
       await this.doc_.whenReady();
       const buttonEl = this.win_.document.querySelector(
         '[google-add-preferred-source-btn]'
