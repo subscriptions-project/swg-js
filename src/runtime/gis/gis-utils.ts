@@ -42,6 +42,10 @@ export interface MixRrmGisTokensParams {
   idToken: string;
   gisClientId: string;
   gisOrigin?: string;
+  /**
+   * Whether to refresh entitlements with the mixed token. Defaults to true.
+   */
+  updateEntitlements?: boolean;
 }
 
 export interface MixRrmGisTokensResponse {
@@ -86,7 +90,7 @@ export async function mixRrmGisTokens(
     emptyMessage
   )) as MixRrmGisTokensResponse;
 
-  if (response?.swgUserToken) {
+  if (response?.swgUserToken && params.updateEntitlements !== false) {
     await deps.entitlementsManager().updateEntitlements(response.swgUserToken);
   }
 
@@ -115,9 +119,14 @@ export async function processGisCredentialInternal(
 
   let keepLoading = false;
   try {
+    // During a regwall login, the regwall completes the login with the mixed
+    // token and refreshes entitlements once it closes. Refreshing them here,
+    // while the regwall dialog is still open, can let another flow (e.g. the
+    // meter toast) take over the dialog and leave its backdrop behind.
     const mixResponse = await mixRrmGisTokens(deps, {
       idToken: response.credential!,
       gisClientId: params.gisClientId,
+      updateEntitlements: !isRegwall,
     });
 
     const swgUserToken = mixResponse?.swgUserToken;
@@ -131,6 +140,8 @@ export async function processGisCredentialInternal(
           keepLoading = true;
           return {fromRrm: true};
         }
+        // The regwall couldn't complete the login, so refresh entitlements.
+        await deps.entitlementsManager().updateEntitlements(swgUserToken);
       }
     }
 

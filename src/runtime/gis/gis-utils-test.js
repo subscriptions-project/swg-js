@@ -156,6 +156,20 @@ describes.sandboxed('gis-utils', () => {
       ).to.have.been.calledWith('newSwgUserToken');
     });
 
+    it('does not update entitlements if updateEntitlements is false', async () => {
+      const params = {
+        idToken: 'fakeIdToken',
+        gisClientId: 'fakeClientId',
+        updateEntitlements: false,
+      };
+
+      const response = await mixRrmGisTokens(deps, params);
+
+      expect(response.swgUserToken).to.equal('newSwgUserToken');
+      expect(entitlementsManagerMock.updateEntitlements).to.not.have.been
+        .called;
+    });
+
     it('does not update entitlements if no new token is returned', async () => {
       sendPostStub.resolves({});
       const params = {
@@ -176,6 +190,7 @@ describes.sandboxed('gis-utils', () => {
     let dialogMock;
     let loadingViewMock;
     let containerMock;
+    let entitlementsManagerMock;
     let sendPostStub;
 
     beforeEach(() => {
@@ -196,6 +211,10 @@ describes.sandboxed('gis-utils', () => {
         },
       };
 
+      entitlementsManagerMock = {
+        updateEntitlements: sandbox.stub().resolves(),
+      };
+
       dialogMock = {
         getLoadingView: sandbox.stub().returns(loadingViewMock),
         getContainer: sandbox.stub().returns(containerMock),
@@ -210,9 +229,7 @@ describes.sandboxed('gis-utils', () => {
           get: sandbox.stub().resolves('fakeSwgUserToken'),
           set: sandbox.stub().resolves(),
         }),
-        entitlementsManager: () => ({
-          updateEntitlements: sandbox.stub().resolves(),
-        }),
+        entitlementsManager: () => entitlementsManagerMock,
         gisInteropManager: sandbox.stub().returns(managerMock),
         dialogManager: sandbox.stub().returns({
           getDialog: sandbox.stub().returns(dialogMock),
@@ -246,6 +263,9 @@ describes.sandboxed('gis-utils', () => {
       );
       // Should NOT hide loading view because keepLoading should be true
       expect(loadingViewMock.hide).to.not.have.been.called;
+      // The regwall refreshes entitlements after it completes the login.
+      expect(entitlementsManagerMock.updateEntitlements).to.not.have.been
+        .called;
     });
 
     it('handles Regwall flow failure in triggerCompleteLogin', async () => {
@@ -260,6 +280,9 @@ describes.sandboxed('gis-utils', () => {
       expect(result).to.deep.equal({fromRrm: false});
       expect(loadingViewMock.show).to.have.been.calledOnce;
       expect(managerMock.setRegwallClickPending).to.have.been.calledWith(false);
+      expect(
+        entitlementsManagerMock.updateEntitlements
+      ).to.have.been.calledOnceWith('newSwgUserToken');
       // Should hide loading view because keepLoading should be false
       expect(loadingViewMock.hide).to.have.been.calledOnce;
       expect(containerMock.style.setProperty).to.have.been.calledWith(
@@ -282,6 +305,8 @@ describes.sandboxed('gis-utils', () => {
       expect(loadingViewMock.show).to.have.been.calledOnce;
       expect(managerMock.setRegwallClickPending).to.have.been.calledWith(false);
       expect(managerMock.triggerCompleteLogin).to.not.have.been.called;
+      expect(entitlementsManagerMock.updateEntitlements).to.not.have.been
+        .called;
       expect(loadingViewMock.hide).to.have.been.calledOnce;
     });
 
@@ -298,6 +323,9 @@ describes.sandboxed('gis-utils', () => {
       expect(containerMock.style.setProperty).to.not.have.been.called;
       expect(managerMock.setRegwallClickPending).to.not.have.been.called;
       expect(managerMock.triggerCompleteLogin).to.not.have.been.called;
+      expect(
+        entitlementsManagerMock.updateEntitlements
+      ).to.have.been.calledOnceWith('newSwgUserToken');
       // Should NOT manipulate loading view
       expect(loadingViewMock.hide).to.not.have.been.called;
     });
