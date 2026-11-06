@@ -148,7 +148,7 @@ Render your own first-party HTML button and invoke `preferredSource.addPreferred
 </script>
 ```
 
-> **Note for strict zero-connection policies:** Including `<script async crossorigin="anonymous" ...>` downloads the static `publisher.js` bundle from `news.google.com` without cookies so `psApi.addPreferredSource()` is ready synchronously on click (preserving popup user activation). If your privacy policy prohibits even a static CDN download from `news.google.com` prior to consent or click, either gate inserting the `<script>` tag behind your Consent Management Platform (CMP) or link directly to `https://www.google.com/preferences/source?q=example.com`.
+> **Note on deferred script injection:** Including `<script async crossorigin="anonymous" ...>` downloads the static `publisher.js` bundle from `news.google.com` so `psApi.addPreferredSource()` is ready synchronously on user click (preserving popup user activation). If you want to avoid network requests entirely prior to a user gesture or publisher-managed initialization, dynamically insert the `<script>` tag inside your initialization callback, or link directly to `https://www.google.com/preferences/source?q=example.com`.
 
 ### Pattern 2: CMP / consent-gated Google button
 
@@ -179,17 +179,16 @@ If you also want to defer fetching `publisher.js` itself until consent is grante
 
 ---
 
-## Privacy & network behavior summary
+## Network & lifecycle behavior summary
 
-| Scenario | `<iframe>` Injected | Analytics Requests (`play.google.com/log`) | Cookies on `publisher.js` (`crossorigin="anonymous"`) |
-| :--- | :--- | :--- | :--- |
+| Scenario | Injected `<iframe>` | Initial Analytics Requests | External Image Requests |
+| :--- | :---: | :---: | :---: |
 | **Page with 0 `[google-add-preferred-source-btn]` elements** | `0` | `0` | `0` |
 | **`preferred-sources-control="manual"` before `init()` or click** | `0` | `0` | `0` |
-| **Page after `init()` with ≥ 1 `[google-add-preferred-source-btn]`** | `1` (`news.google.com/swg/ui/v1/serviceiframe`) | `1` per attached button (button impression) | `0` |
-| **Reader clicks Google button or calls `addPreferredSource()`** | `1` (`serviceiframe`, plus confirmation `/toastiframe` after consent) | Click & consent-screen events | `0` |
+| **Page after `init()` with ≥ 1 `[google-add-preferred-source-btn]`** | `1` (`serviceiframe`) | `1` per attached button | `0` (inlined SVG) |
+| **Reader clicks Google button or calls `addPreferredSource()`** | `1` (`serviceiframe`, plus confirmation `/toastiframe` after consent) | Click & dialog events | `0` |
 
-- **Origin-only analytics URLs:** Analytics events sent by `publisher.js` include only the normalized HTTP(S) origin (for example, `https://example.com`)—never article paths, query parameters, `<link rel="canonical">` paths, or `utm_*` campaign tags. (When a reader actively clicks to open the consent dialog, the page URL is passed to `/addpreferredsource` solely to resolve the publication in Google Search.)
-- **Credential-free analytics transport:** Analytics requests from `serviceiframe` to `play.google.com/log` omit cross-site cookies, `authuser` parameters, authentication headers, and high-entropy User-Agent Client Hints.
+- **Origin-only analytics URLs:** Analytics events sent by `publisher.js` include only the normalized HTTP(S) origin (for example, `https://example.com`)—never article paths, query parameters, `<link rel="canonical">` paths, or campaign tags. (When a reader actively clicks to open the dialog, the page URL is passed to the dialog flow solely to resolve the publication in Google Search.)
 
 ## Interactive examples
 
