@@ -30,6 +30,22 @@
       margin-bottom: 36px;
       border-bottom: 1px solid var(--border-color);
       padding-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .nav-link {
+      color: #1a73e8;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .nav-link:hover {
+      text-decoration: underline;
     }
 
     h1 {
@@ -209,12 +225,13 @@
     }
   </style>
   <link rel="canonical" href="https://example.com/demo/preferred-sources-article">
-  <script async defer src="/examples/sample-pub/redirect-to/publisher.js"></script>
+  <script async defer crossorigin="anonymous" src="/examples/sample-pub/redirect-to/publisher.js"></script>
 </head>
 <body>
   <div class="container">
     <header>
       <h1>Preferred Sources Button</h1>
+      <a class="nav-link" href="./publisher-manual-consent.html">Manual &amp; Consent-Managed Demo &rarr;</a>
     </header>
 
     <!-- SECTION 1: INLINE FLOW & FIT-CONTENT PARTICIPATION -->

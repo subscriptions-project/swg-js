@@ -22,3 +22,4 @@ For introduction, see [Introducing Subscribe with Google YouTube video](https://
 - [Page markup](./page-markup.md)
 - [Core APIs](./core-apis.md)
 - [Subscriptions flows](./flows.md)
+- [Preferred Sources (`publisher.js`)](./preferred-sources.md)
