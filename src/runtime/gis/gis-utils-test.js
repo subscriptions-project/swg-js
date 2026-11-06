@@ -142,7 +142,7 @@ describes.sandboxed('gis-utils', () => {
       expect(message.label()).to.equal('MixRrmGisTokens');
     });
 
-    it('updates entitlements if new token is returned', async () => {
+    it('returns the response without updating entitlements', async () => {
       const params = {
         idToken: 'fakeIdToken',
         gisClientId: 'fakeClientId',
@@ -151,34 +151,6 @@ describes.sandboxed('gis-utils', () => {
       const response = await mixRrmGisTokens(deps, params);
 
       expect(response.swgUserToken).to.equal('newSwgUserToken');
-      expect(
-        entitlementsManagerMock.updateEntitlements
-      ).to.have.been.calledWith('newSwgUserToken');
-    });
-
-    it('does not update entitlements if updateEntitlements is false', async () => {
-      const params = {
-        idToken: 'fakeIdToken',
-        gisClientId: 'fakeClientId',
-        updateEntitlements: false,
-      };
-
-      const response = await mixRrmGisTokens(deps, params);
-
-      expect(response.swgUserToken).to.equal('newSwgUserToken');
-      expect(entitlementsManagerMock.updateEntitlements).to.not.have.been
-        .called;
-    });
-
-    it('does not update entitlements if no new token is returned', async () => {
-      sendPostStub.resolves({});
-      const params = {
-        idToken: 'fakeIdToken',
-        gisClientId: 'fakeClientId',
-      };
-
-      await mixRrmGisTokens(deps, params);
-
       expect(entitlementsManagerMock.updateEntitlements).to.not.have.been
         .called;
     });
