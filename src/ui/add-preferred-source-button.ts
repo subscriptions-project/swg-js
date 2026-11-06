@@ -21,7 +21,7 @@ import {
   EventParams,
 } from '../proto/api_messages';
 import {Deps} from '../runtime/deps';
-import {GOOGLE_G_LOGO_URL} from '../utils/assets';
+import {GOOGLE_G_LOGO_IMAGE_DATA} from '../utils/assets';
 import {I18N_STRINGS} from '../i18n/strings';
 import {PreferredSourceButtonOptions} from '../api/preferred-source';
 import {createElement} from '../utils/dom';
@@ -75,7 +75,7 @@ export class AddPreferredSourceButton {
     const logoEl = createElement(doc, 'img', {
       'class': 'publisher-logo',
       'slot': 'icon',
-      'src': GOOGLE_G_LOGO_URL,
+      'src': GOOGLE_G_LOGO_IMAGE_DATA,
       'alt': '',
       'aria-hidden': 'true',
       'width': '22',
