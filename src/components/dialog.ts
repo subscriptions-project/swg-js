@@ -396,6 +396,7 @@ export class Dialog {
    */
   async openView(view: View): Promise<void> {
     setImportantStyles(view.getElement(), resetViewStyles);
+    const isGraypaneShown = !!this.view_?.shouldFadeBody() && !this.hidden_;
     this.entryTransitionToNextView_();
 
     this.view_ = view;
@@ -408,6 +409,9 @@ export class Dialog {
     // If the current view should fade the parent document.
     if (view.shouldFadeBody() && !this.hidden_) {
       this.graypane_.show(/* animated */ view.shouldAnimateFade());
+    } else if (!view.shouldFadeBody() && isGraypaneShown) {
+      // The previous view faded the parent document, but this one doesn't.
+      this.graypane_.hide(/* animated */ true);
     }
 
     await view.init(this);

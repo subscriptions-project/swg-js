@@ -81,16 +81,7 @@ export async function mixRrmGisTokens(
     label: () => 'MixRrmGisTokens',
   };
 
-  const response = (await fetcher.sendPost(
-    url,
-    emptyMessage
-  )) as MixRrmGisTokensResponse;
-
-  if (response?.swgUserToken) {
-    await deps.entitlementsManager().updateEntitlements(response.swgUserToken);
-  }
-
-  return response;
+  return (await fetcher.sendPost(url, emptyMessage)) as MixRrmGisTokensResponse;
 }
 
 /**
@@ -125,6 +116,10 @@ export async function processGisCredentialInternal(
     if (isRegwall) {
       manager!.setRegwallClickPending(false);
 
+      // The regwall completes the login with the mixed token and refreshes
+      // entitlements once it closes. Refreshing them before that, while the
+      // regwall dialog is still open, lets other flows (e.g. the meter toast)
+      // take over the dialog.
       if (swgUserToken) {
         const handled = await manager!.triggerCompleteLogin(swgUserToken);
         if (handled) {
@@ -132,6 +127,12 @@ export async function processGisCredentialInternal(
           return {fromRrm: true};
         }
       }
+    }
+
+    // Refresh entitlements for non-regwall flows, or if the regwall couldn't
+    // complete the login.
+    if (swgUserToken) {
+      await deps.entitlementsManager().updateEntitlements(swgUserToken);
     }
 
     return {fromRrm: false};

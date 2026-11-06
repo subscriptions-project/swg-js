@@ -144,6 +144,42 @@ describes.realWin('Dialog', (env) => {
       expect(graypaneStubs.show).to.be.calledOnce.calledWith(ANIMATE);
     });
 
+    it('should hide the graypane when the next view does not fade the body', async () => {
+      view.hasLoadingIndicator = () => false;
+      const openedDialog = await dialog.open();
+      await openedDialog.openView(view);
+      expect(graypaneStubs.show).to.be.calledOnce;
+      expect(graypaneStubs.hide).to.not.be.called;
+
+      const nonFadingView = {
+        ...view,
+        getElement: () => doc.createElement('div'),
+        shouldFadeBody: () => false,
+        hasLoadingIndicator: () => false,
+      };
+      await openedDialog.openView(nonFadingView);
+
+      expect(graypaneStubs.show).to.be.calledOnce;
+      expect(graypaneStubs.hide).to.be.calledOnce.calledWith(ANIMATE);
+    });
+
+    it('should not hide the graypane if the previous view did not fade the body', async () => {
+      const nonFadingView = {
+        ...view,
+        shouldFadeBody: () => false,
+        hasLoadingIndicator: () => false,
+      };
+      const openedDialog = await dialog.open();
+      await openedDialog.openView(nonFadingView);
+      await openedDialog.openView({
+        ...nonFadingView,
+        getElement: () => doc.createElement('div'),
+      });
+
+      expect(graypaneStubs.show).to.not.be.called;
+      expect(graypaneStubs.hide).to.not.be.called;
+    });
+
     it('should build the view and show hidden iframe', async () => {
       const openedDialog = await dialog.open(HIDDEN);
       await openedDialog.openView(view);
