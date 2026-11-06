@@ -14,101 +14,79 @@
  * limitations under the License.
  */
 
-import {ActivityIframePort} from '../components/activities';
 import {AddPreferredSourceFlow} from './add-preferred-source-flow';
-import {AddPreferredSourceResponse} from '../proto/api_messages';
+import {
+  AddPreferredSourceResponse,
+  AddPreferredSourceStatus,
+} from '../proto/api_messages';
 import {ClientConfigManager} from './client-config-manager';
 import {ConfiguredRuntime} from './runtime';
 import {PageConfig} from '../model/page-config';
 
 describes.realWin('AddPreferredSourceFlow', (env) => {
   let win;
-  let pageConfig;
   let runtime;
   let activitiesMock;
-  let dialogManagerMock;
-  let port;
-  let flow;
   let clientConfigManager;
-  let clientConfigManagerMock;
+  let flow;
 
   beforeEach(() => {
     win = env.win;
-    pageConfig = new PageConfig('pub1:label1', true);
-    runtime = new ConfiguredRuntime(win, pageConfig);
+    runtime = new ConfiguredRuntime(win, new PageConfig('pub1:label1', true));
     activitiesMock = sandbox.mock(runtime.activities());
-    dialogManagerMock = sandbox.mock(runtime.dialogManager());
-    port = sandbox.createStubInstance(ActivityIframePort);
-    port.onResizeRequest = () => {};
-    port.whenReady = () => Promise.resolve();
-    port.acceptResult = () =>
-      Promise.resolve({
-        data: [null, 1],
-        origin: 'https://news.google.com',
-        originVerified: true,
-        secureChannel: true,
-      });
-
     clientConfigManager = new ClientConfigManager(runtime);
-    clientConfigManagerMock = sandbox.mock(clientConfigManager);
     sandbox.stub(runtime, 'clientConfigManager').returns(clientConfigManager);
-
     flow = new AddPreferredSourceFlow(runtime);
   });
 
   afterEach(() => {
     activitiesMock.verify();
-    dialogManagerMock.verify();
-    clientConfigManagerMock.verify();
   });
 
-  it('starts flow in popup window with language parameter', async () => {
-    let onResultCallback;
-    activitiesMock
-      .expects('onResult')
-      .withExactArgs(
-        'addPreferredSource',
-        sandbox.match((arg) => {
-          onResultCallback = arg;
-          return typeof arg == 'function';
-        })
-      )
-      .once();
-
+  it('starts flow in popup window with default language and source URL without registering duplicate onResult', async () => {
+    const encodedSource = encodeURIComponent(win.location.href);
+    activitiesMock.expects('onResult').never();
     activitiesMock
       .expects('openPopupWithMessaging')
       .withExactArgs(
         'addPreferredSource',
         sandbox.match(
-          (url) => url.includes('/addpreferredsource') && url.includes('hl=en')
+          (url) =>
+            url.includes('/addpreferredsource') &&
+            url.includes('hl=en') &&
+            url.includes(`source=${encodedSource}`)
         ),
+        '_blank',
+        sandbox.match({source: win.location.href}),
+        sandbox.match.object
+      )
+      .once()
+      .resolves();
+
+    await flow.start();
+  });
+
+  it('prefers explicit options.language over clientConfigManager', async () => {
+    const customFlow = new AddPreferredSourceFlow(runtime, {language: 'de'});
+    activitiesMock.expects('onResult').never();
+    activitiesMock
+      .expects('openPopupWithMessaging')
+      .withExactArgs(
+        'addPreferredSource',
+        sandbox.match((url) => url.includes('hl=de')),
         '_blank',
         sandbox.match.object,
         sandbox.match.object
       )
-      .once();
+      .once()
+      .resolves();
 
-    const startPromise = flow.start();
-    onResultCallback(port);
-    const result = await startPromise;
-    const expected = new AddPreferredSourceResponse();
-    expected.setStatus(1);
-    expect(result).to.deep.equal(expected);
+    await customFlow.start();
   });
 
   it('passes custom language from clientConfigManager', async () => {
     sandbox.stub(clientConfigManager, 'getLanguage').returns('fr-FR');
-    let onResultCallback;
-    activitiesMock
-      .expects('onResult')
-      .withExactArgs(
-        'addPreferredSource',
-        sandbox.match((arg) => {
-          onResultCallback = arg;
-          return typeof arg == 'function';
-        })
-      )
-      .once();
+    activitiesMock.expects('onResult').never();
     activitiesMock
       .expects('openPopupWithMessaging')
       .withExactArgs(
@@ -118,41 +96,119 @@ describes.realWin('AddPreferredSourceFlow', (env) => {
         sandbox.match.object,
         sandbox.match.object
       )
-      .once();
+      .once()
+      .resolves();
 
-    const startPromise = flow.start();
-    onResultCallback(port);
-    await startPromise;
+    await flow.start();
   });
 
-  it('passes window location href in source URL query param', async () => {
+  describe('configurePending', () => {
     let onResultCallback;
-    activitiesMock
-      .expects('onResult')
-      .withExactArgs(
-        'addPreferredSource',
-        sandbox.match((arg) => {
-          onResultCallback = arg;
-          return typeof arg == 'function';
-        })
-      )
-      .once();
-    activitiesMock
-      .expects('openPopupWithMessaging')
-      .withExactArgs(
-        'addPreferredSource',
-        sandbox.match(
-          (url) =>
-            url.includes('/addpreferredsource') && url.includes('source=')
-        ),
-        '_blank',
-        sandbox.match.object,
-        sandbox.match.object
-      )
-      .once();
+    let onResponse;
+    let port;
 
-    const startPromise = flow.start();
-    onResultCallback(port);
-    await startPromise;
+    beforeEach(() => {
+      onResponse = sandbox.spy();
+      port = {
+        acceptResult: () =>
+          Promise.resolve({
+            data: [
+              'AddPreferredSourceResponse',
+              AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS,
+              'TestSite',
+            ],
+            origin: 'https://news.google.com',
+            originVerified: true,
+            secureChannel: true,
+          }),
+      };
+      activitiesMock
+        .expects('onResult')
+        .withExactArgs(
+          'addPreferredSource',
+          sandbox.match((arg) => {
+            onResultCallback = arg;
+            return typeof arg === 'function';
+          })
+        )
+        .once();
+
+      AddPreferredSourceFlow.configurePending(runtime, onResponse);
+    });
+
+    it('delivers parsed AddPreferredSourceResponse from verified popup port', async () => {
+      await onResultCallback(port);
+
+      const expected = new AddPreferredSourceResponse([
+        'AddPreferredSourceResponse',
+        AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS,
+        'TestSite',
+      ]);
+      expect(onResponse).to.have.been.calledOnceWithExactly(expected);
+    });
+
+    it('delivers parsed AddPreferredSourceResponse from verified redirect port', async () => {
+      port.acceptResult = () =>
+        Promise.resolve({
+          data: [
+            'AddPreferredSourceResponse',
+            AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_ALREADY_ADDED,
+            'TestSite',
+          ],
+          origin: 'https://news.google.com',
+          originVerified: true,
+          secureChannel: false,
+        });
+
+      await onResultCallback(port);
+
+      const expected = new AddPreferredSourceResponse([
+        'AddPreferredSourceResponse',
+        AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_ALREADY_ADDED,
+        'TestSite',
+      ]);
+      expect(onResponse).to.have.been.calledOnceWithExactly(expected);
+    });
+
+    it('ignores result when originVerified is false', async () => {
+      port.acceptResult = () =>
+        Promise.resolve({
+          data: [
+            'AddPreferredSourceResponse',
+            AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS,
+            'Spoof',
+          ],
+          origin: 'https://news.google.com',
+          originVerified: false,
+          secureChannel: false,
+        });
+
+      await onResultCallback(port);
+
+      expect(onResponse).to.not.have.been.called;
+    });
+
+    it('ignores result when data is null or non-array', async () => {
+      port.acceptResult = () =>
+        Promise.resolve({
+          data: null,
+          origin: 'https://news.google.com',
+          originVerified: true,
+          secureChannel: false,
+        });
+
+      await onResultCallback(port);
+
+      expect(onResponse).to.not.have.been.called;
+    });
+
+    it('ignores result when acceptResult rejects on cancellation', async () => {
+      port.acceptResult = () =>
+        Promise.reject(new DOMException('AbortError', 'AbortError'));
+
+      await onResultCallback(port);
+
+      expect(onResponse).to.not.have.been.called;
+    });
   });
 });
