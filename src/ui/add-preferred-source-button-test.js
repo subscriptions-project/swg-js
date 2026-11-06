@@ -17,6 +17,7 @@
 import {AddPreferredSourceButton} from './add-preferred-source-button';
 import {AddPreferredSourceStatus, AnalyticsEvent} from '../proto/api_messages';
 import {ClientEventManager} from '../runtime/client-event-manager';
+import {GOOGLE_G_LOGO_IMAGE_DATA} from '../utils/assets';
 import {resolveDoc} from '../model/doc';
 
 describes.realWin('AddPreferredSourceButton', (env) => {
@@ -76,6 +77,10 @@ describes.realWin('AddPreferredSourceButton', (env) => {
 
     const logoEl = shadow.querySelector('.publisher-logo');
     expect(logoEl).to.not.be.null;
+    expect(logoEl.getAttribute('src')).to.equal(GOOGLE_G_LOGO_IMAGE_DATA);
+    expect(logoEl.getAttribute('src')).to.match(
+      /^data:image\/svg\+xml;base64,/
+    );
     expect(logoEl.getAttribute('alt')).to.equal('');
     expect(logoEl.getAttribute('aria-hidden')).to.equal('true');
 
@@ -233,7 +238,7 @@ describes.realWin('AddPreferredSourceButton', (env) => {
     eventManagerMock.verify();
   });
 
-  it('should embed canonical url from link rel=canonical tag in analytics events', () => {
+  it('should embed canonical origin from link rel=canonical tag in analytics events', () => {
     const canonicalLink = doc.createElement('link');
     canonicalLink.setAttribute('rel', 'canonical');
     canonicalLink.setAttribute('href', 'https://publisher.com/canonical-story');
@@ -245,9 +250,7 @@ describes.realWin('AddPreferredSourceButton', (env) => {
       AnalyticsEvent.IMPRESSION_ADD_PREFERRED_SOURCES_BUTTON,
       false,
       sandbox.match((params) => {
-        return (
-          params.getCanonicalUrl() === 'https://publisher.com/canonical-story'
-        );
+        return params.getCanonicalUrl() === 'https://publisher.com';
       })
     );
 

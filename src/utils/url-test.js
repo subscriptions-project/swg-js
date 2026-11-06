@@ -18,6 +18,7 @@ import {AnalyticsRequest, ReaderSurfaceType} from '../proto/api_messages';
 import {
   addQueryParam,
   getCanonicalUrl,
+  getHttpOrigin,
   getQueryParam,
   isSecure,
   parseQueryString,
@@ -411,5 +412,27 @@ describe('getQueryParam', () => {
   it('should return null for missing query param', () => {
     const deps = {win: () => ({location: {search: '?foo=bar'}})};
     expect(getQueryParam('baz', deps)).to.equal(null);
+  });
+});
+
+describe('getHttpOrigin', () => {
+  it('should extract HTTP(S) origins from absolute URLs and normalize casing', () => {
+    expect(
+      getHttpOrigin('https://www.example.com/news/article-123?utm_source=x#top')
+    ).to.equal('https://www.example.com');
+    expect(
+      getHttpOrigin('HTTP://SUB.EXAMPLE.COM:8080/sports/live?id=9')
+    ).to.equal('http://sub.example.com:8080');
+  });
+
+  it('should return empty string for non-HTTP(S), relative, hostless, or empty URLs', () => {
+    expect(getHttpOrigin('')).to.equal('');
+    expect(getHttpOrigin('/relative/path')).to.equal('');
+    expect(getHttpOrigin('www.example.com/article')).to.equal('');
+    expect(getHttpOrigin('about:blank')).to.equal('');
+    expect(getHttpOrigin('nullsrcdoc')).to.equal('');
+    expect(getHttpOrigin('data:text/html,hi')).to.equal('');
+    expect(getHttpOrigin('blob:https://www.example.com/123')).to.equal('');
+    expect(getHttpOrigin('https://')).to.equal('');
   });
 });

@@ -21,7 +21,6 @@ import {
   AddPreferredSourceStatus,
   AnalyticsEvent,
   PreferredSourcesAddSourceTrigger,
-  PreferredSourcesInstallType,
 } from '../proto/api_messages';
 import {AnalyticsService} from './analytics-service';
 import {ClientEventManager} from './client-event-manager';
@@ -108,69 +107,194 @@ describes.realWin('installPublisherRuntime', (env) => {
     expect(pubInitStub).to.not.have.been.called;
   });
 
-  it('should log EVENT_PUBLISHER_RUNTIME_INSTALLED with AUTO integration type by default', () => {
+  it('should emit 0 analytics events and inject 0 iframes when installed on a 0-button page', () => {
     const logSwgEventSpy = sandbox.spy(
       ClientEventManager.prototype,
       'logSwgEvent'
     );
+    const analyticsStartSpy = sandbox.spy(AnalyticsService.prototype, 'start');
     win.PREFERRED_SOURCE = undefined;
+
     installPublisherRuntime(win);
 
-    expect(logSwgEventSpy).to.have.been.calledWith(
-      AnalyticsEvent.EVENT_PUBLISHER_RUNTIME_INSTALLED,
-      false,
-      sandbox.match((params) => {
-        return (
-          params.getPreferredSourcesInstallType() ===
-          PreferredSourcesInstallType.PREFERRED_SOURCES_INSTALL_TYPE_AUTO
-        );
-      })
-    );
+    expect(logSwgEventSpy).to.not.have.been.called;
+    expect(analyticsStartSpy).to.not.have.been.called;
+    expect(win.document.querySelectorAll('iframe').length).to.equal(0);
   });
 
-  it('should log EVENT_PUBLISHER_RUNTIME_INSTALLED with MANUAL integration type when preferred-sources-control="manual"', () => {
+  it('should emit 0 analytics events and inject 0 iframes with preferred-sources-control="manual" until api.init() is invoked', async () => {
+    const executeSpy = sandbox.spy();
+    sandbox.stub(ActivityPorts.prototype, 'openIframe').resolves({
+      on: sandbox.stub(),
+      whenReady: () => Promise.resolve(),
+      execute: executeSpy,
+    });
     const logSwgEventSpy = sandbox.spy(
       ClientEventManager.prototype,
       'logSwgEvent'
     );
     const script = win.document.createElement('script');
     script.setAttribute('preferred-sources-control', 'manual');
+    const button = win.document.createElement('div');
+    button.setAttribute('google-add-preferred-source-btn', '');
     win.document.body.appendChild(script);
+    win.document.body.appendChild(button);
 
     win.PREFERRED_SOURCE = undefined;
-    installPublisherRuntime(win);
+    const api = installPublisherRuntime(win);
 
-    expect(logSwgEventSpy).to.have.been.calledWith(
-      AnalyticsEvent.EVENT_PUBLISHER_RUNTIME_INSTALLED,
+    expect(logSwgEventSpy).to.not.have.been.called;
+    expect(win.document.querySelectorAll('iframe').length).to.equal(0);
+
+    api.init();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(win.document.querySelectorAll('iframe').length).to.equal(1);
+    expect(logSwgEventSpy).to.have.been.calledOnceWithExactly(
+      AnalyticsEvent.IMPRESSION_ADD_PREFERRED_SOURCES_BUTTON,
       false,
-      sandbox.match((params) => {
-        return (
-          params.getPreferredSourcesInstallType() ===
-          PreferredSourcesInstallType.PREFERRED_SOURCES_INSTALL_TYPE_MANUAL
-        );
-      })
+      sandbox.match.any
+    );
+    expect(executeSpy).to.have.been.calledOnce;
+    expect(executeSpy.firstCall.args[0].getEvent()).to.equal(
+      AnalyticsEvent.IMPRESSION_ADD_PREFERRED_SOURCES_BUTTON
     );
     script.remove();
+    button.remove();
   });
 
-  it('should log EVENT_PUBLISHER_RUNTIME_INSTALLED with MANUAL integration type when autoStart is false', () => {
+  it('should emit 0 analytics events and inject 0 iframes with preferred-sources-control="manual" until api.addPreferredSource() is invoked', async () => {
+    sandbox.stub(ActivityPorts.prototype, 'openIframe').resolves({
+      on: sandbox.stub(),
+      whenReady: () => Promise.resolve(),
+      execute: sandbox.stub(),
+    });
+    sandbox.stub(AddPreferredSourceFlow.prototype, 'start').callsFake(() => {
+      const response = new AddPreferredSourceResponse();
+      response.setStatus(
+        AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS
+      );
+      response.setSiteName('TestSite');
+      return Promise.resolve(response);
+    });
+    sandbox.stub(Toast.prototype, 'open').resolves();
     const logSwgEventSpy = sandbox.spy(
       ClientEventManager.prototype,
       'logSwgEvent'
     );
-    win.PREFERRED_SOURCE = undefined;
-    installPublisherRuntime(win, {autoStart: false});
+    const script = win.document.createElement('script');
+    script.setAttribute('preferred-sources-control', 'manual');
+    const button = win.document.createElement('div');
+    button.setAttribute('google-add-preferred-source-btn', '');
+    win.document.body.appendChild(script);
+    win.document.body.appendChild(button);
 
-    expect(logSwgEventSpy).to.have.been.calledWith(
-      AnalyticsEvent.EVENT_PUBLISHER_RUNTIME_INSTALLED,
+    win.PREFERRED_SOURCE = undefined;
+    const api = installPublisherRuntime(win);
+
+    expect(logSwgEventSpy).to.not.have.been.called;
+    expect(win.document.querySelectorAll('iframe').length).to.equal(0);
+
+    api.addPreferredSource();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(win.document.querySelectorAll('iframe').length).to.equal(1);
+    expect(logSwgEventSpy).to.have.been.calledOnceWith(
+      AnalyticsEvent.ACTION_ADD_PREFERRED_SOURCE,
       false,
-      sandbox.match((params) => {
-        return (
-          params.getPreferredSourcesInstallType() ===
-          PreferredSourcesInstallType.PREFERRED_SOURCES_INSTALL_TYPE_MANUAL
-        );
-      })
+      sandbox.match(
+        (params) =>
+          params.getPreferredSourcesAddSourceTrigger() ===
+            PreferredSourcesAddSourceTrigger.PREFERRED_SOURCES_ADD_SOURCE_TRIGGER_API &&
+          params.getPreferredSourcesInstallType() === null
+      )
     );
+    script.remove();
+    button.remove();
+  });
+
+  it('should remain silent on api.init({lang, theme}) on a 0-button page while preserving options for api.addPreferredSource()', async () => {
+    sandbox.stub(ActivityPorts.prototype, 'openIframe').resolves({
+      on: sandbox.stub(),
+      whenReady: () => Promise.resolve(),
+      execute: sandbox.stub(),
+    });
+    const openPopupStub = sandbox.stub(
+      ActivityPorts.prototype,
+      'openPopupWithMessaging'
+    );
+    const toastOpenStub = sandbox.stub(Toast.prototype, 'open').resolves();
+    let pendingOnResponse;
+    sandbox
+      .stub(AddPreferredSourceFlow, 'configurePending')
+      .callsFake((_deps, onResponse) => {
+        pendingOnResponse = onResponse;
+      });
+    sandbox
+      .stub(AddPreferredSourceFlow.prototype, 'start')
+      .callsFake(function () {
+        openPopupStub(this.deps_.clientConfigManager().getLanguage());
+        const response = new AddPreferredSourceResponse();
+        response.setStatus(
+          AddPreferredSourceStatus.ADD_PREFERRED_SOURCE_STATUS_SUCCESS
+        );
+        response.setSiteName('TestSite');
+        pendingOnResponse(response);
+        return Promise.resolve();
+      });
+    const logSwgEventSpy = sandbox.spy(
+      ClientEventManager.prototype,
+      'logSwgEvent'
+    );
+
+    win.PREFERRED_SOURCE = undefined;
+    const api = installPublisherRuntime(win, {autoStart: false});
+    api.init({lang: 'fr', theme: 'dark'});
+
+    expect(logSwgEventSpy).to.not.have.been.called;
+    expect(win.document.querySelectorAll('iframe').length).to.equal(0);
+
+    api.addPreferredSource();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(openPopupStub).to.have.been.calledOnceWithExactly('fr');
+    expect(toastOpenStub).to.have.been.calledOnce;
+    const toastInstance = toastOpenStub.getCall(0).thisValue;
+    expect(toastInstance.src_).to.include('hl=fr');
+    expect(toastInstance.src_).to.include('theme=dark');
+  });
+
+  it('should start AnalyticsService before attaching buttons so IMPRESSION_ADD_PREFERRED_SOURCES_BUTTON is delivered', async () => {
+    const executeSpy = sandbox.spy();
+    sandbox.stub(ActivityPorts.prototype, 'openIframe').resolves({
+      on: sandbox.stub(),
+      whenReady: () => Promise.resolve(),
+      execute: executeSpy,
+    });
+    const setReadySpy = sandbox.spy(
+      AnalyticsService.prototype,
+      'setReadyForLogging'
+    );
+    const analyticsStartSpy = sandbox.spy(AnalyticsService.prototype, 'start');
+    const attachSpy = sandbox.spy(AddPreferredSourceButton.prototype, 'attach');
+    const button = win.document.createElement('div');
+    button.setAttribute('google-add-preferred-source-btn', '');
+    win.document.body.appendChild(button);
+
+    win.PREFERRED_SOURCE = undefined;
+    installPublisherRuntime(win);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(setReadySpy).to.have.been.calledOnce;
+    expect(attachSpy).to.have.been.calledOnce;
+    expect(setReadySpy).to.have.been.calledBefore(attachSpy);
+    expect(analyticsStartSpy).to.have.been.calledBefore(attachSpy);
+    expect(executeSpy).to.have.been.calledOnce;
+    expect(executeSpy.firstCall.args[0].getEvent()).to.equal(
+      AnalyticsEvent.IMPRESSION_ADD_PREFERRED_SOURCES_BUTTON
+    );
+    button.remove();
   });
 
   it('should return defensive fallback dummy object if PREFERRED_SOURCE is initialized without an api property', () => {
@@ -231,14 +355,19 @@ describes.realWin('installPublisherRuntime', (env) => {
       runtime = new PublisherRuntime(win);
     });
 
-    it('implements core Deps accessors', () => {
+    it('implements core Deps accessors and lazily caches AnalyticsService singleton', () => {
+      expect(win.document.querySelectorAll('iframe').length).to.equal(0);
       expect(runtime.win()).to.equal(win);
       expect(runtime.doc().getWin()).to.equal(win);
       expect(runtime.pageConfig().getPublicationId()).to.equal(
         'publication-id-free'
       );
       expect(runtime.activities()).to.be.an.instanceOf(ActivityPorts);
-      expect(runtime.analytics()).to.be.an.instanceOf(AnalyticsService);
+      const firstAnalytics = runtime.analytics();
+      const secondAnalytics = runtime.analytics();
+      expect(firstAnalytics).to.be.an.instanceOf(AnalyticsService);
+      expect(secondAnalytics).to.equal(firstAnalytics);
+      expect(win.document.querySelectorAll('iframe').length).to.equal(1);
       expect(runtime.eventManager()).to.be.an.instanceOf(ClientEventManager);
       expect(runtime.creationTimestamp()).to.be.a('number');
       expect(runtime.config()).to.deep.equal({enableSwgAnalytics: true});
@@ -665,7 +794,7 @@ describes.realWin('installPublisherRuntime', (env) => {
       expect(() => runtime.init()).to.not.throw();
     });
 
-    it('should log ACTION_ADD_PREFERRED_SOURCE with trigger=API when called via api.addPreferredSource', () => {
+    it('should log ACTION_ADD_PREFERRED_SOURCE with trigger=API and null installType when called via api.addPreferredSource', () => {
       const logSwgEventSpy = sandbox.spy(
         ClientEventManager.prototype,
         'logSwgEvent'
@@ -679,8 +808,7 @@ describes.realWin('installPublisherRuntime', (env) => {
           return (
             params.getPreferredSourcesAddSourceTrigger() ===
               PreferredSourcesAddSourceTrigger.PREFERRED_SOURCES_ADD_SOURCE_TRIGGER_API &&
-            params.getPreferredSourcesInstallType() ===
-              PreferredSourcesInstallType.PREFERRED_SOURCES_INSTALL_TYPE_AUTO
+            params.getPreferredSourcesInstallType() === null
           );
         })
       );
@@ -705,7 +833,7 @@ describes.realWin('installPublisherRuntime', (env) => {
       );
     });
 
-    it('should log ACTION_ADD_PREFERRED_SOURCE with trigger=INFLATED_BUTTON when button attach callback is invoked', async () => {
+    it('should log ACTION_ADD_PREFERRED_SOURCE with trigger=INFLATED_BUTTON and null installType when button attach callback is invoked', async () => {
       const logSwgEventSpy = sandbox.spy(
         ClientEventManager.prototype,
         'logSwgEvent'
@@ -729,11 +857,40 @@ describes.realWin('installPublisherRuntime', (env) => {
           return (
             params.getPreferredSourcesAddSourceTrigger() ===
               PreferredSourcesAddSourceTrigger.PREFERRED_SOURCES_ADD_SOURCE_TRIGGER_INFLATED_BUTTON &&
-            params.getPreferredSourcesInstallType() ===
-              PreferredSourcesInstallType.PREFERRED_SOURCES_INSTALL_TYPE_AUTO
+            params.getPreferredSourcesInstallType() === null
           );
         })
       );
+    });
+
+    it('should truncate canonicalUrl to HTTP(S) origin in ACTION_ADD_PREFERRED_SOURCE and AnalyticsContext', () => {
+      const canonicalLink = win.document.createElement('link');
+      canonicalLink.setAttribute('rel', 'canonical');
+      canonicalLink.setAttribute(
+        'href',
+        'https://www.example.com/news/article-123?utm_source=newsletter'
+      );
+      win.document.head.appendChild(canonicalLink);
+
+      const runtime = new PublisherRuntime(win);
+      const logSwgEventSpy = sandbox.spy(runtime.eventManager(), 'logSwgEvent');
+      runtime.addPreferredSource();
+
+      expect(logSwgEventSpy).to.have.been.calledOnceWith(
+        AnalyticsEvent.ACTION_ADD_PREFERRED_SOURCE,
+        false,
+        sandbox.match(
+          (params) => params.getCanonicalUrl() === 'https://www.example.com'
+        )
+      );
+      const context = runtime.analytics().getContext();
+      expect(context.getUrl()).to.equal('https://www.example.com');
+      expect(context.getUrlFromMarkup()).to.be.null;
+      expect(context.getUtmSource()).to.be.null;
+      expect(context.getUtmMedium()).to.be.null;
+      expect(context.getUtmCampaign()).to.be.null;
+
+      canonicalLink.remove();
     });
   });
 

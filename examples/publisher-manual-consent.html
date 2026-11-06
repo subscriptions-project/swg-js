@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Preferred Sources — Manual Mode &amp; Consent Demo</title>
+  <style>
+    :root {
+      --bg-color: #f8f9fa;
+      --text-color: #202124;
+      --muted-color: #5f6368;
+      --card-bg: #ffffff;
+      --border-color: #dadce0;
+      --accent-color: #1a73e8;
+      --accent-hover: #1557b0;
+      --badge-green-bg: #e6f4ea;
+      --badge-green-fg: #137333;
+      --badge-blue-bg: #e8f0fe;
+      --badge-blue-fg: #1967d2;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 32px 24px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 28px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    h1 {
+      font-size: 26px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .header-subtitle {
+      color: var(--muted-color);
+      font-size: 14px;
+      margin: 6px 0 0;
+    }
+
+    .nav-link {
+      color: var(--accent-color);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .nav-link:hover {
+      text-decoration: underline;
+    }
+
+    .inspector-banner {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--accent-color);
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 28px;
+      box-shadow: 0 1px 3px rgba(60, 64, 67, 0.08);
+    }
+
+    .inspector-metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .metric-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      background: var(--badge-green-bg);
+      color: var(--badge-green-fg);
+    }
+
+    .metric-pill.active-network {
+      background: var(--badge-blue-bg);
+      color: var(--badge-blue-fg);
+    }
+
+    .event-log {
+      margin: 0;
+      padding-left: 20px;
+      font-family: monospace;
+      font-size: 12px;
+      color: var(--muted-color);
+      max-height: 110px;
+      overflow-y: auto;
+    }
+
+    .demo-section {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 28px;
+      box-shadow: 0 1px 3px rgba(60, 64, 67, 0.08);
+    }
+
+    .demo-section h2 {
+      font-size: 18px;
+      font-weight: 600;
+      margin-top: 0;
+      margin-bottom: 8px;
+    }
+
+    .section-desc {
+      font-size: 14px;
+      color: var(--muted-color);
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
+
+    .controls-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #3c4043;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    select {
+      height: 36px;
+      padding: 0 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: #ffffff;
+      font-size: 13px;
+      color: var(--text-color);
+    }
+
+    .primary-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 40px;
+      padding: 0 18px;
+      border-radius: 20px;
+      border: none;
+      background: var(--accent-color);
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .primary-btn:hover {
+      background: var(--accent-hover);
+    }
+
+    .primary-btn:disabled {
+      background: #dadce0;
+      color: #80868b;
+      cursor: default;
+    }
+
+    .secondary-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 40px;
+      padding: 0 16px;
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+      background: #ffffff;
+      color: #3c4043;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .secondary-btn:hover {
+      background: #f1f3f4;
+    }
+
+    .cmp-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding: 16px;
+      border-radius: 8px;
+      background: #f1f3f4;
+      margin-bottom: 20px;
+    }
+
+    .cmp-banner-text {
+      font-size: 13px;
+      color: #3c4043;
+      max-width: 560px;
+    }
+
+    .button-slots {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      min-height: 44px;
+      padding: 16px;
+      border: 1px dashed var(--border-color);
+      border-radius: 8px;
+      background: var(--bg-color);
+    }
+
+    .placeholder-hint {
+      font-size: 13px;
+      color: var(--muted-color);
+    }
+
+    code {
+      background: #f1f3f4;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+  </style>
+  <link rel="canonical" href="https://example.com/articles/observational-astronomy?utm_source=newsletter">
+  <script
+    async
+    defer
+    crossorigin="anonymous"
+    preferred-sources-control="manual"
+    src="/examples/sample-pub/redirect-to/publisher.js"
+  ></script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Preferred Sources: Manual &amp; Consent-Managed Demo</h1>
+        <p class="header-subtitle">
+          Loaded with <code>crossorigin="anonymous"</code> and <code>preferred-sources-control="manual"</code>
+        </p>
+      </div>
+      <a class="nav-link" href="./publisher-button.html">&larr; Declarative Button Gallery</a>
+    </header>
+
+    <!-- LIVE DOM & TELEMETRY INSPECTOR -->
+    <div class="inspector-banner" aria-live="polite">
+      <div class="inspector-metrics">
+        <span class="metric-pill" id="iframe-pill">Injected &lt;iframe&gt; count: 0</span>
+        <span class="metric-pill" id="button-pill">Initialized Google buttons: 0</span>
+        <span class="metric-pill">crossorigin="anonymous"</span>
+        <span class="metric-pill">preferred-sources-control="manual"</span>
+      </div>
+      <ul class="event-log" id="event-log"></ul>
+    </div>
+
+    <!-- PATTERN 1: CUSTOM PUBLISHER BUTTON (DIRECT API) -->
+    <div class="demo-section">
+      <h2>1. Custom Publisher CTA (<code>preferredSource.addPreferredSource()</code>)</h2>
+      <p class="section-desc">
+        Renders a native first-party button with <strong>0 Google iframes and 0 analytics requests on page load</strong>.
+        Clicking invokes <code>preferredSource.addPreferredSource()</code> synchronously inside the user gesture
+        (note: on pages without <code>[google-add-preferred-source-btn]</code> elements, you can also call
+        <code>preferredSource.init({lang, theme})</code> upfront while keeping page load 100% network-silent).
+      </p>
+
+      <div class="controls-row" style="margin-bottom: 0;">
+        <button class="primary-btn" id="custom-cta-btn" type="button">
+          Add Example News on Google
+        </button>
+      </div>
+    </div>
+
+    <!-- PATTERN 2: SIMULATED CMP CONSENT GATE FOR GOOGLE BUTTON -->
+    <div class="demo-section">
+      <h2>2. Consent / CMP-Gated Google Button (<code>preferredSource.init()</code>)</h2>
+      <p class="section-desc">
+        The <code>[google-add-preferred-source-btn]</code> elements below stay uninitialized in the DOM until simulated
+        CMP consent triggers <code>preferredSource.init({lang, theme})</code>. Each button paints locally via Shadow DOM
+        and an inline <code>data:image/svg+xml</code> icon.
+      </p>
+
+      <div class="cmp-banner">
+        <div class="cmp-banner-text" id="cmp-status-text">
+          Consent status: <strong>Pending</strong> &mdash; Google Preferred Sources buttons below are inert (0 iframes).
+        </div>
+        <div class="controls-row" style="margin-bottom: 0;">
+          <label for="api-lang">
+            Default locale:
+            <select id="api-lang">
+              <option value="en">English (en)</option>
+              <option value="de">German (de)</option>
+              <option value="fr">French (fr)</option>
+              <option value="es">Spanish (es)</option>
+            </select>
+          </label>
+
+          <label for="api-theme">
+            Default theme:
+            <select id="api-theme">
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+              <option value="auto">OS-Adaptive (auto)</option>
+            </select>
+          </label>
+
+          <button class="primary-btn" id="grant-consent-btn" type="button">
+            Grant Consent &rarr; init()
+          </button>
+          <button class="secondary-btn" id="append-dynamic-btn" type="button">
+            + Append SPA Button
+          </button>
+        </div>
+      </div>
+
+      <div class="button-slots" id="button-slots">
+        <span class="placeholder-hint" id="uninitialized-hint">
+          Waiting for <code>preferredSource.init()</code>&hellip;
+        </span>
+        <div google-add-preferred-source-btn></div>
+        <div google-add-preferred-source-btn data-lang="de" data-theme="auto"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const iframePill = document.getElementById('iframe-pill');
+      const buttonPill = document.getElementById('button-pill');
+      const eventLog = document.getElementById('event-log');
+      const cmpStatusText = document.getElementById('cmp-status-text');
+      const grantConsentBtn = document.getElementById('grant-consent-btn');
+      const appendDynamicBtn = document.getElementById('append-dynamic-btn');
+      const buttonSlots = document.getElementById('button-slots');
+      const uninitializedHint = document.getElementById('uninitialized-hint');
+      const customCtaBtn = document.getElementById('custom-cta-btn');
+      const apiLangSelect = document.getElementById('api-lang');
+      const apiThemeSelect = document.getElementById('api-theme');
+
+      let preferredSourceApi = null;
+      let consentGranted = false;
+
+      function appendLog(message) {
+        const item = document.createElement('li');
+        const timestamp = new Date().toISOString().slice(11, 23);
+        item.textContent = '[' + timestamp + '] ' + message;
+        eventLog.appendChild(item);
+      }
+
+      function refreshInspector() {
+        const iframeCount = document.querySelectorAll('iframe').length;
+        const initializedCount = document.querySelectorAll(
+          '[google-add-preferred-source-btn][data-initialized="true"]'
+        ).length;
+        iframePill.textContent = 'Injected <iframe> count: ' + iframeCount;
+        iframePill.classList.toggle('active-network', iframeCount > 0);
+        buttonPill.textContent =
+          'Initialized Google buttons: ' + initializedCount;
+        if (initializedCount > 0 && uninitializedHint) {
+          uninitializedHint.hidden = true;
+        }
+      }
+
+      const observer = new MutationObserver(refreshInspector);
+      observer.observe(document.documentElement, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['data-initialized'],
+      });
+
+      appendLog(
+        'Page parsed in manual mode — 0 iframes and 0 analytics requests.'
+      );
+      refreshInspector();
+
+      (self.PREFERRED_SOURCE = self.PREFERRED_SOURCE || []).push(function (
+        api
+      ) {
+        preferredSourceApi = api;
+        appendLog(
+          'PREFERRED_SOURCE ready callback fired (still 0 iframes prior to init/click).'
+        );
+        refreshInspector();
+      });
+
+      customCtaBtn.addEventListener('click', function () {
+        if (!preferredSourceApi) {
+          appendLog('Runtime still loading; please try again in a moment.');
+          return;
+        }
+        appendLog(
+          'Custom CTA clicked -> calling preferredSource.addPreferredSource().'
+        );
+        preferredSourceApi.addPreferredSource();
+        refreshInspector();
+      });
+
+      grantConsentBtn.addEventListener('click', function () {
+        if (!preferredSourceApi) {
+          appendLog('Runtime still loading; please try again in a moment.');
+          return;
+        }
+        consentGranted = true;
+        grantConsentBtn.disabled = true;
+        grantConsentBtn.textContent = 'Consent Granted';
+        cmpStatusText.textContent =
+          'Consent status: Granted — preferredSource.init() inflated buttons on demand.';
+        appendLog(
+          'Simulated CMP consent granted -> calling preferredSource.init().'
+        );
+        preferredSourceApi.init({
+          lang: apiLangSelect.value,
+          theme: apiThemeSelect.value,
+        });
+        refreshInspector();
+      });
+
+      appendDynamicBtn.addEventListener('click', function () {
+        const dynamicBtn = document.createElement('div');
+        dynamicBtn.setAttribute('google-add-preferred-source-btn', '');
+        dynamicBtn.setAttribute('data-lang', apiLangSelect.value);
+        dynamicBtn.setAttribute('data-theme', apiThemeSelect.value);
+        buttonSlots.appendChild(dynamicBtn);
+        appendLog(
+          'Appended new [google-add-preferred-source-btn] node (' +
+            apiLangSelect.value +
+            ', ' +
+            apiThemeSelect.value +
+            ').'
+        );
+        if (consentGranted && preferredSourceApi) {
+          preferredSourceApi.init();
+          appendLog('Called preferredSource.init() to inflate newly added button.');
+        }
+        refreshInspector();
+      });
+    })();
+  </script>
+</body>
+</html>
