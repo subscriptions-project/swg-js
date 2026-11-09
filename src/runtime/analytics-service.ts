@@ -33,11 +33,16 @@ import {I18N_STRINGS} from '../i18n/strings';
 import {INTERNAL_RUNTIME_VERSION} from '../constants';
 import {createElement} from '../utils/dom';
 import {feUrl} from './services';
-import {getCanonicalTag, getCanonicalUrl} from '../utils/url';
+import {
+  getCanonicalTag,
+  getCanonicalUrl,
+  getHttpOrigin,
+  parseQueryString,
+  parseUrl,
+} from '../utils/url';
 import {getOnExperiments} from './experiments';
 import {getSwgTransactionId} from '../utils/string';
 import {log} from '../utils/log';
-import {parseQueryString, parseUrl} from '../utils/url';
 import {setImportantStyles} from '../utils/style';
 import {toDuration, toTimestamp} from '../utils/date-utils';
 
@@ -223,8 +228,17 @@ export class AnalyticsService {
     context.setTransactionId(getSwgTransactionId());
     context.setReferringOrigin(parseUrl(this.getReferrer_()).origin);
     context.setClientVersion(`SwG ${INTERNAL_RUNTIME_VERSION}`);
-    context.setUrl(getCanonicalUrl(this.doc_));
     context.setIsLockedContent(this.deps_.pageConfig().isLocked());
+
+    if (this.deps_.isPublisher?.()) {
+      const origin = getHttpOrigin(getCanonicalUrl(this.doc_));
+      if (origin) {
+        context.setUrl(origin);
+      }
+      return;
+    }
+
+    context.setUrl(getCanonicalUrl(this.doc_));
 
     // Default to empty, this is for investigative purposes only
     context.setUrlFromMarkup(getCanonicalTag(this.doc_) || '');
