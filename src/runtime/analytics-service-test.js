@@ -630,6 +630,46 @@ describes.realWin('AnalyticsService', (env) => {
           activityIframePort.execute.getCall(0).args[0];
       expect(request.getContext().getUrl()).to.equal('diffUrl');
     });
+
+    it('should restrict context URL to HTTP(S) origin and omit urlFromMarkup and utm params when deps.isPublisher() is true', () => {
+      const publisherRuntime = new ConfiguredRuntime(env.win, pageConfig, {
+        isPublisher: true,
+      });
+      sandbox.stub(publisherRuntime.doc(), 'getRootNode').callsFake(() => ({
+        querySelector: () => ({
+          href: 'https://www.example.com/news/article-123?utm_source=x#top',
+        }),
+      }));
+
+      const publisherAnalytics = new AnalyticsService(publisherRuntime);
+      const context = publisherAnalytics.getContext();
+
+      expect(context.getUrl()).to.equal('https://www.example.com');
+      expect(context.getUrlFromMarkup()).to.be.null;
+      expect(context.getUtmSource()).to.be.null;
+      expect(context.getUtmMedium()).to.be.null;
+      expect(context.getUtmCampaign()).to.be.null;
+      publisherAnalytics.close();
+    });
+
+    it('should omit context URL cleanly when deps.isPublisher() is true and canonical URL has no HTTP(S) origin', () => {
+      const publisherRuntime = new ConfiguredRuntime(env.win, pageConfig, {
+        isPublisher: true,
+      });
+      sandbox.stub(publisherRuntime.doc(), 'getRootNode').callsFake(() => ({
+        querySelector: () => ({href: 'about:blank'}),
+      }));
+
+      const publisherAnalytics = new AnalyticsService(publisherRuntime);
+      const context = publisherAnalytics.getContext();
+
+      expect(context.getUrl()).to.be.null;
+      expect(context.getUrlFromMarkup()).to.be.null;
+      expect(context.getUtmSource()).to.be.null;
+      expect(context.getUtmMedium()).to.be.null;
+      expect(context.getUtmCampaign()).to.be.null;
+      publisherAnalytics.close();
+    });
   });
 
   describe('Publisher Events', () => {
