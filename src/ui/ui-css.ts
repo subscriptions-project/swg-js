@@ -142,6 +142,7 @@ export const DIALOG_CSS = css`
 
   .publisher-toast {
     background-color: transparent !important;
+    color-scheme: normal !important;
     max-width: 360px !important;
   }
 

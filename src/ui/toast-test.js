@@ -247,4 +247,15 @@ describes.realWin('Toast', (env) => {
       'ease-out'
     );
   });
+
+  it('should preserve transparent background and normal color-scheme on publisher-toast when host document uses dark color-scheme', async () => {
+    win.document.documentElement.style.colorScheme = 'dark';
+    const publisherToast = new Toast(runtime, src, args, 'publisher-toast');
+
+    await publisherToast.open();
+
+    const iframeStyles = getComputedStyle(publisherToast.getElement());
+    expect(iframeStyles.backgroundColor).to.equal('rgba(0, 0, 0, 0)');
+    expect(iframeStyles.colorScheme).to.equal('normal');
+  });
 });
