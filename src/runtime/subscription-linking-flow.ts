@@ -29,6 +29,7 @@ import {
 } from '../api/subscriptions';
 import {PageConfig} from '../model/page-config';
 import {SubscriptionLinkingCompleteResponse} from '../proto/api_messages';
+import {Toast} from '../ui/toast';
 import {feArgs, feUrl} from './services';
 
 export class SubscriptionLinkingFlow {
@@ -36,6 +37,7 @@ export class SubscriptionLinkingFlow {
   private readonly win_: Window;
   private readonly pageConfig_: PageConfig;
   private readonly dialogManager_: DialogManager;
+  private activityIframeView_: ActivityIframeView | null = null;
   private completionResolver_: (result: LinkSubscriptionsResult) => void =
     () => {};
   private renderPromise_?: Promise<void>;
@@ -75,7 +77,7 @@ export class SubscriptionLinkingFlow {
       feUrl('/linksaveiframe', {
         subscriptionLinking: 'true',
       }) + `&linkTo=${linkToStr}`;
-    const activityIframeView = new ActivityIframeView(
+    this.activityIframeView_ = new ActivityIframeView(
       this.win_,
       this.activityPorts_,
       url,
@@ -84,8 +86,8 @@ export class SubscriptionLinkingFlow {
       /* shouldFadeBody= */ false
     );
 
-    activityIframeView.onCancel(() => this.onCancel(linkTo));
-    activityIframeView.on(
+    this.activityIframeView_.onCancel(() => this.onCancel(linkTo));
+    this.activityIframeView_.on(
       SubscriptionLinkingCompleteResponse,
       this.onResponse.bind(this)
     );
@@ -101,7 +103,7 @@ export class SubscriptionLinkingFlow {
 
       const config = {desktopConfig: {isCenterPositioned: false}};
       this.renderPromise_ = this.dialogManager_.openView(
-        activityIframeView,
+        this.activityIframeView_,
         /* hidden= */ false,
         config
       );
@@ -125,6 +127,17 @@ export class SubscriptionLinkingFlow {
       : AnalyticsEvent.EVENT_SUBSCRIPTION_LINKING_FAILED;
 
     this.deps_.eventManager().logSwgEvent(completionStatus);
+    if (response.getSuccess()) {
+      this.dialogManager_.completeView(this.activityIframeView_);
+      new Toast(
+        this.deps_,
+        feUrl('/toastiframe', {
+          flavor: 'subscription_linking',
+        }),
+        {},
+        'swg-subscription-linking-toast'
+      ).open();
+    }
     const linkResults = response.getLinkResultsList() || [];
     this.completionResolver_({
       anyFailure: !response.getSuccess(),
