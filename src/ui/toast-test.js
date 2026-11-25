@@ -258,4 +258,108 @@ describes.realWin('Toast', (env) => {
     expect(iframeStyles.backgroundColor).to.equal('rgba(0, 0, 0, 0)');
     expect(iframeStyles.colorScheme).to.equal('normal');
   });
+
+  it('should animate subscription linking toast with translateY on desktop', async () => {
+    sandbox
+      .stub(win, 'matchMedia')
+      .withArgs('(min-width: 641px) and (min-height: 641px)')
+      .returns({matches: true});
+    const transitionSpy = sandbox.spy(animation, 'transition');
+    const slToast = new Toast(
+      runtime,
+      src,
+      args,
+      'swg-subscription-linking-toast'
+    );
+
+    await slToast.open();
+
+    expect(transitionSpy).to.have.been.calledWith(
+      slToast.getElement(),
+      {
+        'transform': 'translateY(0)',
+        'opacity': '1',
+        'visibility': 'visible',
+      },
+      400,
+      'ease-out'
+    );
+
+    await slToast.close();
+
+    expect(transitionSpy).to.have.been.calledWith(
+      slToast.getElement(),
+      {
+        'transform': 'translateY(100%)',
+        'opacity': '1',
+        'visibility': 'visible',
+      },
+      400,
+      'ease-out'
+    );
+  });
+
+  it('should position subscription linking toast at bottom-center on desktop (LTR and RTL) with transparent background', async () => {
+    env.iframe.style.width = '800px';
+    env.iframe.style.height = '800px';
+    win.document.documentElement.style.colorScheme = 'dark';
+    const slToast = new Toast(
+      runtime,
+      src,
+      args,
+      'swg-subscription-linking-toast'
+    );
+
+    await slToast.open();
+
+    const el = slToast.getElement();
+    const iframeStyles = getComputedStyle(el);
+    expect(iframeStyles.position).to.equal('fixed');
+    expect(iframeStyles.bottom).to.equal('8px');
+    expect(iframeStyles.maxWidth).to.equal('360px');
+    expect(iframeStyles.maxHeight).to.equal('none');
+    expect(iframeStyles.backgroundColor).to.equal('rgba(0, 0, 0, 0)');
+    expect(iframeStyles.colorScheme).to.equal('normal');
+
+    const rect = el.getBoundingClientRect();
+    expect(rect.width).to.equal(360);
+    expect(Math.abs(rect.left - (win.innerWidth - rect.right))).to.be.at.most(
+      1
+    );
+
+    win.document.documentElement.setAttribute('dir', 'rtl');
+    const rtlRect = el.getBoundingClientRect();
+    expect(rtlRect.width).to.equal(360);
+    expect(
+      Math.abs(rtlRect.left - (win.innerWidth - rtlRect.right))
+    ).to.be.at.most(1);
+  });
+
+  it('should position subscription linking toast at bottom-center on phone viewports', async () => {
+    env.iframe.style.width = '375px';
+    env.iframe.style.height = '667px';
+    const slToast = new Toast(
+      runtime,
+      src,
+      args,
+      'swg-subscription-linking-toast'
+    );
+
+    await slToast.open();
+
+    const el = slToast.getElement();
+    expect(getComputedStyle(el).bottom).to.equal('0px');
+    const rect = el.getBoundingClientRect();
+    expect(rect.width).to.equal(360);
+    expect(Math.abs(rect.left - (win.innerWidth - rect.right))).to.be.at.most(
+      1
+    );
+
+    env.iframe.style.width = '320px';
+    env.iframe.style.height = '568px';
+    const smallRect = el.getBoundingClientRect();
+    expect(smallRect.width).to.equal(320);
+    expect(smallRect.left).to.equal(0);
+    expect(smallRect.right).to.equal(320);
+  });
 });

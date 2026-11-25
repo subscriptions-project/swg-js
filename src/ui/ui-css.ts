@@ -131,7 +131,8 @@ export const DIALOG_CSS = css`
   /** Common styles across all window sizes. */
   .swg-dialog,
   .swg-toast,
-  .publisher-toast {
+  .publisher-toast,
+  .swg-subscription-linking-toast {
     box-sizing: border-box;
   }
 
@@ -140,18 +141,27 @@ export const DIALOG_CSS = css`
     max-height: 46px !important;
   }
 
-  .publisher-toast {
+  .publisher-toast,
+  .swg-subscription-linking-toast {
     background-color: transparent !important;
     color-scheme: normal !important;
     max-width: 360px !important;
   }
 
   .swg-toast,
-  .publisher-toast {
+  .publisher-toast,
+  .swg-subscription-linking-toast {
     position: fixed !important;
     bottom: 0 !important;
     z-index: 2147483647 !important;
     border: none !important;
+  }
+
+  .swg-subscription-linking-toast {
+    width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    margin: 0 auto !important;
   }
 
   /**
@@ -228,6 +238,10 @@ export const DIALOG_CSS = css`
     .publisher-toast {
       bottom: 8px !important;
       right: 30px !important;
+    }
+
+    .swg-subscription-linking-toast {
+      bottom: 8px !important;
     }
   }
 

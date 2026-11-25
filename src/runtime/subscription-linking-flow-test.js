@@ -23,6 +23,7 @@ import {
   SubscriptionLinkingLinkResult,
 } from '../proto/api_messages';
 import {SubscriptionLinkingFlow} from './subscription-linking-flow';
+import {Toast} from '../ui/toast';
 
 describes.realWin('SubscriptionLinkingFlow', (env) => {
   let win;
@@ -32,6 +33,8 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
   let messageMap;
   let subscriptionLinkingFlow;
   let cancelCallback;
+  let toastOpenStub;
+  let openedToast;
 
   const PUBLICATION_ID = 'pub1';
   let REQUEST;
@@ -45,6 +48,13 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
     dialogManagerMock = sandbox.mock(runtime.dialogManager());
     activitiesMock = sandbox.mock(runtime.activities());
     messageMap = {};
+    openedToast = null;
+    toastOpenStub = sandbox
+      .stub(Toast.prototype, 'open')
+      .callsFake(function () {
+        openedToast = this;
+        return Promise.resolve();
+      });
     sandbox.stub(ActivityIframeView.prototype, 'on').callsFake((ctor, cb) => {
       const messageType = new ctor();
       const label = messageType.label();
@@ -142,8 +152,18 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
   });
 
   describe('singular on SubscriptionLinkingCompleteResponse', () => {
-    it('resolves promise with response data', async () => {
-      dialogManagerMock.expects('openView').once().resolves();
+    it('resolves promise with response data, closes view, and opens confirmation toast', async () => {
+      let openedView;
+      dialogManagerMock
+        .expects('openView')
+        .once()
+        .callsFake(async (viewArg) => {
+          openedView = viewArg;
+        });
+      dialogManagerMock
+        .expects('completeView')
+        .once()
+        .withExactArgs(sandbox.match((viewArg) => viewArg === openedView));
       const linkResult = new SubscriptionLinkingLinkResult();
       linkResult.setSuccess(true);
       linkResult.setSwgPublicationId(PUBLICATION_ID);
@@ -162,10 +182,20 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
         publisherProvidedId: 'ppid',
         success: true,
       });
+      dialogManagerMock.verify();
+      expect(toastOpenStub).to.have.been.calledOnce;
+      expect(openedToast.src_).to.equal(
+        'https://news.google.com/swg/ui/v1/toastiframe?_=_&flavor=subscription_linking'
+      );
+      expect(openedToast.args_).to.deep.equal({});
+      expect(openedToast.getElement().className).to.equal(
+        'swg-subscription-linking-toast'
+      );
     });
 
-    it('resolves with success=false if missing from response', async () => {
+    it('resolves with success=false if missing from response without closing view or opening toast', async () => {
       dialogManagerMock.expects('openView').once().resolves();
+      dialogManagerMock.expects('completeView').never();
       const linkResult = new SubscriptionLinkingLinkResult();
       linkResult.setSwgPublicationId(PUBLICATION_ID);
       linkResult.setPublisherProvidedId('ppid');
@@ -184,6 +214,8 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
         publisherProvidedId: 'ppid',
         success: false,
       });
+      dialogManagerMock.verify();
+      expect(toastOpenStub).to.not.have.been.called;
     });
 
     it('throws an error when rejected', async () => {
@@ -222,8 +254,18 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
       expectedResponse.setPublisherProvidedId('ppid');
     });
 
-    it('resolves promise with response data', async () => {
-      dialogManagerMock.expects('openView').once().resolves();
+    it('resolves promise with response data, closes view, and opens confirmation toast', async () => {
+      let openedView;
+      dialogManagerMock
+        .expects('openView')
+        .once()
+        .callsFake(async (viewArg) => {
+          openedView = viewArg;
+        });
+      dialogManagerMock
+        .expects('completeView')
+        .once()
+        .withExactArgs(sandbox.match((viewArg) => viewArg === openedView));
 
       const resultPromise =
         subscriptionLinkingFlow.startMultipleLinks(MULTI_REQUEST);
@@ -247,10 +289,20 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
           },
         ],
       });
+      dialogManagerMock.verify();
+      expect(toastOpenStub).to.have.been.calledOnce;
+      expect(openedToast.src_).to.equal(
+        'https://news.google.com/swg/ui/v1/toastiframe?_=_&flavor=subscription_linking'
+      );
+      expect(openedToast.args_).to.deep.equal({});
+      expect(openedToast.getElement().className).to.equal(
+        'swg-subscription-linking-toast'
+      );
     });
 
-    it('resolves with success=false on failure', async () => {
+    it('resolves with success=false on failure without closing view or opening toast', async () => {
       dialogManagerMock.expects('openView').once().resolves();
+      dialogManagerMock.expects('completeView').never();
 
       expectedResults[0].setSuccess(false);
       // This ensures it defaults null to false.
@@ -280,6 +332,43 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
           },
         ],
       });
+      dialogManagerMock.verify();
+      expect(toastOpenStub).to.not.have.been.called;
+    });
+
+    it('does not close view or open toast on partial success', async () => {
+      dialogManagerMock.expects('openView').once().resolves();
+      dialogManagerMock.expects('completeView').never();
+
+      expectedResults[0].setSuccess(true);
+      expectedResults[1].setSuccess(false);
+      expectedResponse.setLinkResultsList(expectedResults);
+      expectedResponse.setSuccess(false);
+
+      const resultPromise =
+        subscriptionLinkingFlow.startMultipleLinks(MULTI_REQUEST);
+      const handler = messageMap[expectedResponse.label()];
+      handler(expectedResponse);
+
+      const result = await resultPromise;
+      expect(result).to.deep.equal({
+        anyFailure: true,
+        anySuccess: true,
+        links: [
+          {
+            publicationId: PUBLICATION_ID,
+            publisherProvidedId: 'ppid',
+            success: true,
+          },
+          {
+            publicationId: PUBLICATION_ID + '2',
+            publisherProvidedId: 'ppid2',
+            success: false,
+          },
+        ],
+      });
+      dialogManagerMock.verify();
+      expect(toastOpenStub).to.not.have.been.called;
     });
 
     it('handles no link results', async () => {
@@ -337,5 +426,6 @@ describes.realWin('SubscriptionLinkingFlow', (env) => {
         },
       ],
     });
+    expect(toastOpenStub).to.not.have.been.called;
   });
 });
